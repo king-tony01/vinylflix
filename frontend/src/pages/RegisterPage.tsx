@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
-import { PlaySquare, Lock, Mail, User, Tag, AlertCircle, ArrowRight } from 'lucide-react';
+import { VinylflixLogo } from '../components/VinylflixLogo.js';
+import { Lock, Mail, User, Tag, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -53,14 +54,14 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full bg-slate-900 rounded-3xl border border-slate-800 p-8 shadow-2xl space-y-6">
+      <div className="max-w-md w-full bg-slate-900/90 backdrop-blur-xl rounded-3xl border border-slate-800/80 p-8 shadow-2xl space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-            <PlaySquare className="w-6 h-6 text-slate-950 fill-current" />
+          <div className="w-14 h-14 mx-auto flex items-center justify-center">
+            <VinylflixLogo className="w-12 h-12 drop-shadow-[0_0_16px_rgba(255,0,145,0.45)]" />
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight">Create an Account</h2>
-          <p className="text-xs text-slate-400">Join the content attention and reward economy</p>
+          <p className="text-xs text-slate-400">Join the Vinylflix rewarded content and video ecosystem</p>
         </div>
 
         {error && (
@@ -80,7 +81,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="John Doe"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0091] transition-colors"
               />
             </div>
           </div>
@@ -93,7 +94,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="johndoe"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0091] transition-colors"
                 required
               />
             </div>
@@ -105,7 +106,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="08012345678"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0091] transition-colors"
               />
             </div>
           </div>
@@ -119,7 +120,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0091] transition-colors"
                 required
               />
             </div>
@@ -134,7 +135,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0091] transition-colors"
                 required
               />
             </div>
@@ -151,7 +152,7 @@ export const RegisterPage: React.FC = () => {
                 placeholder="ABC12345"
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value.toUpperCase())}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white font-mono uppercase focus:outline-none focus:border-[#FF0091] transition-colors"
               />
             </div>
           </div>
@@ -159,7 +160,7 @@ export const RegisterPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-2"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2 mt-2"
           >
             {loading ? 'Creating Account...' : 'Complete Registration'}
             <ArrowRight className="w-4 h-4" />
@@ -169,7 +170,7 @@ export const RegisterPage: React.FC = () => {
         <div className="text-center pt-2">
           <p className="text-xs text-slate-400">
             Already have an account?{' '}
-            <Link to="/login" className="text-emerald-400 font-bold hover:underline">
+            <Link to="/login" className="text-pink-400 font-bold hover:underline">
               Log in here
             </Link>
           </p>

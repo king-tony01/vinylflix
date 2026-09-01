@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
-import { PlaySquare, Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
+import { VinylflixLogo } from '../components/VinylflixLogo.js';
+import { Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,14 +38,14 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full bg-slate-900 rounded-3xl border border-slate-800 p-8 shadow-2xl space-y-6">
+      <div className="max-w-md w-full bg-slate-900/90 backdrop-blur-xl rounded-3xl border border-slate-800/80 p-8 shadow-2xl space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/20">
-            <PlaySquare className="w-6 h-6 text-slate-950 fill-current" />
+          <div className="w-14 h-14 mx-auto flex items-center justify-center">
+            <VinylflixLogo className="w-12 h-12 drop-shadow-[0_0_16px_rgba(255,0,145,0.45)]" />
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight">Welcome Back</h2>
-          <p className="text-xs text-slate-400">Sign in to your account to continue earning</p>
+          <p className="text-xs text-slate-400">Sign in to your Vinylflix account to continue earning</p>
         </div>
 
         {error && (
@@ -64,7 +65,7 @@ export const LoginPage: React.FC = () => {
                 placeholder="you@example.com"
                 value={loginInput}
                 onChange={(e) => setLoginInput(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FF0091] transition-colors"
                 required
               />
             </div>
@@ -79,7 +80,7 @@ export const LoginPage: React.FC = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-[#FF0091] transition-colors"
                 required
               />
             </div>
@@ -88,7 +89,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
           >
             {loading ? 'Signing in...' : 'Sign In'}
             <ArrowRight className="w-4 h-4" />
@@ -98,7 +99,7 @@ export const LoginPage: React.FC = () => {
         <div className="text-center pt-2">
           <p className="text-xs text-slate-400">
             Don't have an account?{' '}
-            <Link to="/register" className="text-emerald-400 font-bold hover:underline">
+            <Link to="/register" className="text-pink-400 font-bold hover:underline">
               Register now
             </Link>
           </p>

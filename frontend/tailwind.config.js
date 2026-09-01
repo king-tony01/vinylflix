@@ -7,13 +7,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
+        vinyl: {
+          pink: '#FF0091',
+          purple: '#360099',
+          violet: '#7928CA',
+          magenta: '#E0007E',
+          dark: '#0e001f',
+          surface: '#15002e',
         },
+        brand: {
+          50: '#fdf2f8',
+          100: '#fce7f3',
+          500: '#FF0091',
+          600: '#db007c',
+          700: '#b80068',
+        },
+      },
+      backgroundImage: {
+        'vinyl-gradient': 'linear-gradient(135deg, #FF0091 0%, #7928CA 50%, #360099 100%)',
+        'vinyl-glow': 'radial-gradient(circle at 50% 0%, rgba(255, 0, 145, 0.18), transparent 70%)',
       },
     },
   },

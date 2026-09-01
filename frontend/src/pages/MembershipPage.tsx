@@ -79,7 +79,7 @@ export const MembershipPage: React.FC = () => {
         return;
       }
 
-      // If simulated or direct settlement in dev
+      // If direct settlement in dev
       if (reference) {
         const verifyRes = await apiRequest(`/payments/verify/${encodeURIComponent(reference)}`);
         if (verifyRes.success) {
@@ -123,7 +123,7 @@ export const MembershipPage: React.FC = () => {
       {/* Loading Indicator */}
       {loading && (
         <div className="text-center py-12 text-slate-500 text-xs flex items-center justify-center gap-2">
-          <Sparkles className="w-4 h-4 animate-spin text-emerald-400" /> Loading membership tiers...
+          <Sparkles className="w-4 h-4 animate-spin text-[#FF0091]" /> Loading membership tiers...
         </div>
       )}
 
@@ -137,18 +137,19 @@ export const MembershipPage: React.FC = () => {
             } catch {}
 
             const isCurrentPlan = user?.activeMembership?.planId === plan.id;
+            const isFeatured = plan.tier === 'BASIC' || plan.tier === 'PREMIUM';
 
             return (
               <div
                 key={plan.id}
                 className={`rounded-2xl border p-6 flex flex-col justify-between transition-all duration-300 relative ${
-                  plan.tier === 'BASIC'
-                    ? 'bg-gradient-to-b from-slate-900 via-slate-900 to-emerald-950/20 border-emerald-500/40 shadow-xl shadow-emerald-500/5 ring-1 ring-emerald-500/30'
+                  isFeatured
+                    ? 'bg-gradient-to-b from-slate-900 via-slate-900 to-[#360099]/20 border-[#FF0091]/40 shadow-xl shadow-[#FF0091]/5 ring-1 ring-[#FF0091]/30'
                     : 'bg-slate-900/80 border-slate-800 hover:border-slate-700 shadow-lg'
                 }`}
               >
                 {plan.tier === 'BASIC' && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-slate-950 text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#FF0091] to-[#360099] text-white text-[10px] font-black uppercase tracking-wider px-3 py-0.5 rounded-full shadow-md shadow-[#FF0091]/30">
                     Most Popular
                   </div>
                 )}
@@ -168,12 +169,12 @@ export const MembershipPage: React.FC = () => {
 
                   {/* Conditional Reward Highlight */}
                   {plan.conditionalRewardAmount > 0 && (
-                    <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs">
-                      <div className="flex items-center gap-1.5 font-bold text-amber-300">
-                        <Lock className="w-3.5 h-3.5" />
+                    <div className="mt-4 p-3 rounded-xl bg-pink-500/10 border border-pink-500/20 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-pink-300">
+                        <Lock className="w-3.5 h-3.5 text-[#FF0091]" />
                         ₦{plan.conditionalRewardAmount.toLocaleString()} Locked Reward
                       </div>
-                      <p className="text-[11px] text-amber-400/80 mt-1">
+                      <p className="text-[11px] text-pink-400/80 mt-1">
                         Unlocks to available balance upon {plan.referralRequirementCount} qualified referrals.
                       </p>
                     </div>
@@ -183,7 +184,7 @@ export const MembershipPage: React.FC = () => {
                   <div className="mt-6 space-y-3">
                     {benefits.map((b, idx) => (
                       <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
-                        <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                        <Check className="w-4 h-4 text-[#FF0091] flex-shrink-0 mt-0.5" />
                         <span>{b}</span>
                       </div>
                     ))}
@@ -192,7 +193,7 @@ export const MembershipPage: React.FC = () => {
 
                 <div className="mt-8 pt-4 border-t border-slate-800">
                   {isCurrentPlan ? (
-                    <div className="w-full py-2.5 rounded-xl bg-slate-800 text-emerald-400 text-xs font-bold text-center border border-emerald-500/30 flex items-center justify-center gap-1.5">
+                    <div className="w-full py-2.5 rounded-xl bg-slate-800 text-pink-400 text-xs font-bold text-center border border-pink-500/30 flex items-center justify-center gap-1.5">
                       <Check className="w-4 h-4" /> Active Plan
                     </div>
                   ) : plan.price === 0 ? (
@@ -204,8 +205,8 @@ export const MembershipPage: React.FC = () => {
                       onClick={() => handlePurchase(plan)}
                       disabled={purchasingPlanId === plan.id}
                       className={`w-full py-2.5 rounded-xl font-bold text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${
-                        plan.tier === 'BASIC'
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98]'
+                        isFeatured
+                          ? 'bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white shadow-[#FF0091]/20 hover:scale-[1.02] active:scale-[0.98]'
                           : 'bg-slate-800 hover:bg-slate-700 text-white'
                       }`}
                     >
