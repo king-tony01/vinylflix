@@ -161,7 +161,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         }`}
       >
         <Link to="/" className="flex items-center gap-2 pointer-events-auto">
-          <VinylflixLogo className="w-7 h-7 drop-shadow-[0_0_12px_rgba(255,0,145,0.4)]" />
+          <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
+            <VinylflixLogo className="w-8 h-8 flex-shrink-0 drop-shadow-[0_0_12px_rgba(255,0,145,0.4)]" />
+          </div>
           <span className="font-black text-lg text-white tracking-tight">Vinylflix</span>
         </Link>
 

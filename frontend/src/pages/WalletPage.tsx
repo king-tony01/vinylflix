@@ -99,33 +99,31 @@ export const WalletPage: React.FC = () => {
       };
     } else {
       setResolvedName(null);
+      setResolvingAccount(false);
     }
   }, [accountNumber, selectedBankCode]);
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
-    setWithdrawLoading(true);
     setWithdrawMessage(null);
-
     const amountNum = parseFloat(withdrawAmount);
+
     if (isNaN(amountNum) || amountNum < 2000) {
       setWithdrawMessage({ type: 'error', text: 'Minimum withdrawal amount is ₦2,000' });
-      setWithdrawLoading(false);
       return;
     }
 
-    if (!accountNumber || accountNumber.length < 10) {
-      setWithdrawMessage({ type: 'error', text: 'Please enter a valid 10-digit account number' });
-      setWithdrawLoading(false);
+    if (accountNumber.length !== 10) {
+      setWithdrawMessage({ type: 'error', text: 'Account number must be exactly 10 digits' });
       return;
     }
 
-    if (!accountName) {
-      setWithdrawMessage({ type: 'error', text: 'Please enter the verified bank account holder name' });
-      setWithdrawLoading(false);
+    if (!accountName.trim()) {
+      setWithdrawMessage({ type: 'error', text: 'Please ensure account holder name is verified' });
       return;
     }
 
+    setWithdrawLoading(true);
     const res = await apiRequest('/withdrawals', {
       method: 'POST',
       body: JSON.stringify({
@@ -169,17 +167,17 @@ export const WalletPage: React.FC = () => {
         return {
           title: 'Watched Video Reward',
           icon: PlaySquare,
-          iconBg: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+          iconBg: 'bg-pink-500/10 text-pink-400 border border-pink-500/20',
           amountPrefix: '+',
-          amountColor: 'text-emerald-400',
+          amountColor: 'text-pink-400',
         };
       case 'REFERRAL_BONUS':
         return {
           title: 'Referral Milestone Bonus',
           icon: Users,
-          iconBg: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
+          iconBg: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
           amountPrefix: '+',
-          amountColor: 'text-sky-400',
+          amountColor: 'text-purple-400',
         };
       case 'WITHDRAWAL_HOLD':
       case 'WITHDRAWAL_PAYOUT':
@@ -211,10 +209,10 @@ export const WalletPage: React.FC = () => {
           title: tx.description || 'Transaction',
           icon: isCredit ? ArrowDownLeft : ArrowUpRight,
           iconBg: isCredit
-            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
             : 'bg-slate-800 text-slate-400 border border-slate-700',
           amountPrefix: isCredit ? '+' : '-',
-          amountColor: isCredit ? 'text-emerald-400' : 'text-slate-300',
+          amountColor: isCredit ? 'text-pink-400' : 'text-slate-300',
         };
     }
   };
@@ -225,7 +223,7 @@ export const WalletPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <WalletIcon className="w-8 h-8 text-emerald-400" />
+            <WalletIcon className="w-8 h-8 text-[#FF0091]" />
             Wallet & Earnings
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -240,7 +238,7 @@ export const WalletPage: React.FC = () => {
               setShowWithdrawModal(true);
             }}
             disabled={availableBal < 2000}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-[#FF0091]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
             <Landmark className="w-4 h-4" /> Request Payout
           </button>
@@ -251,7 +249,7 @@ export const WalletPage: React.FC = () => {
         <div
           className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2.5 animate-in fade-in ${
             withdrawMessage.type === 'success'
-              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+              ? 'bg-pink-500/10 border border-pink-500/30 text-pink-300'
               : 'bg-rose-500/10 border border-rose-500/30 text-rose-300'
           }`}
         >
@@ -267,12 +265,12 @@ export const WalletPage: React.FC = () => {
       {/* Balance Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {/* 1. Available Balance */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/30 border border-emerald-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-[#360099]/30 border border-pink-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-              <Unlock className="w-3.5 h-3.5" /> Available for Payout
+            <span className="text-xs font-bold uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
+              <Unlock className="w-3.5 h-3.5 text-[#FF0091]" /> Available for Payout
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30">
               Instant Payout
             </span>
           </div>
@@ -285,17 +283,17 @@ export const WalletPage: React.FC = () => {
         </div>
 
         {/* 2. Locked Milestone Bonus */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/20 border border-amber-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-[#360099]/20 border border-purple-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Locked Bonus
+            <span className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-purple-400" /> Locked Bonus
             </span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
               Conditional
             </span>
           </div>
           <div className="flex items-baseline gap-1 mt-2">
-            <span className="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight">
+            <span className="text-3xl sm:text-4xl font-black text-purple-300 tracking-tight">
               ₦{lockedBal.toLocaleString()}
             </span>
           </div>
@@ -307,7 +305,7 @@ export const WalletPage: React.FC = () => {
         {/* 3. Pending Payouts / In-Transit */}
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl sm:col-span-2 lg:col-span-1">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" /> In-Transit & Processing
             </span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
@@ -327,7 +325,7 @@ export const WalletPage: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
           <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Total Earned</p>
-          <p className="text-xl font-bold text-emerald-400 mt-1">₦{totalEarned.toLocaleString()}</p>
+          <p className="text-xl font-bold text-pink-400 mt-1">₦{totalEarned.toLocaleString()}</p>
         </div>
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
           <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Total Withdrawn</p>
@@ -336,7 +334,7 @@ export const WalletPage: React.FC = () => {
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
           <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Membership Status</p>
           <p className="text-sm font-bold text-white mt-1.5 flex items-center gap-1.5">
-            <Crown className="w-4 h-4 text-emerald-400" />
+            <Crown className="w-4 h-4 text-[#FF0091]" />
             <span>{user?.activeMembership?.plan?.name || 'Free Starter'}</span>
           </p>
         </div>
@@ -348,55 +346,40 @@ export const WalletPage: React.FC = () => {
 
       {/* Conditional Reward Progress (If user has locked reward) */}
       {lockedBal > 0 && walletData?.referralStats && (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-amber-400" />
-              Locked Bonus Unlock Progress
-            </h3>
-            <span className="text-xs font-semibold text-amber-400">
-              {walletData.referralStats.qualifiedCount} / {walletData.referralStats.targetRequirement} Qualified Referrals
-            </span>
-          </div>
-
-          <RewardProgressBar
-            amount={lockedBal}
-            qualifiedCount={walletData.referralStats.qualifiedCount}
-            targetCount={walletData.referralStats.targetRequirement}
-            isUnlocked={lockedBal === 0}
-          />
-
-          <p className="text-xs text-slate-400">
-            Invite friends using your referral link. Once {walletData.referralStats.targetRequirement} friends activate an eligible membership, your ₦{lockedBal.toLocaleString()} locked bonus will automatically unlock to your Available Balance.
-          </p>
-        </div>
+        <RewardProgressBar
+          amount={lockedBal}
+          qualifiedCount={walletData.referralStats.qualifiedReferralsCount || 0}
+          targetCount={walletData.referralStats.milestoneTargetCount || 10}
+          isUnlocked={lockedBal === 0 && totalEarned > 0}
+        />
       )}
 
-      {/* Transaction Activity List */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      {/* Recent Immutable Ledger Transactions Table */}
+      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-white">Recent Transactions</h3>
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FF0091]" /> Immutable Ledger Records
+            </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Transparent history of all reward credits, bonuses, and payouts.
+              Cryptographically verified, double-entry financial ledger entries.
             </p>
           </div>
           <button
             onClick={fetchWallet}
-            title="Refresh Transactions"
+            disabled={loading}
             className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            title="Refresh Transactions"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#FF0091]' : ''}`} />
           </button>
         </div>
 
         <div className="divide-y divide-slate-800/60">
-          {loading ? (
-            <div className="p-8 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> Loading transactions...
-            </div>
+          {loading && transactions.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-500">Loading ledger records...</div>
           ) : transactions.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 space-y-2">
+            <div className="p-12 text-center text-slate-500 space-y-1">
               <p className="text-xs">No transactions recorded yet.</p>
               <p className="text-[11px] text-slate-600">
                 Watch rewarded videos or refer members to begin earning cash rewards.
@@ -431,10 +414,10 @@ export const WalletPage: React.FC = () => {
                           <span
                             className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
                               tx.bucket === 'AVAILABLE'
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
                                 : tx.bucket === 'LOCKED'
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                                : 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+                                ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                                : 'bg-slate-800 text-slate-400 border border-slate-700'
                             }`}
                           >
                             {tx.bucket}
@@ -452,7 +435,7 @@ export const WalletPage: React.FC = () => {
                     <p className={`text-base font-black tracking-tight ${meta.amountColor}`}>
                       {meta.amountPrefix}₦{tx.amount.toLocaleString()}
                     </p>
-                    <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">
+                    <span className="text-[10px] text-pink-400 font-semibold uppercase tracking-wider">
                       Completed
                     </span>
                   </div>
@@ -469,7 +452,7 @@ export const WalletPage: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Landmark className="w-5 h-5 text-emerald-400" /> Bank Payout Request
+                <Landmark className="w-5 h-5 text-[#FF0091]" /> Bank Payout Request
               </h3>
               <button
                 onClick={() => setShowWithdrawModal(false)}
@@ -494,7 +477,7 @@ export const WalletPage: React.FC = () => {
                     step="100"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                     required
                   />
                 </div>
@@ -506,7 +489,7 @@ export const WalletPage: React.FC = () => {
               {/* Real Bank Selector Dropdown */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
-                  <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Select Bank
+                  <Building2 className="w-3.5 h-3.5 text-[#FF0091]" /> Select Bank
                 </label>
                 <select
                   value={selectedBankCode}
@@ -515,7 +498,7 @@ export const WalletPage: React.FC = () => {
                     const b = banks.find((item) => item.code === e.target.value);
                     if (b) setBankName(b.name);
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                 >
                   {banks.map((b) => (
                     <option key={b.code} value={b.code}>
@@ -536,18 +519,18 @@ export const WalletPage: React.FC = () => {
                   placeholder="0123456789"
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-[#FF0091]"
                   required
                 />
 
                 {/* Real-time Account Resolution Feedback */}
                 {resolvingAccount ? (
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1.5">
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" /> Verifying account with bank...
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#FF0091]" /> Verifying account with bank...
                   </div>
                 ) : resolvedName ? (
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold mt-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Verified: {resolvedName}
+                  <div className="flex items-center gap-1.5 text-xs text-pink-300 font-bold mt-1.5 bg-pink-500/10 px-2.5 py-1 rounded-lg border border-pink-500/20">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#FF0091]" /> Verified: {resolvedName}
                   </div>
                 ) : null}
               </div>
@@ -562,7 +545,7 @@ export const WalletPage: React.FC = () => {
                   placeholder="Verified Name"
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                   required
                 />
               </div>
@@ -576,7 +559,7 @@ export const WalletPage: React.FC = () => {
                   <span>Processing Fee (5%):</span>
                   <span>₦{(parseFloat(withdrawAmount || '0') * 0.05).toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between pt-1 border-t border-slate-900 text-emerald-400 font-bold">
+                <div className="flex justify-between pt-1 border-t border-slate-900 text-pink-400 font-bold">
                   <span>Net Bank Credit:</span>
                   <span>₦{(parseFloat(withdrawAmount || '0') * 0.95).toLocaleString()}</span>
                 </div>
@@ -585,7 +568,7 @@ export const WalletPage: React.FC = () => {
               <button
                 type="submit"
                 disabled={withdrawLoading || parseFloat(withdrawAmount) > availableBal}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
               >
                 {withdrawLoading ? (
                   <>

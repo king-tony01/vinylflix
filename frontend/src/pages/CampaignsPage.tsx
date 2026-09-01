@@ -140,7 +140,7 @@ export const CampaignsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-            Campaigns & Promotion Hub <Layers className="w-6 h-6 text-indigo-400" />
+            Campaigns & Promotion Hub <Layers className="w-6 h-6 text-[#FF0091]" />
           </h1>
           <p className="text-sm text-slate-400 mt-1">
             Connect YouTube channels or import video links, set targeted watch rewards, and promote your videos.
@@ -159,7 +159,7 @@ export const CampaignsPage: React.FC = () => {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Create Campaign
@@ -177,7 +177,7 @@ export const CampaignsPage: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-white">{connectedChannel.channelTitle}</h3>
-                <span className="text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                <span className="text-[10px] font-semibold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
                   CONNECTED
                 </span>
               </div>
@@ -191,8 +191,8 @@ export const CampaignsPage: React.FC = () => {
 
       {/* Success Notification Banner */}
       {formSuccess && (
-        <div className="p-4 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+        <div className="p-4 rounded-xl border bg-pink-500/10 border-pink-500/30 text-pink-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-[#FF0091] flex-shrink-0" />
           <span>{formSuccess}</span>
         </div>
       )}
@@ -240,7 +240,7 @@ export const CampaignsPage: React.FC = () => {
                     <span
                       className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
                         c.status === 'ACTIVE'
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          ? 'bg-pink-500/10 text-[#FF0091] border border-pink-500/20'
                           : c.status === 'PENDING_REVIEW'
                           ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                           : 'bg-slate-800 text-slate-400'
@@ -258,14 +258,14 @@ export const CampaignsPage: React.FC = () => {
                       </span>
                     </div>
                     <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden">
-                      <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${spentPercent}%` }} />
+                      <div className="h-full bg-gradient-to-r from-[#FF0091] to-[#360099] rounded-full transition-all" style={{ width: `${spentPercent}%` }} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-center">
                     <div className="bg-slate-950/60 p-2 rounded-xl">
                       <span className="text-[10px] text-slate-500 uppercase font-bold">Reward/View</span>
-                      <p className="text-xs font-bold text-emerald-400">₦{c.rewardPerQualifiedView}</p>
+                      <p className="text-xs font-bold text-pink-400">₦{c.rewardPerQualifiedView}</p>
                     </div>
                     <div className="bg-slate-950/60 p-2 rounded-xl">
                       <span className="text-[10px] text-slate-500 uppercase font-bold">Min Watch</span>
@@ -289,7 +289,7 @@ export const CampaignsPage: React.FC = () => {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-800 pb-4">
               <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-emerald-400" />
+                <Plus className="w-5 h-5 text-[#FF0091]" />
                 Launch New Video Campaign
               </h3>
               <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white text-sm font-semibold">
@@ -299,8 +299,8 @@ export const CampaignsPage: React.FC = () => {
 
             {/* Quick Import from YouTube URL */}
             <div className="p-4 rounded-xl bg-slate-950 border border-slate-800/80 space-y-2.5">
-              <label className="block text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                <LinkIcon className="w-3.5 h-3.5" /> Paste Any YouTube Video URL / Link
+              <label className="block text-xs font-bold text-pink-400 flex items-center gap-1.5">
+                <LinkIcon className="w-3.5 h-3.5 text-[#FF0091]" /> Paste Any YouTube Video URL / Link
               </label>
               <div className="flex gap-2">
                 <input
@@ -308,13 +308,13 @@ export const CampaignsPage: React.FC = () => {
                   placeholder="https://www.youtube.com/watch?v=..."
                   value={videoUrlInput}
                   onChange={(e) => setVideoUrlInput(e.target.value)}
-                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-emerald-500"
+                  className="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-[#FF0091]"
                 />
                 <button
                   type="button"
                   onClick={handleImportVideo}
                   disabled={importingVideo || !videoUrlInput.trim()}
-                  className="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold disabled:opacity-50 transition-all flex items-center gap-1.5"
+                  className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white text-xs font-bold disabled:opacity-50 transition-all flex items-center gap-1.5"
                 >
                   {importingVideo ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5" />}
                   Verify & Import
@@ -324,11 +324,11 @@ export const CampaignsPage: React.FC = () => {
 
             {/* Imported Video Preview Card */}
             {importedVideo && (
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-emerald-500/30">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-pink-500/30">
                 <img src={importedVideo.thumbnailUrl} alt={importedVideo.title} className="w-16 h-12 object-cover rounded-lg flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-white truncate">{importedVideo.title}</p>
-                  <p className="text-[11px] text-emerald-400 font-semibold">{importedVideo.durationSeconds}s Duration • Verified Public</p>
+                  <p className="text-[11px] text-pink-400 font-semibold">{importedVideo.durationSeconds}s Duration • Verified Public</p>
                 </div>
               </div>
             )}
@@ -341,7 +341,7 @@ export const CampaignsPage: React.FC = () => {
                   placeholder="e.g. Summer App Showcase Promotion"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                   required
                 />
               </div>
@@ -353,7 +353,7 @@ export const CampaignsPage: React.FC = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={2}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                 />
               </div>
 
@@ -362,7 +362,7 @@ export const CampaignsPage: React.FC = () => {
                 <select
                   value={selectedVideoId}
                   onChange={(e) => setSelectedVideoId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                   required
                 >
                   {syncedVideos.length === 0 ? (
@@ -386,7 +386,7 @@ export const CampaignsPage: React.FC = () => {
                     step="1000"
                     value={totalBudget}
                     onChange={(e) => setTotalBudget(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                     required
                   />
                 </div>
@@ -399,7 +399,7 @@ export const CampaignsPage: React.FC = () => {
                     step="1"
                     value={rewardPerView}
                     onChange={(e) => setRewardPerView(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                     required
                   />
                 </div>
@@ -414,7 +414,7 @@ export const CampaignsPage: React.FC = () => {
                     max="300"
                     value={minWatchSeconds}
                     onChange={(e) => setMinWatchSeconds(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                     required
                   />
                 </div>
@@ -427,7 +427,7 @@ export const CampaignsPage: React.FC = () => {
                     max="100"
                     value={dailyLimit}
                     onChange={(e) => setDailyLimit(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
                     required
                   />
                 </div>
@@ -442,7 +442,7 @@ export const CampaignsPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.99] transition-all"
               >
                 Submit Campaign for Review
               </button>

@@ -44,16 +44,16 @@ export const ReferralPage: React.FC = () => {
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
-          Referral Program & Milestones <Users className="w-6 h-6 text-sky-400" />
+          Referral Program & Milestones <Users className="w-6 h-6 text-[#FF0091]" />
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Invite new members to the platform. Server-verified qualified referrals unlock your conditional membership bonus.
+          Invite new members to Vinylflix. Server-verified qualified referrals unlock your conditional membership bonus.
         </p>
       </div>
 
       {loading && (
         <div className="text-center py-2 text-xs text-slate-500 flex items-center justify-center gap-2">
-          <Clock className="w-3.5 h-3.5 animate-spin text-sky-400" /> Loading referral statistics...
+          <Clock className="w-3.5 h-3.5 animate-spin text-[#FF0091]" /> Loading referral statistics...
         </div>
       )}
 
@@ -69,11 +69,11 @@ export const ReferralPage: React.FC = () => {
       )}
 
       {/* Share Link & Referral Code Box */}
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl">
+      <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-6 shadow-xl backdrop-blur-xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-              <Share2 className="w-4 h-4" />
+            <span className="text-xs font-bold uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
+              <Share2 className="w-4 h-4 text-[#FF0091]" />
               Your Unique Referral Link
             </span>
             <h3 className="text-lg font-bold text-white mt-1">Share & Earn Milestone Rewards</h3>
@@ -87,7 +87,7 @@ export const ReferralPage: React.FC = () => {
               </div>
               <button
                 onClick={copyToClipboard}
-                className="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 transition-all"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-[#FF0091]/25 flex items-center gap-1.5 transition-all"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 {copied ? 'Copied!' : 'Copy Link'}
@@ -97,7 +97,7 @@ export const ReferralPage: React.FC = () => {
 
           <div className="bg-slate-950/60 rounded-xl p-5 border border-slate-800/80 flex flex-col items-center justify-center text-center">
             <span className="text-xs text-slate-400 font-semibold">Your Referral Code</span>
-            <span className="text-3xl font-black text-white font-mono tracking-widest mt-1 text-emerald-400">
+            <span className="text-3xl font-black font-mono tracking-widest mt-1 text-[#FF0091]">
               {referralCode}
             </span>
             <span className="text-[11px] text-slate-500 mt-1">Directly enterable during registration</span>
@@ -113,17 +113,17 @@ export const ReferralPage: React.FC = () => {
           <p className="text-[11px] text-slate-500 mt-1">All registered accounts with your code</p>
         </div>
 
-        <div className="bg-slate-900 rounded-2xl border border-emerald-500/30 p-5 shadow-lg">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
-            <UserCheck className="w-3.5 h-3.5" />
+        <div className="bg-slate-900 rounded-2xl border border-pink-500/30 p-5 shadow-lg bg-gradient-to-b from-slate-900 to-[#360099]/20">
+          <span className="text-xs font-bold uppercase tracking-wider text-pink-400 flex items-center gap-1">
+            <UserCheck className="w-3.5 h-3.5 text-[#FF0091]" />
             Qualified Referrals
           </span>
-          <h3 className="text-3xl font-black text-emerald-400 mt-2">{data?.stats?.qualifiedReferrals || 0}</h3>
-          <p className="text-[11px] text-slate-400 mt-1">Paid members satisfying qualification rules</p>
+          <h3 className="text-3xl font-black text-[#FF0091] mt-2">{data?.stats?.qualifiedReferrals || 0}</h3>
+          <p className="text-[11px] text-pink-400/80 mt-1">Paid members satisfying qualification rules</p>
         </div>
 
         <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-lg">
-          <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1">
             <Clock className="w-3.5 h-3.5" />
             Pending Qualification
           </span>
@@ -163,7 +163,7 @@ export const ReferralPage: React.FC = () => {
                 data.referrals.map((r: any) => (
                   <tr key={r.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-white flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-[10px] text-slate-300 font-bold">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FF0091] to-[#360099] flex items-center justify-center text-[10px] text-white font-bold">
                         {r.referredUsername[0]?.toUpperCase()}
                       </div>
                       {r.referredUsername}
@@ -171,7 +171,7 @@ export const ReferralPage: React.FC = () => {
                     <td className="py-3.5 px-4 text-slate-400">{new Date(r.registeredAt).toLocaleDateString()}</td>
                     <td className="py-3.5 px-4">
                       {r.hasActiveMembership ? (
-                        <span className="font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px]">
+                        <span className="font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 px-2 py-0.5 rounded text-[10px]">
                           Active Paid Member
                         </span>
                       ) : (
@@ -184,7 +184,7 @@ export const ReferralPage: React.FC = () => {
                       <span
                         className={`font-semibold px-2.5 py-1 rounded-full text-[10px] ${
                           r.status === 'QUALIFIED'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-pink-500/10 text-[#FF0091] border border-pink-500/20'
                             : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                         }`}
                       >
@@ -209,7 +209,7 @@ export const ReferralPage: React.FC = () => {
               <div key={r.id} className="p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-slate-200 font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FF0091] to-[#360099] border border-pink-500/30 flex items-center justify-center text-xs text-white font-bold">
                       {r.referredUsername[0]?.toUpperCase()}
                     </div>
                     <div>
@@ -221,7 +221,7 @@ export const ReferralPage: React.FC = () => {
                   <span
                     className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
                       r.status === 'QUALIFIED'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        ? 'bg-pink-500/10 text-[#FF0091] border border-pink-500/20'
                         : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
                     }`}
                   >
@@ -232,7 +232,7 @@ export const ReferralPage: React.FC = () => {
                 <div className="flex items-center justify-between text-xs pt-1">
                   <span className="text-[11px] text-slate-400">Membership:</span>
                   {r.hasActiveMembership ? (
-                    <span className="font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded text-[10px]">
+                    <span className="font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 px-2 py-0.5 rounded text-[10px]">
                       Active Paid Member
                     </span>
                   ) : (
