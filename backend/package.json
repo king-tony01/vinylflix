@@ -1,7 +1,7 @@
 {
   "name": "platform-backend",
   "version": "1.0.0",
-  "description": "Modular monolith backend for the Reward-Based Video & Content Promotion Platform",
+  "description": "Modular monolith backend for Vinylflix",
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
@@ -12,6 +12,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:db:push": "prisma db push",
     "prisma:seed": "tsx src/prisma/seed.ts",
+    "prisma:seed:prod": "node dist/prisma/seed.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -27,6 +28,8 @@
     "express-rate-limit": "^7.5.0",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "prisma": "^6.4.1",
+    "tsx": "^4.19.3",
     "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
@@ -37,8 +40,6 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.9",
     "@types/uuid": "^10.0.0",
-    "prisma": "^6.4.1",
-    "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "vitest": "^3.0.7"
   }
