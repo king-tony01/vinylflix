@@ -1,0 +1,17 @@
+node_modules
+*/node_modules
+dist
+*/dist
+.git
+.gitignore
+.env
+.env.*
+*.log
+npm-debug.log*
+.DS_Store
+*.db
+*.db-journal
+.vscode
+.idea
+brain
+scratch

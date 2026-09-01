@@ -1,0 +1,604 @@
+import React, { useEffect, useState } from 'react';
+import { apiRequest } from '../lib/api.js';
+import { useAuth } from '../context/AuthContext.js';
+import { RewardProgressBar } from '../components/RewardProgressBar.js';
+import {
+  Wallet as WalletIcon,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Lock,
+  Unlock,
+  Clock,
+  RefreshCw,
+  Landmark,
+  PlaySquare,
+  Users,
+  Crown,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle,
+  Building2,
+} from 'lucide-react';
+
+export const WalletPage: React.FC = () => {
+  const { user, refreshUser } = useAuth();
+  const [walletData, setWalletData] = useState<any | null>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
+
+  // Bank form & real-time resolution
+  const [banks, setBanks] = useState<any[]>([]);
+  const [selectedBankCode, setSelectedBankCode] = useState<string>('999992');
+  const [bankName, setBankName] = useState<string>('OPay Digital Services (Paycom)');
+  const [accountNumber, setAccountNumber] = useState<string>('');
+  const [accountName, setAccountName] = useState<string>('');
+  const [resolvingAccount, setResolvingAccount] = useState<boolean>(false);
+  const [resolvedName, setResolvedName] = useState<string | null>(null);
+  const [withdrawAmount, setWithdrawAmount] = useState<string>('2000');
+  const [withdrawLoading, setWithdrawLoading] = useState<boolean>(false);
+  const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const fetchWallet = async () => {
+    setLoading(true);
+    const res = await apiRequest('/wallet');
+    if (res.success && res.data) {
+      setWalletData(res.data);
+    }
+
+    const txRes = await apiRequest('/wallet/transactions');
+    if (txRes.success && txRes.data) {
+      setTransactions(txRes.data.entries || []);
+    }
+    setLoading(false);
+  };
+
+  // 1. Load Real Bank Directory
+  useEffect(() => {
+    const fetchBanks = async () => {
+      const res = await apiRequest('/payments/banks');
+      if (res.success && res.data?.banks) {
+        setBanks(res.data.banks);
+        if (res.data.banks.length > 0) {
+          setSelectedBankCode(res.data.banks[0].code);
+          setBankName(res.data.banks[0].name);
+        }
+      }
+    };
+    fetchBanks();
+    fetchWallet();
+  }, []);
+
+  // 2. Real-time Account Resolution
+  useEffect(() => {
+    if (accountNumber.length === 10 && selectedBankCode) {
+      let isSubscribed = true;
+      const resolve = async () => {
+        setResolvingAccount(true);
+        const res = await apiRequest('/payments/resolve-account', {
+          method: 'POST',
+          body: JSON.stringify({
+            accountNumber,
+            bankCode: selectedBankCode,
+          }),
+        });
+
+        if (isSubscribed) {
+          if (res.success && res.data?.accountName) {
+            setResolvedName(res.data.accountName);
+            setAccountName(res.data.accountName);
+          } else {
+            setResolvedName(null);
+          }
+          setResolvingAccount(false);
+        }
+      };
+      resolve();
+      return () => {
+        isSubscribed = false;
+      };
+    } else {
+      setResolvedName(null);
+    }
+  }, [accountNumber, selectedBankCode]);
+
+  const handleWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setWithdrawLoading(true);
+    setWithdrawMessage(null);
+
+    const amountNum = parseFloat(withdrawAmount);
+    if (isNaN(amountNum) || amountNum < 2000) {
+      setWithdrawMessage({ type: 'error', text: 'Minimum withdrawal amount is ₦2,000' });
+      setWithdrawLoading(false);
+      return;
+    }
+
+    if (!accountNumber || accountNumber.length < 10) {
+      setWithdrawMessage({ type: 'error', text: 'Please enter a valid 10-digit account number' });
+      setWithdrawLoading(false);
+      return;
+    }
+
+    if (!accountName) {
+      setWithdrawMessage({ type: 'error', text: 'Please enter the verified bank account holder name' });
+      setWithdrawLoading(false);
+      return;
+    }
+
+    const res = await apiRequest('/withdrawals', {
+      method: 'POST',
+      body: JSON.stringify({
+        amount: amountNum,
+        accountDetails: {
+          bankName,
+          bankCode: selectedBankCode,
+          accountNumber,
+          accountName,
+        },
+      }),
+    });
+
+    if (res.success) {
+      setWithdrawMessage({
+        type: 'success',
+        text: 'Withdrawal request submitted! Funds will be reviewed and transferred to your bank.',
+      });
+      setShowWithdrawModal(false);
+      fetchWallet();
+      refreshUser();
+    } else {
+      setWithdrawMessage({
+        type: 'error',
+        text: res.error?.message || 'Failed to submit withdrawal request',
+      });
+    }
+    setWithdrawLoading(false);
+  };
+
+  const availableBal = walletData?.wallet?.availableBalance ?? (user?.wallet?.availableBalance || 0);
+  const lockedBal = walletData?.wallet?.lockedBalance ?? (user?.wallet?.lockedBalance || 0);
+  const pendingBal = walletData?.wallet?.pendingBalance ?? (user?.wallet?.pendingBalance || 0);
+  const totalEarned = walletData?.wallet?.totalEarned ?? 0;
+  const totalWithdrawn = walletData?.wallet?.totalWithdrawn ?? 0;
+
+  const getTransactionMeta = (tx: any) => {
+    const isCredit = tx.direction === 'CREDIT';
+    switch (tx.entryType) {
+      case 'WATCH_REWARD':
+        return {
+          title: 'Watched Video Reward',
+          icon: PlaySquare,
+          iconBg: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+          amountPrefix: '+',
+          amountColor: 'text-emerald-400',
+        };
+      case 'REFERRAL_BONUS':
+        return {
+          title: 'Referral Milestone Bonus',
+          icon: Users,
+          iconBg: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',
+          amountPrefix: '+',
+          amountColor: 'text-sky-400',
+        };
+      case 'WITHDRAWAL_HOLD':
+      case 'WITHDRAWAL_PAYOUT':
+        return {
+          title: 'Bank Withdrawal Payout',
+          icon: ArrowUpRight,
+          iconBg: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+          amountPrefix: '-',
+          amountColor: 'text-rose-400',
+        };
+      case 'WITHDRAWAL_REFUND':
+        return {
+          title: 'Withdrawal Refund',
+          icon: RefreshCw,
+          iconBg: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+          amountPrefix: '+',
+          amountColor: 'text-amber-400',
+        };
+      case 'MEMBERSHIP_FEE':
+        return {
+          title: 'Membership Upgrade',
+          icon: Crown,
+          iconBg: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+          amountPrefix: '-',
+          amountColor: 'text-purple-300',
+        };
+      default:
+        return {
+          title: tx.description || 'Transaction',
+          icon: isCredit ? ArrowDownLeft : ArrowUpRight,
+          iconBg: isCredit
+            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            : 'bg-slate-800 text-slate-400 border border-slate-700',
+          amountPrefix: isCredit ? '+' : '-',
+          amountColor: isCredit ? 'text-emerald-400' : 'text-slate-300',
+        };
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-2.5">
+            <WalletIcon className="w-8 h-8 text-emerald-400" />
+            Wallet & Earnings
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Monitor real-time earnings, track locked bonuses, and request instant bank payouts.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              setWithdrawMessage(null);
+              setShowWithdrawModal(true);
+            }}
+            disabled={availableBal < 2000}
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          >
+            <Landmark className="w-4 h-4" /> Request Payout
+          </button>
+        </div>
+      </div>
+
+      {withdrawMessage && (
+        <div
+          className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2.5 animate-in fade-in ${
+            withdrawMessage.type === 'success'
+              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+              : 'bg-rose-500/10 border border-rose-500/30 text-rose-300'
+          }`}
+        >
+          {withdrawMessage.type === 'success' ? (
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+          ) : (
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          )}
+          <span>{withdrawMessage.text}</span>
+        </div>
+      )}
+
+      {/* Balance Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {/* 1. Available Balance */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/30 border border-emerald-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <Unlock className="w-3.5 h-3.5" /> Available for Payout
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              Instant Payout
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mt-2">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              ₦{availableBal.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2">Ready for withdrawal to any verified Nigerian bank account.</p>
+        </div>
+
+        {/* 2. Locked Milestone Bonus */}
+        <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/20 border border-amber-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" /> Locked Bonus
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              Conditional
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mt-2">
+            <span className="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight">
+              ₦{lockedBal.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2">
+            Unlocks to your Available Balance when you satisfy your membership referral requirement.
+          </p>
+        </div>
+
+        {/* 3. Pending Payouts / In-Transit */}
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl sm:col-span-2 lg:col-span-1">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-400 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" /> In-Transit & Processing
+            </span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+              Processing
+            </span>
+          </div>
+          <div className="flex items-baseline gap-1 mt-2">
+            <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              ₦{pendingBal.toLocaleString()}
+            </span>
+          </div>
+          <p className="text-[11px] text-slate-400 mt-2">Withdrawals currently being processed by automated bank rails.</p>
+        </div>
+      </div>
+
+      {/* Lifetime Stats Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
+          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Total Earned</p>
+          <p className="text-xl font-bold text-emerald-400 mt-1">₦{totalEarned.toLocaleString()}</p>
+        </div>
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
+          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Total Withdrawn</p>
+          <p className="text-xl font-bold text-white mt-1">₦{totalWithdrawn.toLocaleString()}</p>
+        </div>
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
+          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Membership Status</p>
+          <p className="text-sm font-bold text-white mt-1.5 flex items-center gap-1.5">
+            <Crown className="w-4 h-4 text-emerald-400" />
+            <span>{user?.activeMembership?.plan?.name || 'Free Starter'}</span>
+          </p>
+        </div>
+        <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
+          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Payout Threshold</p>
+          <p className="text-sm font-bold text-slate-300 mt-1.5">Min ₦2,000</p>
+        </div>
+      </div>
+
+      {/* Conditional Reward Progress (If user has locked reward) */}
+      {lockedBal > 0 && walletData?.referralStats && (
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-base font-bold text-white flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              Locked Bonus Unlock Progress
+            </h3>
+            <span className="text-xs font-semibold text-amber-400">
+              {walletData.referralStats.qualifiedCount} / {walletData.referralStats.targetRequirement} Qualified Referrals
+            </span>
+          </div>
+
+          <RewardProgressBar
+            amount={lockedBal}
+            qualifiedCount={walletData.referralStats.qualifiedCount}
+            targetCount={walletData.referralStats.targetRequirement}
+            isUnlocked={lockedBal === 0}
+          />
+
+          <p className="text-xs text-slate-400">
+            Invite friends using your referral link. Once {walletData.referralStats.targetRequirement} friends activate an eligible membership, your ₦{lockedBal.toLocaleString()} locked bonus will automatically unlock to your Available Balance.
+          </p>
+        </div>
+      )}
+
+      {/* Transaction Activity List */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold text-white">Recent Transactions</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Transparent history of all reward credits, bonuses, and payouts.
+            </p>
+          </div>
+          <button
+            onClick={fetchWallet}
+            title="Refresh Transactions"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="divide-y divide-slate-800/60">
+          {loading ? (
+            <div className="p-8 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
+              <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> Loading transactions...
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="p-12 text-center text-slate-500 space-y-2">
+              <p className="text-xs">No transactions recorded yet.</p>
+              <p className="text-[11px] text-slate-600">
+                Watch rewarded videos or refer members to begin earning cash rewards.
+              </p>
+            </div>
+          ) : (
+            transactions.map((tx) => {
+              const meta = getTransactionMeta(tx);
+              const Icon = meta.icon;
+              const formattedDate = new Date(tx.createdAt).toLocaleString(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              });
+
+              return (
+                <div
+                  key={tx.id}
+                  className="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-800/40 transition-colors"
+                >
+                  {/* Left: Icon & Details */}
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div
+                      className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 ${meta.iconBg}`}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{meta.title}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] text-slate-400">{formattedDate}</span>
+                        {tx.bucket && (
+                          <span
+                            className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded border ${
+                              tx.bucket === 'AVAILABLE'
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                : tx.bucket === 'LOCKED'
+                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                                : 'bg-sky-500/10 text-sky-400 border border-sky-500/20'
+                            }`}
+                          >
+                            {tx.bucket}
+                          </span>
+                        )}
+                      </div>
+                      {tx.description && tx.description !== meta.title && (
+                        <p className="text-[11px] text-slate-400 truncate">{tx.description}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right: Amount */}
+                  <div className="text-right flex-shrink-0 pl-3">
+                    <p className={`text-base font-black tracking-tight ${meta.amountColor}`}>
+                      {meta.amountPrefix}₦{tx.amount.toLocaleString()}
+                    </p>
+                    <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">
+                      Completed
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Withdrawal Request Modal with Real Bank Selector & Name Resolution */}
+      {showWithdrawModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-emerald-400" /> Bank Payout Request
+              </h3>
+              <button
+                onClick={() => setShowWithdrawModal(false)}
+                className="text-slate-400 hover:text-white text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleWithdraw} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Withdrawal Amount (Min ₦2,000)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">
+                    ₦
+                  </span>
+                  <input
+                    type="number"
+                    min="2000"
+                    step="100"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                    required
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Max available: ₦{availableBal.toLocaleString()}
+                </p>
+              </div>
+
+              {/* Real Bank Selector Dropdown */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-400" /> Select Bank
+                </label>
+                <select
+                  value={selectedBankCode}
+                  onChange={(e) => {
+                    setSelectedBankCode(e.target.value);
+                    const b = banks.find((item) => item.code === e.target.value);
+                    if (b) setBankName(b.name);
+                  }}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                >
+                  {banks.map((b) => (
+                    <option key={b.code} value={b.code}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 10-Digit NUBAN Account Number */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Account Number (10 Digits)
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  placeholder="0123456789"
+                  value={accountNumber}
+                  onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, ''))}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm font-mono focus:outline-none focus:border-emerald-500"
+                  required
+                />
+
+                {/* Real-time Account Resolution Feedback */}
+                {resolvingAccount ? (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-1.5">
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin text-emerald-400" /> Verifying account with bank...
+                  </div>
+                ) : resolvedName ? (
+                  <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-bold mt-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Verified: {resolvedName}
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Account Holder Name */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Account Holder Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Verified Name"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-emerald-500"
+                  required
+                />
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-[11px] text-slate-400 space-y-1">
+                <div className="flex justify-between">
+                  <span>Gross Payout:</span>
+                  <span className="font-bold text-white">₦{parseFloat(withdrawAmount || '0').toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-slate-500">
+                  <span>Processing Fee (5%):</span>
+                  <span>₦{(parseFloat(withdrawAmount || '0') * 0.05).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between pt-1 border-t border-slate-900 text-emerald-400 font-bold">
+                  <span>Net Bank Credit:</span>
+                  <span>₦{(parseFloat(withdrawAmount || '0') * 0.95).toLocaleString()}</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={withdrawLoading || parseFloat(withdrawAmount) > availableBal}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+              >
+                {withdrawLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  <>Confirm & Request Payout</>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

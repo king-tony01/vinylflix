@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vinylflix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vinylflix_user
+      POSTGRES_PASSWORD: vinylflix_secure_password
+      POSTGRES_DB: vinylflix
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vinylflix_user -d vinylflix"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vinylflix-app
+    restart: unless-stopped
+    ports:
+      - "10000:10000"
+    environment:
+      NODE_ENV: production
+      PORT: 10000
+      APP_NAME: Vinylflix
+      DATABASE_URL: postgresql://vinylflix_user:vinylflix_secure_password@postgres:5432/vinylflix?schema=public
+      AUTO_SEED: "true"
+      JWT_SECRET: dev_secret_jwt_key_min_32_chars_fallback!
+      JWT_REFRESH_SECRET: dev_secret_refresh_jwt_key_min_32_chars!
+      PAYMENT_PROVIDER: PAYSTACK
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
+      PAYMENT_WEBHOOK_SECRET: ${PAYMENT_WEBHOOK_SECRET:-}
+      YOUTUBE_CLIENT_ID: ${YOUTUBE_CLIENT_ID:-}
+      YOUTUBE_CLIENT_SECRET: ${YOUTUBE_CLIENT_SECRET:-}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      YOUTUBE_REDIRECT_URI: ${YOUTUBE_REDIRECT_URI:-http://localhost:10000/api/v1/youtube/oauth/callback}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

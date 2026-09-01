@@ -1,0 +1,430 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User & Role Definition
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  phone         String?   @unique
+  username      String    @unique
+  passwordHash  String
+  role          String    @default("FREE_USER") // GUEST, FREE_USER, PAID_MEMBER, CREATOR, ADVERTISER, ADMIN, FINANCE_RISK_ADMIN
+  status        String    @default("ACTIVE")    // ACTIVE, SUSPENDED, RESTRICTED
+  referralCode  String    @unique
+  referredById  String?
+  
+  referrer      User?     @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referredUsers User[]    @relation("UserReferrals")
+  
+  profile       Profile?
+  wallet        Wallet?
+  memberships   Membership[]
+  referralsMade Referral[] @relation("ReferrerRel")
+  referralsRecv Referral[] @relation("ReferredRel")
+  youtubeConns  YouTubeConnection[]
+  campaigns     Campaign[]
+  watchSessions WatchSession[]
+  rewards       Reward[]
+  ledgerEntries LedgerEntry[]
+  payments      Payment[]
+  withdrawals   Withdrawal[]
+  riskEvents    RiskEvent[]
+  riskScore     RiskScore?
+  auditLogs     AuditLog[]    @relation("ActorRel")
+  notifications Notification[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([role])
+  @@index([status])
+  @@index([referralCode])
+  @@index([referredById])
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String?
+  avatarUrl   String?
+  bio         String?
+  country     String   @default("NG")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MembershipPlan {
+  id                      String       @id @default(uuid())
+  name                    String       @unique
+  tier                    String       @unique // FREE, BASIC, PREMIUM, CREATOR
+  price                   Float
+  currency                String       @default("NGN")
+  durationDays            Int          @default(30)
+  benefitsJson            String       // JSON string of benefits
+  conditionalRewardAmount Float        @default(0)
+  referralRequirementCount Int         @default(0)
+  isActive                Boolean      @default(true)
+  memberships             Membership[]
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
+}
+
+model Membership {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId      String
+  plan        MembershipPlan @relation(fields: [planId], references: [id])
+  status      String         @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  amountPaid  Float
+  currency    String         @default("NGN")
+  paymentId   String?
+  startsAt    DateTime       @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+}
+
+model Referral {
+  id                   String    @id @default(uuid())
+  referrerId           String
+  referrer             User      @relation("ReferrerRel", fields: [referrerId], references: [id], onDelete: Cascade)
+  referredId           String    @unique
+  referred             User      @relation("ReferredRel", fields: [referredId], references: [id], onDelete: Cascade)
+  referralCode         String
+  status               String    @default("PENDING") // PENDING, QUALIFIED, REJECTED, FLAGGED
+  qualificationReasons String?   // JSON array of verified qualification rules
+  qualifiedAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([referrerId])
+  @@index([referralCode])
+  @@index([status])
+}
+
+model YouTubeConnection {
+  id                    String    @id @default(uuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId             String    @unique
+  channelTitle          String
+  channelThumbnail      String?
+  customUrl             String?
+  subscriberCount       Int       @default(0)
+  videoCount            Int       @default(0)
+  accessTokenEncrypted  String
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  isConnected           Boolean   @default(true)
+  syncedAt              DateTime  @default(now())
+  videos                Video[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([channelId])
+}
+
+model Video {
+  id                 String             @id @default(uuid())
+  youtubeVideoId     String             @unique
+  channelId          String?
+  channel            YouTubeConnection? @relation(fields: [channelId], references: [id], onDelete: SetNull)
+  title              String
+  description        String?
+  durationSeconds    Int                @default(0)
+  thumbnailUrl       String?
+  publishedAt        DateTime?
+  availabilityStatus String             @default("PUBLIC") // PUBLIC, UNAVAILABLE, PRIVATE, DELETED
+  lastCheckedAt      DateTime           @default(now())
+  campaigns          Campaign[]
+  watchSessions      WatchSession[]
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([youtubeVideoId])
+  @@index([availabilityStatus])
+}
+
+model Campaign {
+  id                     String         @id @default(uuid())
+  advertiserId           String
+  advertiser             User           @relation(fields: [advertiserId], references: [id], onDelete: Cascade)
+  videoId                String
+  video                  Video          @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  title                  String
+  description            String?
+  totalBudget            Float
+  spentBudget            Float          @default(0)
+  remainingBudget        Float
+  rewardPerQualifiedView Float
+  minWatchDurationSeconds Int           @default(30)
+  dailyUserLimit         Int            @default(20)
+  status                 String         @default("PENDING_REVIEW") // DRAFT, PENDING_REVIEW, APPROVED, ACTIVE, PAUSED, COMPLETED, REJECTED, CANCELLED
+  targetingJson          String?        // JSON of targeting constraints
+  reviewNote             String?
+  approvedById           String?
+  startsAt               DateTime?
+  endsAt                 DateTime?
+  watchSessions          WatchSession[]
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  @@index([advertiserId])
+  @@index([videoId])
+  @@index([status])
+}
+
+model WatchSession {
+  id                    String    @id @default(uuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videoId               String
+  video                 Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  campaignId            String?
+  campaign              Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  sessionToken          String    @unique
+  startedAt             DateTime  @default(now())
+  endedAt               DateTime?
+  watchDurationSeconds  Int       @default(0)
+  heartbeatCount        Int       @default(0)
+  lastHeartbeatAt       DateTime  @default(now())
+  playbackEventsJson    String?   // JSON array of client reported playback transitions
+  qualificationStatus   String    @default("IN_PROGRESS") // IN_PROGRESS, QUALIFIED, DISQUALIFIED, REWARDED
+  disqualificationReason String?
+  riskScore             Int       @default(0)
+  riskSignalsJson       String?
+  ipAddress             String?
+  userAgent             String?
+  deviceFingerprint     String?
+  rewardId              String?   @unique
+  reward                Reward?   @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([videoId])
+  @@index([campaignId])
+  @@index([qualificationStatus])
+  @@index([sessionToken])
+}
+
+model Reward {
+  id                  String        @id @default(uuid())
+  userId              String
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sourceType          String        // WATCH_REWARD, CAMPAIGN_REWARD, REFERRAL_REWARD, MEMBERSHIP_REWARD, CREATOR_REWARD, PROMOTIONAL_REWARD, ADMIN_ADJUSTMENT
+  sourceId            String?       // ID of campaign, referral, membership, or watch session
+  amount              Float
+  currency            String        @default("NGN")
+  status              String        @default("PENDING") // PENDING, APPROVED, AVAILABLE, LOCKED, REJECTED, REVERSED, EXPIRED
+  lockedConditionJson String?       // JSON condition details (e.g. required 10 referrals, completed 7)
+  unlockedAt          DateTime?
+  reviewedById        String?
+  reversalReason      String?
+  watchSession        WatchSession?
+  ledgerEntries       LedgerEntry[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([sourceType])
+  @@index([status])
+}
+
+model Wallet {
+  id               String        @id @default(uuid())
+  userId           String        @unique
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  availableBalance Float         @default(0)
+  pendingBalance   Float         @default(0)
+  lockedBalance    Float         @default(0)
+  totalEarned      Float         @default(0)
+  totalWithdrawn   Float         @default(0)
+  currency         String        @default("NGN")
+  version          Int           @default(1) // Optimistic locking
+  ledgerEntries    LedgerEntry[]
+  withdrawals      Withdrawal[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+model LedgerEntry {
+  id            String      @id @default(uuid())
+  walletId      String
+  wallet        Wallet      @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId      String?
+  reward        Reward?     @relation(fields: [rewardId], references: [id], onDelete: SetNull)
+  withdrawalId  String?
+  withdrawal    Withdrawal? @relation(fields: [withdrawalId], references: [id], onDelete: SetNull)
+  paymentId     String?
+  amount        Float
+  currency      String      @default("NGN")
+  direction     String      // CREDIT, DEBIT
+  bucket        String      // AVAILABLE, PENDING, LOCKED
+  entryType     String      // REWARD_CREDIT, CONDITIONAL_LOCK, CONDITIONAL_UNLOCK, WITHDRAWAL_HOLD, WITHDRAWAL_PAYOUT, WITHDRAWAL_REFUND, REVERSAL_DEBIT, ADMIN_CORRECTION
+  referenceType String      // WATCH_SESSION, REFERRAL, MEMBERSHIP, CAMPAIGN, WITHDRAWAL, ADMIN
+  referenceId   String?
+  description   String
+  createdAt     DateTime    @default(now())
+
+  @@index([walletId])
+  @@index([userId])
+  @@index([entryType])
+  @@index([bucket])
+  @@index([createdAt])
+}
+
+model Payment {
+  id                 String    @id @default(uuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider           String    // MOCK, PAYSTACK, FLUTTERWAVE, STRIPE
+  reference          String    @unique
+  amount             Float
+  currency           String    @default("NGN")
+  purpose            String    // MEMBERSHIP_PURCHASE, CAMPAIGN_BUDGET
+  metadataJson       String?
+  status             String    @default("PENDING") // PENDING, SETTLED, FAILED, REFUNDED
+  idempotencyKey     String?   @unique
+  settledAt          DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([reference])
+  @@index([status])
+}
+
+model PaymentWebhookLog {
+  id             String   @id @default(uuid())
+  provider       String
+  eventType      String
+  idempotencyKey String?  @unique
+  payloadHash    String   @unique
+  rawPayload     String
+  processed      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([provider])
+  @@index([payloadHash])
+}
+
+model Withdrawal {
+  id                 String        @id @default(uuid())
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  walletId           String
+  wallet             Wallet        @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  amount             Float
+  currency           String        @default("NGN")
+  fee                Float         @default(0)
+  netAmount          Float
+  accountDetailsJson String        // Bank, Account Number, Account Name
+  status             String        @default("REQUESTED") // REQUESTED, PENDING_REVIEW, PROCESSING, COMPLETED, FAILED, REJECTED, REVERSED, CANCELLED
+  idempotencyKey     String        @unique
+  reviewNote         String?
+  reviewedById       String?
+  processedAt        DateTime?
+  ledgerEntries      LedgerEntry[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([walletId])
+  @@index([status])
+  @@index([idempotencyKey])
+}
+
+model RiskEvent {
+  id             String   @id @default(uuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType     String   // WATCH_SESSION, REFERRAL, WITHDRAWAL, AUTH
+  entityId       String?
+  riskLevel      String   // LOW, MEDIUM, HIGH, CRITICAL
+  ruleTriggered  String
+  metadataJson   String?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+  @@index([riskLevel])
+  @@index([ruleTriggered])
+}
+
+model RiskScore {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score      Int      @default(0) // 0 to 100
+  riskLevel  String   @default("LOW") // LOW, MEDIUM, HIGH, CRITICAL
+  flagsJson  String?  // Active fraud signals
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([riskLevel])
+}
+
+model PlatformConfig {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  valueJson   String   // JSON string representation of value
+  description String?
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
+
+model AuditLog {
+  id               String   @id @default(uuid())
+  actorId          String?
+  actor            User?    @relation("ActorRel", fields: [actorId], references: [id], onDelete: SetNull)
+  actorRole        String?
+  action           String   // e.g. ACCOUNT_SUSPENDED, REWARD_REVERSED, CONFIG_UPDATED, WITHDRAWAL_APPROVED
+  targetType       String   // USER, REWARD, WITHDRAWAL, CAMPAIGN, CONFIG
+  targetId         String?
+  previousStateJson String?
+  newStateJson     String?
+  ipAddress        String?
+  reason           String?
+  createdAt        DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+model Notification {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  message      String
+  type         String   @default("INFO") // INFO, REWARD, REFERRAL, WITHDRAWAL, SECURITY, CAMPAIGN
+  isRead       Boolean  @default(false)
+  metadataJson String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
