@@ -8,7 +8,7 @@ export class YouTubeController {
     try {
       const state = req.user ? `user_${req.user.userId}` : undefined;
       const url = YouTubeService.getAuthUrl(state);
-      res.json({ success: true, url });
+      res.json({ success: true, data: { url }, url });
     } catch (error) {
       next(error);
     }

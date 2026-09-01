@@ -64,10 +64,11 @@ export const CampaignsPage: React.FC = () => {
   // Real Google OAuth flow
   const handleConnectOAuth = async () => {
     const res = await apiRequest('/youtube/oauth/url');
-    if (res.success && res.data?.url) {
-      window.location.href = res.data.url;
+    const oauthUrl = res.data?.url || (res as any).url;
+    if (res.success && oauthUrl) {
+      window.location.href = oauthUrl;
     } else {
-      setFormError('Failed to initialize Google OAuth flow.');
+      setFormError(res.error?.message || 'Failed to initialize YouTube OAuth flow.');
     }
   };
 
@@ -152,7 +153,7 @@ export const CampaignsPage: React.FC = () => {
             className="w-full px-4 py-2.5 rounded-xl bg-red-600/10 border border-red-600/30 hover:bg-red-600/20 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-colors"
           >
             <Youtube className="w-4 h-4" />
-            Connect Google YouTube
+            Connect YouTube
             <ExternalLink className="w-3 h-3 opacity-60" />
           </button>
 
