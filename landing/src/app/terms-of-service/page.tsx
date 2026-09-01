@@ -98,6 +98,15 @@ export default function TermsOfServicePage() {
             Vinylflix is provided on an &ldquo;as is&rdquo; basis. These Terms are governed by and construed in accordance with the laws of the Federal Republic of Nigeria.
           </p>
         </section>
+
+        {/* Section 8 */}
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold text-white">8. Contact & Legal Inquiries</h2>
+          <p>
+            For legal inquiries, dispute resolution, or compliance queries, contact our support desk at{' '}
+            <a href="mailto:vinylflix@gmail.com" className="text-pink-400 font-mono hover:underline">vinylflix@gmail.com</a>.
+          </p>
+        </section>
       </div>
     </div>
   );

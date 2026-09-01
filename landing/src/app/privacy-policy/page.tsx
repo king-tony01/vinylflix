@@ -113,7 +113,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="text-lg font-bold text-white">6. Your Data Rights</h2>
           <p>
             Subject to applicable legal obligations (such as anti-money laundering and tax accounting laws), you have the right to access, rectify, or request the deletion of your personal profile data. Contact support at{' '}
-            <span className="text-pink-400 font-mono">support@vinylflix.com</span>.
+            <a href="mailto:vinylflix@gmail.com" className="text-pink-400 font-mono hover:underline">vinylflix@gmail.com</a>.
           </p>
         </section>
       </div>

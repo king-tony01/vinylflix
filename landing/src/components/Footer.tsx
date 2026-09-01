@@ -70,10 +70,12 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <span className="text-slate-500">YouTube Terms of Service Compliance</span>
+                <a href="mailto:vinylflix@gmail.com" className="hover:text-pink-300 text-pink-400 transition-colors font-mono">
+                  vinylflix@gmail.com
+                </a>
               </li>
               <li>
-                <span className="text-slate-500">Anti-Fraud & Fair Play Standard</span>
+                <span className="text-slate-500">YouTube Terms Compliance</span>
               </li>
             </ul>
           </div>
