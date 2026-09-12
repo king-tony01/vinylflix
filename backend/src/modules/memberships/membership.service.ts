@@ -182,7 +182,7 @@ export class MembershipService {
     return plan;
   }
 
-  public static async purchaseMembership(userId: string, planId: string, idempotencyKey?: string) {
+  public static async purchaseMembership(userId: string, planId: string, idempotencyKey?: string, callbackUrl?: string) {
     const plan = await this.getPlan(planId);
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundError('User not found');
@@ -195,6 +195,7 @@ export class MembershipService {
       purpose: 'MEMBERSHIP_PURCHASE',
       metadata: { planId: plan.id, planTier: plan.tier },
       idempotencyKey,
+      callbackUrl,
     });
   }
 

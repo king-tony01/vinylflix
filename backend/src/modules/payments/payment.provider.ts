@@ -72,9 +72,17 @@ export class PaystackPaymentProvider implements IPaymentProvider {
   public async initializePayment(params: InitializePaymentParams): Promise<PaymentInitResult> {
     logger.info(`[PAYSTACK] Initializing transaction ${params.reference} for ${params.amount} ${params.currency}`);
 
-    const callbackUrl =
+    let callbackUrl =
       params.callbackUrl ||
       `${config.appUrl}/wallet?payment_status=success&reference=${encodeURIComponent(params.reference)}`;
+
+    // Ensure production and deployed services never send localhost to Paystack
+    if (
+      (config.nodeEnv === 'production' || process.env.RENDER || process.env.NODE_ENV === 'production') &&
+      callbackUrl.includes('localhost')
+    ) {
+      callbackUrl = callbackUrl.replace(/https?:\/\/localhost(:\d+)?/g, config.appUrl || 'https://service.vinylflix.com');
+    }
 
     try {
       const response = await fetch(`${this.baseUrl}/transaction/initialize`, {

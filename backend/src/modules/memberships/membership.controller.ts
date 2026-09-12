@@ -14,8 +14,10 @@ export class MembershipController {
 
   public static async purchase(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { planId, idempotencyKey } = req.body;
-      const data = await MembershipService.purchaseMembership(req.user!.userId, planId, idempotencyKey);
+      const { planId, idempotencyKey, callbackUrl } = req.body;
+      const origin = req.get('origin') || (req.headers.origin as string | undefined);
+      const targetCallback = callbackUrl || (origin ? `${origin}/memberships` : undefined);
+      const data = await MembershipService.purchaseMembership(req.user!.userId, planId, idempotencyKey, targetCallback);
       res.json({ success: true, data });
     } catch (error) {
       next(error);

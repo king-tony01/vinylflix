@@ -72,13 +72,13 @@ export default function LandingPage() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <a
-              href="https://vinylflix.onrender.com/register"
+              href="https://service.vinylflix.com/register"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-black text-white bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] shadow-xl shadow-[#FF0091]/30 hover:shadow-[#FF0091]/50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2.5"
             >
               <Zap className="w-5 h-5 fill-current" /> Start Earning Today
             </a>
             <a
-              href="https://vinylflix.onrender.com/campaigns"
+              href="https://service.vinylflix.com/campaigns"
               className="w-full sm:w-auto px-8 py-4 rounded-2xl text-base font-bold text-slate-200 hover:text-white bg-[#120029] hover:bg-[#1a003b] border border-[#2a0054] hover:border-[#FF0091]/40 transition-all flex items-center justify-center gap-2"
             >
               <Youtube className="w-5 h-5 text-red-400" /> Promote Your Videos
@@ -300,13 +300,13 @@ export default function LandingPage() {
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
-                href="https://vinylflix.onrender.com/register"
+                href="https://service.vinylflix.com/register"
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white text-[#0a0017] font-black text-base shadow-xl hover:bg-pink-50 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
               >
                 Create Free Account <ArrowRight className="w-4 h-4" />
               </a>
               <a
-                href="https://vinylflix.onrender.com/memberships"
+                href="https://service.vinylflix.com/memberships"
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[#0a0017]/40 backdrop-blur-md border border-white/30 text-white font-bold text-base hover:bg-[#0a0017]/60 transition-all"
               >
                 Explore Membership Tiers
