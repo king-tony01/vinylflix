@@ -45,8 +45,8 @@ export const config: AppConfig = {
   appName: process.env.APP_NAME || 'Vinylflix',
   port: parseInt(process.env.PORT || '4000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
-  appUrl: process.env.APP_URL || process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? 'https://service.vinylflix.com' : 'http://localhost:3000'),
-  apiBaseUrl: process.env.API_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://service.vinylflix.com/api/v1' : 'http://localhost:4000/api/v1'),
+  appUrl: process.env.APP_URL || process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? 'https://app.vinylflix.com' : 'http://localhost:3000'),
+  apiBaseUrl: process.env.API_BASE_URL || (process.env.NODE_ENV === 'production' ? 'https://app.vinylflix.com/api/v1' : 'http://localhost:4000/api/v1'),
   jwt: {
     secret: process.env.JWT_SECRET || 'dev_secret_jwt_key_min_32_chars_fallback!',
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
@@ -56,7 +56,7 @@ export const config: AppConfig = {
   youtube: {
     clientId: process.env.YOUTUBE_CLIENT_ID || '',
     clientSecret: process.env.YOUTUBE_CLIENT_SECRET || '',
-    redirectUri: process.env.YOUTUBE_REDIRECT_URI || (process.env.NODE_ENV === 'production' ? 'https://service.vinylflix.com/api/v1/youtube/oauth/callback' : 'http://localhost:4000/api/v1/youtube/oauth/callback'),
+    redirectUri: process.env.YOUTUBE_REDIRECT_URI || (process.env.NODE_ENV === 'production' ? 'https://app.vinylflix.com/api/v1/youtube/oauth/callback' : 'http://localhost:4000/api/v1/youtube/oauth/callback'),
     apiKey: process.env.YOUTUBE_API_KEY || '',
   },
   payment: {

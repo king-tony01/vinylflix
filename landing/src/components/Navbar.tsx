@@ -40,13 +40,13 @@ export const Navbar: React.FC = () => {
         {/* CTA Actions */}
         <div className="hidden md:flex items-center gap-4">
           <a
-            href="https://service.vinylflix.com/login"
+            href="https://app.vinylflix.com/login"
             className="px-5 py-2.5 rounded-full text-sm font-bold text-slate-200 hover:text-white hover:bg-slate-900 border border-[#2a0054] transition-all"
           >
             Sign In
           </a>
           <a
-            href="https://service.vinylflix.com/register"
+            href="https://app.vinylflix.com/register"
             className="px-6 py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-[#FF0091] to-[#360099] hover:opacity-90 shadow-lg shadow-[#FF0091]/25 hover:shadow-[#FF0091]/40 hover:scale-[1.02] transition-all flex items-center gap-2"
           >
             <Sparkles className="w-4 h-4" /> Start Earning
@@ -98,13 +98,13 @@ export const Navbar: React.FC = () => {
 
           <div className="pt-4 border-t border-[#2a0054] flex flex-col gap-3">
             <a
-              href="https://service.vinylflix.com/login"
+              href="https://app.vinylflix.com/login"
               className="w-full py-3 rounded-xl text-center text-sm font-bold text-slate-200 bg-slate-900 border border-[#2a0054]"
             >
               Sign In
             </a>
             <a
-              href="https://service.vinylflix.com/register"
+              href="https://app.vinylflix.com/register"
               className="w-full py-3 rounded-xl text-center text-sm font-bold text-white bg-gradient-to-r from-[#FF0091] to-[#360099] shadow-lg shadow-[#FF0091]/30 flex items-center justify-center gap-2"
             >
               Start Earning <ArrowRight className="w-4 h-4" />

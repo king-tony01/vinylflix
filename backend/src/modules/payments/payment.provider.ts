@@ -81,7 +81,7 @@ export class PaystackPaymentProvider implements IPaymentProvider {
       (config.nodeEnv === 'production' || process.env.RENDER || process.env.NODE_ENV === 'production') &&
       callbackUrl.includes('localhost')
     ) {
-      callbackUrl = callbackUrl.replace(/https?:\/\/localhost(:\d+)?/g, config.appUrl || 'https://service.vinylflix.com');
+      callbackUrl = callbackUrl.replace(/https?:\/\/localhost(:\d+)?/g, config.appUrl || 'https://app.vinylflix.com');
     }
 
     try {

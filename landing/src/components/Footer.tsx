@@ -28,27 +28,27 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-black uppercase tracking-wider text-white">Platform</h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="https://service.vinylflix.com/" className="hover:text-white transition-colors">
+                <a href="https://app.vinylflix.com/" className="hover:text-white transition-colors">
                   Watch & Earn Feed
                 </a>
               </li>
               <li>
-                <a href="https://service.vinylflix.com/memberships" className="hover:text-white transition-colors">
+                <a href="https://app.vinylflix.com/memberships" className="hover:text-white transition-colors">
                   Membership Plans
                 </a>
               </li>
               <li>
-                <a href="https://service.vinylflix.com/referrals" className="hover:text-white transition-colors">
+                <a href="https://app.vinylflix.com/referrals" className="hover:text-white transition-colors">
                   Refer & Earn Network
                 </a>
               </li>
               <li>
-                <a href="https://service.vinylflix.com/campaigns" className="hover:text-white transition-colors">
+                <a href="https://app.vinylflix.com/campaigns" className="hover:text-white transition-colors">
                   Creator Campaign Hub
                 </a>
               </li>
               <li>
-                <a href="https://service.vinylflix.com/wallet" className="hover:text-white transition-colors">
+                <a href="https://app.vinylflix.com/wallet" className="hover:text-white transition-colors">
                   Wallet & Direct Payouts
                 </a>
               </li>
@@ -88,7 +88,7 @@ export const Footer: React.FC = () => {
             </p>
             <div className="pt-2">
               <a
-                href="https://service.vinylflix.com/register"
+                href="https://app.vinylflix.com/register"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF0091] hover:text-pink-300 transition-colors"
               >
                 <Sparkles className="w-3.5 h-3.5" /> Join Vinylflix Today &rarr;
@@ -102,7 +102,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-center gap-6">
             <Link href="/privacy-policy" className="hover:text-slate-300">Privacy</Link>
             <Link href="/terms-of-service" className="hover:text-slate-300">Terms</Link>
-            <a href="https://service.vinylflix.com" className="hover:text-slate-300">Launch App</a>
+            <a href="https://app.vinylflix.com" className="hover:text-slate-300">Launch App</a>
           </div>
         </div>
       </div>
