@@ -12,11 +12,11 @@ export const Navbar: React.FC = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0a0017]/80 backdrop-blur-xl border-b border-[#2a0054]/60">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <VinylflixLogo className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,0,145,0.5)]" />
+        <Link href="/" className="flex items-center gap-3 group shrink-0 flex-shrink-0 min-w-max">
+          <div className="w-10 h-10 shrink-0 flex-shrink-0 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <VinylflixLogo className="w-10 h-10 shrink-0 flex-shrink-0 drop-shadow-[0_0_15px_rgba(255,0,145,0.5)]" />
           </div>
-          <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-pink-100 to-pink-300 bg-clip-text text-transparent">
+          <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-pink-100 to-pink-300 bg-clip-text text-transparent select-none">
             Vinylflix
           </span>
         </Link>

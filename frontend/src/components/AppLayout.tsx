@@ -160,11 +160,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             : 'sticky top-0 bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-xl pointer-events-auto'
         }`}
       >
-        <Link to="/" className="flex items-center gap-2 pointer-events-auto">
-          <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center">
-            <VinylflixLogo className="w-8 h-8 flex-shrink-0 drop-shadow-[0_0_12px_rgba(255,0,145,0.4)]" />
+        <Link to="/" className="flex items-center gap-2 pointer-events-auto shrink-0 flex-shrink-0 min-w-max">
+          <div className="w-8 h-8 shrink-0 flex-shrink-0 flex items-center justify-center">
+            <VinylflixLogo className="w-8 h-8 shrink-0 flex-shrink-0 drop-shadow-[0_0_12px_rgba(255,0,145,0.4)]" />
           </div>
-          <span className="font-black text-lg text-white tracking-tight">Vinylflix</span>
+          <span className="font-black text-lg text-white tracking-tight select-none">Vinylflix</span>
         </Link>
 
         {user ? (

@@ -10,9 +10,9 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-1">
-            <Link href="/" className="flex items-center gap-3">
-              <VinylflixLogo className="w-8 h-8 drop-shadow-[0_0_12px_rgba(255,0,145,0.4)]" />
-              <span className="text-xl font-black tracking-tight text-white">Vinylflix</span>
+            <Link href="/" className="flex items-center gap-3 shrink-0 flex-shrink-0">
+              <VinylflixLogo className="w-8 h-8 shrink-0 flex-shrink-0 drop-shadow-[0_0_12px_rgba(255,0,145,0.4)]" />
+              <span className="text-xl font-black tracking-tight text-white select-none">Vinylflix</span>
             </Link>
             <p className="text-xs text-slate-400 leading-relaxed">
               The premier content attention and rewarded video streaming ecosystem. Connecting passionate viewers with ambitious creators and brands worldwide.
