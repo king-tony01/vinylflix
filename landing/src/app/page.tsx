@@ -40,7 +40,7 @@ export default function LandingPage() {
     },
     {
       q: 'How does Vinylflix help YouTube creators and advertisers?',
-      a: 'Vinylflix connects your YouTube videos to real, verified human viewers. Creators can connect their channel via official Google OAuth, set their reward budget, and receive authentic, high-retention views that boost channel metrics.',
+      a: 'Vinylflix connects your YouTube videos to real, verified human viewers. Creators can paste any public video or Shorts link, set their reward budget, and receive authentic, high-retention views that boost channel metrics.',
     },
     {
       q: 'Is there an anti-cheat and anti-fraud system?',
@@ -233,9 +233,9 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="p-8 rounded-3xl bg-[#120029] border border-[#2a0054] space-y-4">
               <div className="text-3xl font-black text-purple-400">01</div>
-              <h3 className="text-xl font-bold text-white">Connect YouTube Channel</h3>
+              <h3 className="text-xl font-bold text-white">Import Video Link</h3>
               <p className="text-sm text-slate-400">
-                Authorize your channel with Google OAuth or paste any public YouTube video link for immediate import.
+                Paste any public YouTube video or Shorts link for immediate automated verification and campaign setup.
               </p>
             </div>
             <div className="p-8 rounded-3xl bg-[#120029] border border-[#2a0054] space-y-4">

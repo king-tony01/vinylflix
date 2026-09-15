@@ -8,7 +8,6 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
-  ExternalLink,
   Link as LinkIcon,
   Video,
 } from 'lucide-react';
@@ -61,18 +60,6 @@ export const CampaignsPage: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Real Google OAuth flow
-  const handleConnectOAuth = async () => {
-    const res = await apiRequest('/youtube/oauth/url');
-    const oauthUrl = res.data?.url || (res as any).url;
-    if (res.success && oauthUrl) {
-      window.location.href = oauthUrl;
-    } else {
-      setFormError(res.error?.message || 'Failed to initialize YouTube OAuth flow.');
-    }
-  };
-
-  // Real Direct Video Import via YouTube API
   const handleImportVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!videoUrlInput.trim()) return;
@@ -93,7 +80,7 @@ export const CampaignsPage: React.FC = () => {
       setDescription(vid.description?.slice(0, 200) || `Campaign for ${vid.title}`);
       setMinWatchSeconds(String(Math.min(60, Math.max(15, Math.floor(vid.durationSeconds / 2)))));
       setSyncedVideos((prev) => [vid, ...prev.filter((v) => v.id !== vid.id)]);
-      setFormSuccess(`✓ Verified & imported "${vid.title}" via YouTube API!`);
+      setFormSuccess(`✓ Verified & imported "${vid.title}"!`);
       setVideoUrlInput('');
     } else {
       setFormError(res.error?.message || 'Could not verify or fetch video from YouTube.');
@@ -143,23 +130,14 @@ export const CampaignsPage: React.FC = () => {
             Campaigns & Promotion Hub <Layers className="w-6 h-6 text-[#FF0091]" />
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Connect YouTube channels or import video links, set targeted watch rewards, and promote your videos.
+            Import YouTube video links, set targeted watch rewards, and promote your videos to thousands of verified viewers.
           </p>
         </div>
 
-        <div className="flex flex-col gap-2.5 w-full sm:w-64 self-start">
-          <button
-            onClick={handleConnectOAuth}
-            className="w-full px-4 py-2.5 rounded-xl bg-red-600/10 border border-red-600/30 hover:bg-red-600/20 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-colors"
-          >
-            <Youtube className="w-4 h-4" />
-            Connect YouTube
-            <ExternalLink className="w-3 h-3 opacity-60" />
-          </button>
-
+        <div>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="w-full px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Create Campaign
