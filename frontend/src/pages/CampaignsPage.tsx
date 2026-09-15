@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Link as LinkIcon,
   Video,
+  Trash2,
+  XCircle,
 } from 'lucide-react';
 
 export const CampaignsPage: React.FC = () => {
@@ -35,6 +37,7 @@ export const CampaignsPage: React.FC = () => {
   const [dailyLimit, setDailyLimit] = useState<string>('20');
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -43,6 +46,54 @@ export const CampaignsPage: React.FC = () => {
       setCampaigns(res.data);
     }
     setLoading(false);
+  };
+
+  const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to permanently delete the campaign "${campaignTitle}"?`
+    );
+    if (!confirmDelete) return;
+
+    setActionLoadingId(campaignId);
+    setFormError(null);
+    setFormSuccess(null);
+
+    const res = await apiRequest(`/campaigns/${campaignId}`, {
+      method: 'DELETE',
+    });
+
+    if (res.success) {
+      setFormSuccess(`✓ Campaign "${campaignTitle}" was successfully deleted.`);
+      fetchCampaigns();
+    } else {
+      setFormError(res.error?.message || 'Failed to delete campaign.');
+    }
+
+    setActionLoadingId(null);
+  };
+
+  const handleCancelCampaign = async (campaignId: string, campaignTitle: string) => {
+    const confirmCancel = window.confirm(
+      `Are you sure you want to cancel the campaign "${campaignTitle}"?`
+    );
+    if (!confirmCancel) return;
+
+    setActionLoadingId(campaignId);
+    setFormError(null);
+    setFormSuccess(null);
+
+    const res = await apiRequest(`/campaigns/${campaignId}/cancel`, {
+      method: 'PATCH',
+    });
+
+    if (res.success) {
+      setFormSuccess(`✓ Campaign "${campaignTitle}" is now cancelled.`);
+      fetchCampaigns();
+    } else {
+      setFormError(res.error?.message || 'Failed to cancel campaign.');
+    }
+
+    setActionLoadingId(null);
   };
 
   useEffect(() => {
@@ -252,6 +303,43 @@ export const CampaignsPage: React.FC = () => {
                     <div className="bg-slate-950/60 p-2 rounded-xl">
                       <span className="text-[10px] text-slate-500 uppercase font-bold">Daily Limit</span>
                       <p className="text-xs font-bold text-white">{c.dailyUserLimit}/user</p>
+                    </div>
+                  </div>
+
+                  {/* Campaign Card Footer Actions */}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-800">
+                    <span className="text-[11px] text-slate-400">
+                      Created {new Date(c.createdAt).toLocaleDateString()}
+                    </span>
+
+                    <div className="flex items-center gap-2">
+                      {c.status !== 'CANCELLED' && c.status !== 'COMPLETED' && (
+                        <button
+                          type="button"
+                          onClick={() => handleCancelCampaign(c.id, c.title)}
+                          disabled={actionLoadingId === c.id}
+                          className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold flex items-center gap-1 transition-all disabled:opacity-50"
+                          title="Cancel Campaign"
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          Cancel
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteCampaign(c.id, c.title)}
+                        disabled={actionLoadingId === c.id}
+                        className="px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1 transition-all disabled:opacity-50"
+                        title="Delete Campaign"
+                      >
+                        {actionLoadingId === c.id ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="w-3.5 h-3.5" />
+                        )}
+                        Delete
+                      </button>
                     </div>
                   </div>
                 </div>

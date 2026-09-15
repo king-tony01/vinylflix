@@ -8,6 +8,8 @@ const router = Router();
 
 router.post('/', authenticate, validateBody(createCampaignSchema), CampaignController.create);
 router.get('/my', authenticate, CampaignController.getMyCampaigns);
+router.delete('/:id', authenticate, CampaignController.delete);
+router.patch('/:id/cancel', authenticate, CampaignController.cancel);
 router.patch('/:id/status', authenticate, requireRole('ADMIN'), validateBody(updateCampaignStatusSchema), CampaignController.updateStatus);
 
 export default router;

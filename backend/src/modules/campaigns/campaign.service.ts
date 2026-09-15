@@ -135,9 +135,69 @@ export class CampaignService {
       remainingBudget: c.remainingBudget,
       rewardPerQualifiedView: c.rewardPerQualifiedView,
       minWatchDurationSeconds: c.minWatchDurationSeconds,
+      dailyUserLimit: c.dailyUserLimit,
       qualifiedViews: c._count.watchSessions,
       video: c.video,
       createdAt: c.createdAt,
     }));
+  }
+
+  public static async deleteCampaign(campaignId: string, userId: string, isAdmin: boolean = false) {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+    });
+    if (!campaign) throw new NotFoundError('Campaign not found');
+
+    if (!isAdmin && campaign.advertiserId !== userId) {
+      throw new ForbiddenError('You do not have permission to delete this campaign');
+    }
+
+    await prisma.campaign.delete({
+      where: { id: campaignId },
+    });
+
+    await AuditService.log({
+      actorId: userId,
+      action: 'CAMPAIGN_DELETED',
+      targetType: 'CAMPAIGN',
+      targetId: campaignId,
+      previousState: {
+        title: campaign.title,
+        status: campaign.status,
+        totalBudget: campaign.totalBudget,
+        spentBudget: campaign.spentBudget,
+      },
+    });
+
+    return { success: true, message: 'Campaign successfully deleted' };
+  }
+
+  public static async cancelCampaign(campaignId: string, userId: string, isAdmin: boolean = false) {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: campaignId },
+    });
+    if (!campaign) throw new NotFoundError('Campaign not found');
+
+    if (!isAdmin && campaign.advertiserId !== userId) {
+      throw new ForbiddenError('You do not have permission to cancel this campaign');
+    }
+
+    const updated = await prisma.campaign.update({
+      where: { id: campaignId },
+      data: {
+        status: 'CANCELLED',
+      },
+    });
+
+    await AuditService.log({
+      actorId: userId,
+      action: 'CAMPAIGN_CANCELLED',
+      targetType: 'CAMPAIGN',
+      targetId: campaignId,
+      previousState: { status: campaign.status },
+      newState: { status: 'CANCELLED' },
+    });
+
+    return updated;
   }
 }

@@ -21,6 +21,28 @@ export class CampaignController {
     }
   }
 
+  public static async delete(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const isAdmin = req.user!.role === 'ADMIN';
+      const data = await CampaignService.deleteCampaign(id, req.user!.userId, isAdmin);
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async cancel(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const isAdmin = req.user!.role === 'ADMIN';
+      const data = await CampaignService.cancelCampaign(id, req.user!.userId, isAdmin);
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async updateStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const id = req.params.id as string;
