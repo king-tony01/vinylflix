@@ -209,40 +209,42 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
     setTimeout(() => setSubscribeToast(null), 3500);
   };
 
+  const originParam = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
   const youtubeEmbedUrl = `https://www.youtube.com/embed/${video.youtubeVideoId}?autoplay=1&mute=${
     isMuted ? 1 : 0
-  }&controls=0&showinfo=0&rel=0&iv_load_policy=3&modestbranding=1&playsinline=1&enablejsapi=1&fs=0&disablekb=1&loop=1&playlist=${video.youtubeVideoId}`;
+  }&controls=0&rel=0&playsinline=1&enablejsapi=1&origin=${originParam}&widgetid=1`;
 
-  return (
-    <div className="w-full h-full min-h-full max-h-full flex-shrink-0 relative flex items-center justify-center bg-black select-none overflow-hidden">
-      {/* DESKTOP/TABLET WRAPPER (9:16 Frame) / MOBILE 100% FULL BLEED VIEWPORT */}
-      <div className="w-full h-full min-h-full max-h-full md:max-w-[440px] md:h-[calc(100vh-2rem)] md:my-4 md:rounded-3xl relative bg-black overflow-hidden shadow-2xl border-0 md:border md:border-slate-800/80 flex items-center justify-center">
-        
-        {/* YOUTUBE IFRAME */}
-        {isActive ? (
-          <div className="absolute inset-0 w-full h-full overflow-hidden flex items-center justify-center bg-black">
-            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-              <iframe
-                ref={iframeRef}
-                src={youtubeEmbedUrl}
-                title={video.title}
-                className="pointer-events-none border-0 select-none"
-                style={{
-                  width: '135%',
-                  height: '135%',
-                  minWidth: '135%',
-                  minHeight: '135%',
-                  position: 'absolute',
-                  top: '-17.5%',
-                  left: '-17.5%',
-                  objectFit: 'cover',
-                }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
+    return (
+      <div className="w-full h-full min-h-full max-h-full flex-shrink-0 relative flex items-center justify-center bg-black select-none overflow-hidden">
+        {/* DESKTOP/TABLET WRAPPER (9:16 Frame) / MOBILE 100% FULL BLEED VIEWPORT */}
+        <div className="w-full h-full min-h-full max-h-full md:max-w-[440px] md:h-[calc(100vh-2rem)] md:my-4 md:rounded-3xl relative bg-black overflow-hidden shadow-2xl border-0 md:border md:border-slate-800/80 flex items-center justify-center">
+          
+          {/* YOUTUBE IFRAME */}
+          {isActive ? (
+            <div className="absolute inset-0 w-full h-full overflow-hidden flex items-center justify-center bg-black">
+              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                <iframe
+                  ref={iframeRef}
+                  src={youtubeEmbedUrl}
+                  title={video.title}
+                  className="pointer-events-none border-0 select-none"
+                  style={{
+                    width: '135%',
+                    height: '135%',
+                    minWidth: '135%',
+                    minHeight: '135%',
+                    position: 'absolute',
+                    top: '-17.5%',
+                    left: '-17.5%',
+                    objectFit: 'cover',
+                  }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              </div>
             </div>
-          </div>
-        ) : (
+          ) : (
           <div className="absolute inset-0 w-full h-full bg-slate-950 flex flex-col items-center justify-center text-slate-600">
             {video.thumbnailUrl && (
               <img

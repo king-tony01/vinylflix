@@ -135,10 +135,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       {/* Video Embed Header */}
       <div className="relative aspect-video w-full bg-black">
         <iframe
-          src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=0&enablejsapi=1&rel=0`}
+          src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=0&enablejsapi=1&rel=0&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
           title={title}
           className="w-full h-full border-0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerPolicy="strict-origin-when-cross-origin"
           allowFullScreen
         />
       </div>
