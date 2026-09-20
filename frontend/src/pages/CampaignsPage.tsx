@@ -8,10 +8,13 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle2,
+  ExternalLink,
   Link as LinkIcon,
   Video,
   Trash2,
   XCircle,
+  Unlink,
+  Sparkles,
 } from 'lucide-react';
 
 export const CampaignsPage: React.FC = () => {
@@ -19,7 +22,8 @@ export const CampaignsPage: React.FC = () => {
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
-  const [connectedChannel] = useState<any | null>(null);
+  const [connectedChannel, setConnectedChannel] = useState<any | null>(null);
+  const [syncingVideos, setSyncingVideos] = useState<boolean>(false);
   const [syncedVideos, setSyncedVideos] = useState<any[]>([]);
 
   // Import Video URL state
@@ -46,6 +50,75 @@ export const CampaignsPage: React.FC = () => {
       setCampaigns(res.data);
     }
     setLoading(false);
+  };
+
+  const fetchConnectedChannel = async () => {
+    const res = await apiRequest('/youtube/channel');
+    if (res.success && res.data) {
+      setConnectedChannel(res.data);
+      if (res.data.videos && Array.isArray(res.data.videos)) {
+        setSyncedVideos(res.data.videos);
+      }
+    } else {
+      setConnectedChannel(null);
+    }
+  };
+
+  // Google OAuth flow
+  const handleConnectOAuth = async () => {
+    setFormError(null);
+    setFormSuccess(null);
+    const res = await apiRequest('/youtube/oauth/url');
+    const oauthUrl = res.data?.url || (res as any).url;
+    if (res.success && oauthUrl) {
+      window.location.href = oauthUrl;
+    } else {
+      setFormError(res.error?.message || 'Failed to initialize YouTube OAuth flow.');
+    }
+  };
+
+  // Sync Channel Videos
+  const handleSyncChannelVideos = async () => {
+    if (!connectedChannel) return;
+    setSyncingVideos(true);
+    setFormError(null);
+    setFormSuccess(null);
+
+    const res = await apiRequest(`/youtube/sync/${connectedChannel.id}`, {
+      method: 'POST',
+    });
+
+    if (res.success && res.data) {
+      setSyncedVideos(res.data);
+      setFormSuccess(`✓ Successfully synced ${res.data.length} videos from your YouTube channel!`);
+      fetchConnectedChannel();
+    } else {
+      setFormError(res.error?.message || 'Failed to sync videos from YouTube.');
+    }
+    setSyncingVideos(false);
+  };
+
+  // Disconnect Channel
+  const handleDisconnectChannel = async () => {
+    const confirmDisconnect = window.confirm(
+      'Are you sure you want to disconnect your YouTube channel from this account?'
+    );
+    if (!confirmDisconnect) return;
+
+    setFormError(null);
+    setFormSuccess(null);
+
+    const res = await apiRequest('/youtube/channel', {
+      method: 'DELETE',
+    });
+
+    if (res.success) {
+      setConnectedChannel(null);
+      setSyncedVideos([]);
+      setFormSuccess('YouTube channel disconnected successfully.');
+    } else {
+      setFormError(res.error?.message || 'Failed to disconnect YouTube channel.');
+    }
   };
 
   const handleDeleteCampaign = async (campaignId: string, campaignTitle: string) => {
@@ -98,6 +171,7 @@ export const CampaignsPage: React.FC = () => {
 
   useEffect(() => {
     fetchCampaigns();
+    fetchConnectedChannel();
 
     // Check OAuth return status
     const isConnected = searchParams.get('connected');
@@ -106,6 +180,7 @@ export const CampaignsPage: React.FC = () => {
 
     if (isConnected && channelParam) {
       setFormSuccess(`🎉 Successfully connected YouTube channel "${decodeURIComponent(channelParam)}"!`);
+      fetchConnectedChannel();
     } else if (errorParam) {
       setFormError(`YouTube authorization error: ${decodeURIComponent(errorParam)}`);
     }
@@ -181,14 +256,25 @@ export const CampaignsPage: React.FC = () => {
             Campaigns & Promotion Hub <Layers className="w-6 h-6 text-[#FF0091]" />
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Import YouTube video links, set targeted watch rewards, and promote your videos to thousands of verified viewers.
+            Connect your YouTube channel or import video links to promote your content to thousands of verified viewers.
           </p>
         </div>
 
-        <div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {!connectedChannel && (
+            <button
+              onClick={handleConnectOAuth}
+              className="px-5 py-2.5 rounded-xl bg-red-600/10 border border-red-600/30 hover:bg-red-600/20 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-red-950/30"
+            >
+              <Youtube className="w-4 h-4" />
+              Connect YouTube
+              <ExternalLink className="w-3 h-3 opacity-60" />
+            </button>
+          )}
+
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Create Campaign
@@ -196,25 +282,84 @@ export const CampaignsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Connected Channel Banner */}
-      {connectedChannel && (
-        <div className="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-lg flex items-center justify-between">
+      {/* Connected Channel Card */}
+      {connectedChannel ? (
+        <div className="bg-slate-900/90 rounded-2xl border border-slate-800 p-5 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500">
-              <Youtube className="w-6 h-6" />
-            </div>
+            {connectedChannel.channelThumbnail ? (
+              <img
+                src={connectedChannel.channelThumbnail}
+                alt={connectedChannel.channelTitle}
+                className="w-12 h-12 rounded-full object-cover border-2 border-pink-500/40 shadow-md"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-full bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 flex-shrink-0">
+                <Youtube className="w-6 h-6" />
+              </div>
+            )}
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="text-base font-bold text-white">{connectedChannel.channelTitle}</h3>
-                <span className="text-[10px] font-semibold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
-                  CONNECTED
+                <span className="text-[10px] font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20">
+                  CONNECTED CHANNEL
                 </span>
+                {connectedChannel.customUrl && (
+                  <span className="text-xs text-slate-400 font-mono">
+                    {connectedChannel.customUrl}
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-400 mt-0.5">
-                {connectedChannel.subscriberCount.toLocaleString()} Subscribers • {syncedVideos.length} Synced Videos
+                {connectedChannel.subscriberCount?.toLocaleString() || 0} Subscribers • {syncedVideos.length} Synced Videos
               </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2.5 self-end sm:self-center">
+            <button
+              onClick={handleSyncChannelVideos}
+              disabled={syncingVideos}
+              className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center gap-1.5 transition-all disabled:opacity-50"
+              title="Sync latest videos from YouTube channel"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncingVideos ? 'animate-spin text-[#FF0091]' : ''}`} />
+              {syncingVideos ? 'Syncing...' : 'Sync Videos'}
+            </button>
+
+            <button
+              onClick={handleDisconnectChannel}
+              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all"
+              title="Disconnect channel"
+            >
+              <Unlink className="w-3.5 h-3.5" />
+              Disconnect
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-r from-[#14002e] to-[#0a0017] rounded-2xl border border-[#2a0054] p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-red-600/10 border border-red-600/30 flex items-center justify-center text-red-500 flex-shrink-0">
+              <Youtube className="w-6 h-6" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="text-sm font-bold text-white flex items-center gap-1.5">
+                Connect Your YouTube Channel <Sparkles className="w-3.5 h-3.5 text-[#FF0091]" />
+              </h4>
+              <p className="text-xs text-slate-400">
+                Authorize with Google to automatically sync channel uploads, verify creator badge, and enable 1-click subscriptions.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleConnectOAuth}
+            className="px-4 py-2 rounded-xl bg-red-600/10 border border-red-600/30 hover:bg-red-600/20 text-red-400 text-xs font-bold flex items-center justify-center gap-2 transition-all flex-shrink-0"
+          >
+            <Youtube className="w-4 h-4" />
+            Connect YouTube Channel
+            <ExternalLink className="w-3 h-3 opacity-60" />
+          </button>
         </div>
       )}
 

@@ -95,6 +95,24 @@ export class YouTubeController {
     }
   }
 
+  public static async getConnectedChannel(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const channel = await YouTubeService.getUserChannel(req.user!.userId);
+      res.json({ success: true, data: channel });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async disconnectChannel(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      await YouTubeService.disconnectChannel(req.user!.userId);
+      res.json({ success: true, message: 'YouTube channel disconnected successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async syncVideos(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const connectionId = req.params.connectionId as string;

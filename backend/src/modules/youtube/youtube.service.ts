@@ -349,6 +349,76 @@ export class YouTubeService {
     });
     if (!channel) throw new NotFoundError('YouTube channel connection not found');
 
+    // If authentic access token exists, fetch recent videos from YouTube Data API
+    if (
+      channel.accessTokenEncrypted &&
+      channel.accessTokenEncrypted !== 'mock_access_token_demo' &&
+      channel.accessTokenEncrypted !== 'imported_direct_connection'
+    ) {
+      try {
+        const playlistRes = await fetch(
+          `https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=${encodeURIComponent(
+            channel.channelId
+          )}`,
+          {
+            headers: { Authorization: `Bearer ${channel.accessTokenEncrypted}` },
+          }
+        );
+        const playlistJson: any = await playlistRes.json();
+        const uploadsPlaylistId =
+          playlistJson?.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+
+        if (uploadsPlaylistId) {
+          const itemsRes = await fetch(
+            `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${encodeURIComponent(
+              uploadsPlaylistId
+            )}&maxResults=25`,
+            {
+              headers: { Authorization: `Bearer ${channel.accessTokenEncrypted}` },
+            }
+          );
+          const itemsJson: any = await itemsRes.json();
+          if (itemsJson?.items?.length) {
+            for (const item of itemsJson.items) {
+              const vidId = item.contentDetails?.videoId || item.snippet?.resourceId?.videoId;
+              if (vidId) {
+                const title = item.snippet?.title || 'YouTube Video';
+                const description = item.snippet?.description || '';
+                const thumb =
+                  item.snippet?.thumbnails?.high?.url ||
+                  item.snippet?.thumbnails?.medium?.url ||
+                  `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`;
+
+                await prisma.video.upsert({
+                  where: { youtubeVideoId: vidId },
+                  create: {
+                    youtubeVideoId: vidId,
+                    channelId: channel.id,
+                    title,
+                    description,
+                    durationSeconds: 180,
+                    thumbnailUrl: thumb,
+                    availabilityStatus: 'PUBLIC',
+                    lastCheckedAt: new Date(),
+                  },
+                  update: {
+                    channelId: channel.id,
+                    title,
+                    description,
+                    thumbnailUrl: thumb,
+                    availabilityStatus: 'PUBLIC',
+                    lastCheckedAt: new Date(),
+                  },
+                });
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        logger.warn(`[YOUTUBE SYNC] API fetch failed: ${err.message}`);
+      }
+    }
+
     const videos = await prisma.video.findMany({
       where: { channelId: channel.id },
       orderBy: { createdAt: 'desc' },
@@ -364,6 +434,46 @@ export class YouTubeService {
 
     logger.info(`[YOUTUBE] Synced ${videos.length} videos for channel ${channel.channelTitle}`);
     return videos;
+  }
+
+  /**
+   * Retrieves the active connected YouTube channel for a user.
+   */
+  public static async getUserChannel(userId: string) {
+    const channel = await prisma.youTubeConnection.findFirst({
+      where: { userId, isConnected: true },
+      include: {
+        videos: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+    return channel;
+  }
+
+  /**
+   * Disconnects a user's connected YouTube channel.
+   */
+  public static async disconnectChannel(userId: string) {
+    const channel = await prisma.youTubeConnection.findFirst({
+      where: { userId, isConnected: true },
+    });
+    if (!channel) return null;
+
+    const updated = await prisma.youTubeConnection.update({
+      where: { id: channel.id },
+      data: { isConnected: false },
+    });
+
+    await AuditService.log({
+      actorId: userId,
+      action: 'YOUTUBE_CHANNEL_DISCONNECTED',
+      targetType: 'YOUTUBE_CONNECTION',
+      targetId: channel.id,
+      newState: { isConnected: false },
+    });
+
+    return updated;
   }
 
   /**
