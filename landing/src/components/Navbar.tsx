@@ -23,16 +23,16 @@ export const Navbar: React.FC = () => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="#features" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <Link href="/features" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
             Features
           </Link>
-          <Link href="#how-it-works" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <Link href="/how-it-works" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
             How It Works
           </Link>
-          <Link href="#creators" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <Link href="/creators" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
             For Creators
           </Link>
-          <Link href="#faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
+          <Link href="/faq" className="text-sm font-medium text-slate-300 hover:text-white transition-colors">
             FAQ
           </Link>
         </div>
@@ -67,28 +67,28 @@ export const Navbar: React.FC = () => {
         <div className="md:hidden bg-[#0e001f] border-b border-[#2a0054] px-6 py-6 space-y-4 animate-in slide-in-from-top-4">
           <div className="flex flex-col space-y-3">
             <Link
-              href="#features"
+              href="/features"
               onClick={() => setMobileOpen(false)}
               className="text-base font-semibold text-slate-300 hover:text-white py-2"
             >
               Features
             </Link>
             <Link
-              href="#how-it-works"
+              href="/how-it-works"
               onClick={() => setMobileOpen(false)}
               className="text-base font-semibold text-slate-300 hover:text-white py-2"
             >
               How It Works
             </Link>
             <Link
-              href="#creators"
+              href="/creators"
               onClick={() => setMobileOpen(false)}
               className="text-base font-semibold text-slate-300 hover:text-white py-2"
             >
               For Creators
             </Link>
             <Link
-              href="#faq"
+              href="/faq"
               onClick={() => setMobileOpen(false)}
               className="text-base font-semibold text-slate-300 hover:text-white py-2"
             >

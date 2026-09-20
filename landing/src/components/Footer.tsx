@@ -25,26 +25,31 @@ export const Footer: React.FC = () => {
 
           {/* Platform Links */}
           <div className="space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-white">Platform</h4>
+            <h4 className="text-xs font-black uppercase tracking-wider text-white">Platform & Discovery</h4>
             <ul className="space-y-2 text-xs">
+              <li>
+                <Link href="/features" className="hover:text-white transition-colors">
+                  Platform Features
+                </Link>
+              </li>
+              <li>
+                <Link href="/how-it-works" className="hover:text-white transition-colors">
+                  How It Works
+                </Link>
+              </li>
+              <li>
+                <Link href="/creators" className="hover:text-white transition-colors">
+                  For Creators & Channels
+                </Link>
+              </li>
+              <li>
+                <Link href="/faq" className="hover:text-white transition-colors">
+                  Frequently Asked Questions
+                </Link>
+              </li>
               <li>
                 <a href="https://app.vinylflix.com/campaigns" className="hover:text-white transition-colors">
                   Creator Campaign Hub
-                </a>
-              </li>
-              <li>
-                <a href="https://app.vinylflix.com/" className="hover:text-white transition-colors">
-                  Video Discovery Feed
-                </a>
-              </li>
-              <li>
-                <a href="https://app.vinylflix.com/memberships" className="hover:text-white transition-colors">
-                  Membership Plans
-                </a>
-              </li>
-              <li>
-                <a href="https://app.vinylflix.com/referrals" className="hover:text-white transition-colors">
-                  Creator Affiliate Network
                 </a>
               </li>
               <li>

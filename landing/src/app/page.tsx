@@ -55,11 +55,7 @@ export default function LandingPage() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-[#FF0091]/25 via-[#7928CA]/20 to-[#360099]/25 blur-[120px] rounded-full pointer-events-none -z-10" />
 
         <div className="text-center max-w-4xl mx-auto space-y-8">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#1a0033] border border-[#FF0091]/40 text-pink-300 text-xs font-bold shadow-lg shadow-[#FF0091]/10">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF0091]" />
-            <span>The Premier YouTube Video Discovery & Audience Growth Network</span>
-          </div>
+
 
           {/* Main Title */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.1]">
