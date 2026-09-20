@@ -46,10 +46,10 @@ export const Navbar: React.FC = () => {
             Sign In
           </a>
           <a
-            href="https://app.vinylflix.com/register"
+            href="https://app.vinylflix.com/campaigns"
             className="px-6 py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-[#FF0091] to-[#360099] hover:opacity-90 shadow-lg shadow-[#FF0091]/25 hover:shadow-[#FF0091]/40 hover:scale-[1.02] transition-all flex items-center gap-2"
           >
-            <Sparkles className="w-4 h-4" /> Start Earning
+            <Sparkles className="w-4 h-4" /> Launch Campaign
           </a>
         </div>
 
@@ -104,10 +104,10 @@ export const Navbar: React.FC = () => {
               Sign In
             </a>
             <a
-              href="https://app.vinylflix.com/register"
+              href="https://app.vinylflix.com/campaigns"
               className="w-full py-3 rounded-xl text-center text-sm font-bold text-white bg-gradient-to-r from-[#FF0091] to-[#360099] shadow-lg shadow-[#FF0091]/30 flex items-center justify-center gap-2"
             >
-              Start Earning <ArrowRight className="w-4 h-4" />
+              Launch Campaign <ArrowRight className="w-4 h-4" />
             </a>
           </div>
         </div>

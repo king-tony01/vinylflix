@@ -15,11 +15,11 @@ export const Footer: React.FC = () => {
               <span className="text-xl font-black tracking-tight text-white select-none">Vinylflix</span>
             </Link>
             <p className="text-xs text-slate-400 leading-relaxed">
-              The premier content attention and rewarded video streaming ecosystem. Connecting passionate viewers with ambitious creators and brands worldwide.
+              The premier YouTube video discovery and audience growth network. Connecting passionate viewers with ambitious creators and brands worldwide.
             </p>
             <div className="flex items-center gap-2 text-xs text-pink-400 font-semibold">
               <Shield className="w-4 h-4 text-[#FF0091]" />
-              <span>Bank-Grade Payout Security</span>
+              <span>100% Verified Human Engagement</span>
             </div>
           </div>
 
@@ -28,8 +28,13 @@ export const Footer: React.FC = () => {
             <h4 className="text-xs font-black uppercase tracking-wider text-white">Platform</h4>
             <ul className="space-y-2 text-xs">
               <li>
+                <a href="https://app.vinylflix.com/campaigns" className="hover:text-white transition-colors">
+                  Creator Campaign Hub
+                </a>
+              </li>
+              <li>
                 <a href="https://app.vinylflix.com/" className="hover:text-white transition-colors">
-                  Watch & Earn Feed
+                  Video Discovery Feed
                 </a>
               </li>
               <li>
@@ -39,17 +44,12 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <a href="https://app.vinylflix.com/referrals" className="hover:text-white transition-colors">
-                  Refer & Earn Network
+                  Creator Affiliate Network
                 </a>
               </li>
               <li>
-                <a href="https://app.vinylflix.com/campaigns" className="hover:text-white transition-colors">
-                  Creator Campaign Hub
-                </a>
-              </li>
-              <li>
-                <a href="https://app.vinylflix.com/wallet" className="hover:text-white transition-colors">
-                  Wallet & Direct Payouts
+                <a href="https://app.vinylflix.com/login" className="hover:text-white transition-colors">
+                  Creator Sign In
                 </a>
               </li>
             </ul>
@@ -84,14 +84,14 @@ export const Footer: React.FC = () => {
           <div className="space-y-3">
             <h4 className="text-xs font-black uppercase tracking-wider text-white">Partners & Security</h4>
             <p className="text-xs text-slate-400">
-              Payments, bank account verification, and automated payouts are securely powered by Paystack. Video delivery conforms to official Google YouTube Data API standards.
+              Campaign billing and account security are powered by Paystack. Video delivery conforms to official YouTube embedding guidelines.
             </p>
             <div className="pt-2">
               <a
                 href="https://app.vinylflix.com/register"
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#FF0091] hover:text-pink-300 transition-colors"
               >
-                <Sparkles className="w-3.5 h-3.5" /> Join Vinylflix Today &rarr;
+                <Sparkles className="w-3.5 h-3.5" /> Launch a Campaign Today &rarr;
               </a>
             </div>
           </div>

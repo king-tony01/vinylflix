@@ -4,26 +4,27 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Vinylflix — Rewarded Video Streaming & Creator Growth Network',
+  title: 'Vinylflix — YouTube Video Discovery & Creator Growth Network',
   description:
-    'Watch videos and earn real cash rewards. Promote your YouTube channel, expand your audience, and withdraw earnings directly to your bank account with Vinylflix.',
+    'Promote your YouTube videos to thousands of verified, highly engaged human viewers. Boost authentic watch time, channel discoverability, and audience retention with Vinylflix.',
   keywords: [
-    'rewarded video',
-    'earn money watching videos',
     'youtube promotion',
-    'creator growth',
-    'video advertising platform',
-    'watch and earn Nigeria',
+    'creator growth network',
+    'video discovery platform',
+    'youtube views campaign',
+    'video advertising',
+    'channel marketing',
     'vinylflix',
+    'youtube audience growth',
     'content promotion platform',
   ],
   authors: [{ name: 'Vinylflix' }],
   creator: 'Vinylflix',
   metadataBase: new URL('https://vinylflix.com'),
   openGraph: {
-    title: 'Vinylflix — Rewarded Video Streaming & Creator Growth',
+    title: 'Vinylflix — YouTube Video Discovery & Creator Growth Network',
     description:
-      'Turn video attention into real cash rewards. Promote YouTube channels to verified viewers with instant bank payouts.',
+      'Supercharge your YouTube reach with verified viewer attention. Launch targeted campaigns and gain authentic audience engagement.',
     url: 'https://vinylflix.com',
     siteName: 'Vinylflix',
     images: [
@@ -31,7 +32,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Vinylflix - Watch, Earn, and Promote',
+        alt: 'Vinylflix - YouTube Video Discovery & Creator Growth',
       },
     ],
     locale: 'en_US',
@@ -39,9 +40,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vinylflix — Watch, Earn & Promote Content',
+    title: 'Vinylflix — YouTube Video Discovery & Creator Growth Network',
     description:
-      'Earn cash rewards for watching engaging videos and grow your YouTube channel with authentic viewer attention.',
+      'Launch targeted video campaigns and grow your YouTube channel with authentic, high-retention viewer attention.',
     images: ['/og-image.png'],
   },
   robots: {
