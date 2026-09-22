@@ -16,6 +16,9 @@ describe('WithdrawalService - Payout Lifecycle & Idempotency', () => {
     });
     userId = user.user.id;
 
+    // Assign CREATOR role so user can withdraw without milestone referral block
+    await prisma.user.update({ where: { id: userId }, data: { role: 'CREATOR' } });
+
     const admin = await AuthService.register({
       email: `wdraw_admin_${Date.now()}@platform.internal`,
       username: `wdraw_admin_${Date.now()}`,
@@ -147,5 +150,52 @@ describe('WithdrawalService - Payout Lifecycle & Idempotency', () => {
 
     const wallet = await prisma.wallet.findUnique({ where: { userId } });
     expect(wallet?.totalWithdrawn).toBe(2500);
+  });
+
+  it('should enforce 10 referrals for Basic member first-time withdrawal and ₦5,000 for subsequent', async () => {
+    // Register a Basic user
+    const basicUser = await AuthService.register({
+      email: `basic_wdraw_${Date.now()}@platform.internal`,
+      username: `basic_wdraw_${Date.now()}`,
+      password: 'Password123!',
+    });
+    const basicPlan = await prisma.membershipPlan.findUniqueOrThrow({ where: { tier: 'BASIC' } });
+    await prisma.membership.create({
+      data: {
+        userId: basicUser.user.id,
+        planId: basicPlan.id,
+        status: 'ACTIVE',
+        amountPaid: 3000,
+      },
+    });
+
+    // Credit ₦15,000 available balance
+    await LedgerService.recordTransaction({
+      userId: basicUser.user.id,
+      amount: 15000,
+      direction: 'CREDIT',
+      bucket: 'AVAILABLE',
+      entryType: 'REWARD_CREDIT',
+      referenceType: 'TEST',
+      description: 'Test balance',
+    });
+
+    // 1. Should fail first-time withdrawal because referrals < 10
+    await expect(
+      WithdrawalService.requestWithdrawal(basicUser.user.id, {
+        amount: 10000,
+        accountDetails: {
+          bankName: 'First Bank',
+          accountNumber: '1122334455',
+          accountName: 'Basic User',
+        },
+      })
+    ).rejects.toThrow('requires at least 10 qualified referrals');
+
+    // Clean up
+    await prisma.ledgerEntry.deleteMany({ where: { userId: basicUser.user.id } });
+    await prisma.membership.deleteMany({ where: { userId: basicUser.user.id } });
+    await prisma.wallet.deleteMany({ where: { userId: basicUser.user.id } });
+    await prisma.user.deleteMany({ where: { id: basicUser.user.id } });
   });
 });

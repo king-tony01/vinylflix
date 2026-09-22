@@ -17,15 +17,15 @@ export class WithdrawalService {
     const rules = await ConfigService.getBusinessRules();
     const minAmount = rules.minWithdrawalAmount;
 
-    if (data.amount < minAmount) {
-      throw new AppError(`Minimum withdrawal amount is ${rules.currency} ${minAmount}`);
-    }
-
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
         wallet: true,
-        memberships: { where: { status: 'ACTIVE' } },
+        memberships: {
+          where: { status: 'ACTIVE' },
+          include: { plan: true },
+          take: 1,
+        },
         riskScore: true,
       },
     });
@@ -37,9 +37,87 @@ export class WithdrawalService {
       throw new AppError('Account is restricted from initiating withdrawals');
     }
 
+    const activeMembership = user.memberships[0];
+    const userTier = activeMembership?.plan?.tier || (user.role === 'CREATOR' ? 'CREATOR' : 'FREE_STARTER');
+
+    if (userTier === 'FREE_STARTER' && user.role !== 'CREATOR' && user.role !== 'ADMIN') {
+      throw new AppError('An active paid membership is required to initiate withdrawals.');
+    }
+
+    // Check prior completed/pending withdrawals to differentiate first-time vs subsequent
+    const priorWithdrawalsCount = await prisma.withdrawal.count({
+      where: {
+        userId,
+        status: { in: ['COMPLETED', 'PROCESSING', 'PENDING_REVIEW', 'REQUESTED'] },
+      },
+    });
+    const isFirstWithdrawal = user.wallet.totalWithdrawn === 0 && priorWithdrawalsCount === 0;
+
+    // Count qualified referrals & Premium qualified referrals for milestone validation
+    const totalQualifiedReferrals = await prisma.referral.count({
+      where: { referrerId: userId, status: 'QUALIFIED' },
+    });
+    const premiumQualifiedReferrals = await prisma.referral.count({
+      where: {
+        referrerId: userId,
+        status: 'QUALIFIED',
+        referred: {
+          memberships: {
+            some: {
+              status: 'ACTIVE',
+              plan: { tier: 'PREMIUM' },
+            },
+          },
+        },
+      },
+    });
+
+    if (userTier === 'PREMIUM') {
+      if (isFirstWithdrawal) {
+        if (totalQualifiedReferrals < 10 || premiumQualifiedReferrals < 5) {
+          throw new AppError(
+            `First-time withdrawal for Premium members requires 10 qualified referrals, including at least 5 Premium members. You currently have ${totalQualifiedReferrals}/10 total and ${premiumQualifiedReferrals}/5 Premium members.`
+          );
+        }
+        if (data.amount < 25000) {
+          throw new AppError(
+            `First-time milestone withdrawal amount for Premium members is ₦25,000.`
+          );
+        }
+      } else {
+        // Subsequent withdrawals for Premium
+        if (data.amount < 2000) {
+          throw new AppError(`Minimum withdrawal amount for Premium members is ₦2,000.`);
+        }
+      }
+    } else if (userTier === 'BASIC') {
+      if (isFirstWithdrawal) {
+        if (totalQualifiedReferrals < 10) {
+          throw new AppError(
+            `First-time withdrawal for Basic members requires at least 10 qualified referrals. You currently have ${totalQualifiedReferrals}/10.`
+          );
+        }
+        if (data.amount < 10000) {
+          throw new AppError(
+            `First-time milestone withdrawal amount for Basic members is ₦10,000.`
+          );
+        }
+      } else {
+        // Subsequent withdrawals for Basic: min ₦5,000
+        if (data.amount < 5000) {
+          throw new AppError(`Minimum withdrawal amount from referral earnings for Basic members is ₦5,000.`);
+        }
+      }
+    } else {
+      // Creator, Admin or standard: min ₦2,000
+      if (data.amount < 2000) {
+        throw new AppError(`Minimum withdrawal amount is ₦2,000.`);
+      }
+    }
+
     if (user.wallet.availableBalance < data.amount) {
       throw new AppError(
-        `Insufficient available balance. You have ${rules.currency} ${user.wallet.availableBalance}, requested ${rules.currency} ${data.amount}`
+        `Insufficient available balance. You have ${rules.currency} ${user.wallet.availableBalance.toLocaleString()}, requested ${rules.currency} ${data.amount.toLocaleString()}`
       );
     }
 

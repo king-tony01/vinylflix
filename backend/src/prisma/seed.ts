@@ -93,8 +93,9 @@ async function main() {
       durationDays: 30,
       benefits: [
         'Earn cash rewards on campaign videos',
-        '₦10,000 conditional milestone reward credit',
-        'Referral bonuses & network tracking',
+        '₦10,000 milestone bonus (10 qualified referrals)',
+        '₦1,000 base earning per referral after milestone',
+        '₦5,000 min subsequent withdrawal threshold',
         'Direct bank payouts',
       ],
       conditionalRewardAmount: 10000,
@@ -108,7 +109,9 @@ async function main() {
       durationDays: 30,
       benefits: [
         'Higher daily reward view limits',
-        '₦25,000 conditional milestone reward credit',
+        '₦25,000 milestone bonus (10 referrals incl. 5 Premium)',
+        '₦1,000 base earning per referral after milestone',
+        '₦2,000 min subsequent withdrawal threshold',
         'Priority payout processing',
         'Exclusive high-yield video campaigns',
       ],

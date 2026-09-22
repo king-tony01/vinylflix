@@ -64,8 +64,20 @@ export const ReferralPage: React.FC = () => {
           currency={data.stats.milestone.currency}
           qualifiedCount={data.stats.milestone.qualifiedCount}
           targetCount={data.stats.milestone.targetRequirement}
-          isUnlocked={data.stats.milestone.remainingToUnlock === 0}
+          requiredPremiumCount={data.stats.milestone.requiredPremiumCount}
+          premiumQualifiedCount={data.stats.milestone.premiumQualifiedCount}
+          isUnlocked={data.stats.milestone.isSatisfied && !data.stats.milestone.hasLockedReward}
         />
+      )}
+
+      {/* Creator Info Notice */}
+      {data?.stats?.isCreator && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs font-semibold flex items-center gap-3">
+          <Users className="w-5 h-5 flex-shrink-0 text-amber-400" />
+          <span>
+            Creator accounts focus on campaign creation and do not accrue new referral commissions. Any earnings accumulated prior to upgrading remain withdrawable in your Wallet.
+          </span>
+        </div>
       )}
 
       {/* Share Link & Referral Code Box */}
@@ -171,8 +183,14 @@ export const ReferralPage: React.FC = () => {
                     <td className="py-3.5 px-4 text-slate-400">{new Date(r.registeredAt).toLocaleDateString()}</td>
                     <td className="py-3.5 px-4">
                       {r.hasActiveMembership ? (
-                        <span className="font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 px-2 py-0.5 rounded text-[10px]">
-                          Active Paid Member
+                        <span
+                          className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
+                            r.isPremium
+                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                              : 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
+                          }`}
+                        >
+                          {r.membershipName || 'Active Paid Member'}
                         </span>
                       ) : (
                         <span className="text-slate-400 bg-slate-800 px-2 py-0.5 rounded text-[10px]">
@@ -232,8 +250,14 @@ export const ReferralPage: React.FC = () => {
                 <div className="flex items-center justify-between text-xs pt-1">
                   <span className="text-[11px] text-slate-400">Membership:</span>
                   {r.hasActiveMembership ? (
-                    <span className="font-semibold text-pink-400 bg-pink-500/10 border border-pink-500/20 px-2 py-0.5 rounded text-[10px]">
-                      Active Paid Member
+                    <span
+                      className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
+                        r.isPremium
+                          ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                          : 'bg-pink-500/10 text-pink-400 border border-pink-500/20'
+                      }`}
+                    >
+                      {r.membershipName || 'Active Paid Member'}
                     </span>
                   ) : (
                     <span className="text-slate-400 bg-slate-800 px-2 py-0.5 rounded text-[10px]">

@@ -75,8 +75,9 @@ export class MembershipService {
         durationDays: 30,
         benefits: [
           'Earn cash rewards on campaign videos',
-          '₦10,000 conditional milestone reward credit',
-          'Referral bonuses & network tracking',
+          '₦10,000 milestone bonus (10 qualified referrals)',
+          '₦1,000 base earning per referral after milestone',
+          '₦5,000 min subsequent withdrawal threshold',
           'Direct bank payouts',
         ],
         conditionalRewardAmount: 10000,
@@ -90,7 +91,9 @@ export class MembershipService {
         durationDays: 30,
         benefits: [
           'Higher daily reward view limits',
-          '₦25,000 conditional milestone reward credit',
+          '₦25,000 milestone bonus (10 referrals incl. 5 Premium)',
+          '₦1,000 base earning per referral after milestone',
+          '₦2,000 min subsequent withdrawal threshold',
           'Priority payout processing',
           'Exclusive high-yield video campaigns',
         ],
@@ -208,7 +211,13 @@ export class MembershipService {
     const expiresAt = new Date(Date.now() + durationMs);
 
     const createdMembership = await prisma.$transaction(async (tx) => {
-      // 1. Create or update Membership
+      // 1. Mark previous active memberships as superseded
+      await tx.membership.updateMany({
+        where: { userId, status: 'ACTIVE' },
+        data: { status: 'EXPIRED' },
+      });
+
+      // 2. Create new Membership
       const membership = await tx.membership.create({
         data: {
           userId,
@@ -222,49 +231,109 @@ export class MembershipService {
         },
       });
 
-      // 2. Update user role
+      // 3. Update user role
       const newRole = plan.tier === 'CREATOR' ? 'CREATOR' : 'PAID_MEMBER';
       await tx.user.update({
         where: { id: userId },
         data: { role: newRole },
       });
 
-      // 3. Issue Conditional Reward if configured for this plan
+      // 4. Handle Conditional Reward with clean upgrade adjustment
       if (plan.conditionalRewardAmount > 0) {
+        const isPremium = plan.tier === 'PREMIUM';
+        const requiredPremiumReferrals = isPremium ? 5 : 0;
         const conditionData = {
           requiredQualifiedReferrals: plan.referralRequirementCount,
+          requiredPremiumReferrals,
+          planTier: plan.tier,
           membershipId: membership.id,
-          description: `Requires ${plan.referralRequirementCount} qualified referrals to unlock`,
+          description: isPremium
+            ? `Requires ${plan.referralRequirementCount} qualified referrals including at least ${requiredPremiumReferrals} Premium members`
+            : `Requires ${plan.referralRequirementCount} qualified referrals to unlock`,
         };
 
-        const reward = await tx.reward.create({
-          data: {
+        // Check if user already has an existing LOCKED membership reward
+        const existingLockedReward = await tx.reward.findFirst({
+          where: {
             userId,
-            sourceType: 'MEMBERSHIP_REWARD',
-            sourceId: membership.id,
-            amount: plan.conditionalRewardAmount,
-            currency: plan.currency,
             status: 'LOCKED',
-            lockedConditionJson: JSON.stringify(conditionData),
+            sourceType: 'MEMBERSHIP_REWARD',
           },
+          orderBy: { createdAt: 'desc' },
         });
 
-        // Record immutable ledger entry for CONDITIONAL_LOCK
-        await LedgerService.recordTransaction(
-          {
-            userId,
-            amount: plan.conditionalRewardAmount,
-            currency: plan.currency,
-            direction: 'CREDIT',
-            bucket: 'LOCKED',
-            entryType: 'CONDITIONAL_LOCK',
-            referenceType: 'MEMBERSHIP',
-            referenceId: membership.id,
-            rewardId: reward.id,
-            description: `Conditional membership credit locked: ${plan.conditionalRewardAmount} ${plan.currency}`,
-          },
-          tx
-        );
+        if (existingLockedReward) {
+          // UPGRADE FLOW: Adjust existing locked balance to match new plan amount exactly (e.g. 10k -> 25k adds 15k, NOT 25k)
+          const targetAmount = plan.conditionalRewardAmount;
+          const delta = targetAmount - existingLockedReward.amount;
+
+          if (delta > 0) {
+            // Update reward record amount & condition
+            await tx.reward.update({
+              where: { id: existingLockedReward.id },
+              data: {
+                amount: targetAmount,
+                sourceId: membership.id,
+                lockedConditionJson: JSON.stringify(conditionData),
+              },
+            });
+
+            // Credit only the delta (+₦15,000) to the LOCKED bucket
+            await LedgerService.recordTransaction(
+              {
+                userId,
+                amount: delta,
+                currency: plan.currency,
+                direction: 'CREDIT',
+                bucket: 'LOCKED',
+                entryType: 'CONDITIONAL_LOCK',
+                referenceType: 'MEMBERSHIP',
+                referenceId: membership.id,
+                rewardId: existingLockedReward.id,
+                description: `Membership upgrade locked credit adjustment (+${delta} ${plan.currency}) to target ${targetAmount} ${plan.currency}`,
+              },
+              tx
+            );
+          } else {
+            // If delta <= 0, simply update condition
+            await tx.reward.update({
+              where: { id: existingLockedReward.id },
+              data: {
+                sourceId: membership.id,
+                lockedConditionJson: JSON.stringify(conditionData),
+              },
+            });
+          }
+        } else {
+          // FRESH ACTIVATION: Create new locked reward
+          const reward = await tx.reward.create({
+            data: {
+              userId,
+              sourceType: 'MEMBERSHIP_REWARD',
+              sourceId: membership.id,
+              amount: plan.conditionalRewardAmount,
+              currency: plan.currency,
+              status: 'LOCKED',
+              lockedConditionJson: JSON.stringify(conditionData),
+            },
+          });
+
+          await LedgerService.recordTransaction(
+            {
+              userId,
+              amount: plan.conditionalRewardAmount,
+              currency: plan.currency,
+              direction: 'CREDIT',
+              bucket: 'LOCKED',
+              entryType: 'CONDITIONAL_LOCK',
+              referenceType: 'MEMBERSHIP',
+              referenceId: membership.id,
+              rewardId: reward.id,
+              description: `Conditional membership credit locked: ${plan.conditionalRewardAmount} ${plan.currency}`,
+            },
+            tx
+          );
+        }
       }
 
       await AuditService.log(

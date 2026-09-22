@@ -12,6 +12,11 @@ export class ReferralService {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
+        memberships: {
+          where: { status: 'ACTIVE' },
+          include: { plan: true },
+          take: 1,
+        },
         referralsMade: {
           include: {
             referred: {
@@ -21,8 +26,8 @@ export class ReferralService {
                 createdAt: true,
                 memberships: {
                   where: { status: 'ACTIVE' },
+                  include: { plan: true },
                   take: 1,
-                  select: { status: true, startsAt: true },
                 },
               },
             },
@@ -38,6 +43,18 @@ export class ReferralService {
     const qualifiedReferrals = user.referralsMade.filter((r) => r.status === 'QUALIFIED').length;
     const pendingReferrals = user.referralsMade.filter((r) => r.status === 'PENDING').length;
 
+    // Count qualified referrals whose active membership tier is PREMIUM
+    const premiumQualifiedReferrals = user.referralsMade.filter(
+      (r) =>
+        r.status === 'QUALIFIED' &&
+        r.referred.memberships.some((m) => m.status === 'ACTIVE' && m.plan.tier === 'PREMIUM')
+    ).length;
+
+    const activeMembership = user.memberships[0];
+    const userTier = activeMembership?.plan?.tier || (user.role === 'CREATOR' ? 'CREATOR' : 'FREE_STARTER');
+    const isCreator = user.role === 'CREATOR' || userTier === 'CREATOR';
+    const isPremium = userTier === 'PREMIUM';
+
     // Fetch active conditional reward and its progress requirement
     const lockedReward = await prisma.reward.findFirst({
       where: {
@@ -48,25 +65,22 @@ export class ReferralService {
       orderBy: { createdAt: 'desc' },
     });
 
-    const latestReward = await prisma.reward.findFirst({
-      where: {
-        userId,
-        sourceType: 'MEMBERSHIP_REWARD',
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
     let targetRequirement = 10;
-    const targetReward = lockedReward || latestReward;
-    if (targetReward?.lockedConditionJson) {
+    let requiredPremiumCount = isPremium ? 5 : 0;
+
+    if (lockedReward?.lockedConditionJson) {
       try {
-        const cond = JSON.parse(targetReward.lockedConditionJson);
+        const cond = JSON.parse(lockedReward.lockedConditionJson);
         targetRequirement = cond.requiredQualifiedReferrals || 10;
+        requiredPremiumCount = cond.requiredPremiumReferrals !== undefined ? cond.requiredPremiumReferrals : (isPremium ? 5 : 0);
       } catch {}
     }
 
     const hasLockedReward = !!lockedReward;
-    const remainingToUnlock = hasLockedReward ? Math.max(0, targetRequirement - qualifiedReferrals) : 0;
+    const remainingTotalToUnlock = hasLockedReward ? Math.max(0, targetRequirement - qualifiedReferrals) : 0;
+    const remainingPremiumToUnlock = hasLockedReward && requiredPremiumCount > 0 ? Math.max(0, requiredPremiumCount - premiumQualifiedReferrals) : 0;
+    const isSatisfied = qualifiedReferrals >= targetRequirement && premiumQualifiedReferrals >= requiredPremiumCount;
+
     const progressPercent = hasLockedReward
       ? Math.min(100, Math.round((qualifiedReferrals / targetRequirement) * 100))
       : 100;
@@ -78,24 +92,38 @@ export class ReferralService {
         totalReferrals,
         qualifiedReferrals,
         pendingReferrals,
+        premiumQualifiedReferrals,
+        isCreator,
+        userTier,
         milestone: {
           targetRequirement,
           qualifiedCount: qualifiedReferrals,
-          remainingToUnlock,
+          requiredPremiumCount,
+          premiumQualifiedCount: premiumQualifiedReferrals,
+          remainingToUnlock: remainingTotalToUnlock,
+          remainingPremiumToUnlock,
+          isSatisfied,
           progressPercent,
-          hasLockedReward: !!lockedReward,
+          hasLockedReward,
           lockedRewardAmount: lockedReward ? lockedReward.amount : 0,
           currency: lockedReward ? lockedReward.currency : 'NGN',
+          baseCommissionPerReferral: 1000,
         },
       },
-      referrals: user.referralsMade.map((r) => ({
-        id: r.id,
-        referredUsername: r.referred.username,
-        status: r.status,
-        hasActiveMembership: r.referred.memberships.length > 0,
-        registeredAt: r.createdAt,
-        qualifiedAt: r.qualifiedAt,
-      })),
+      referrals: user.referralsMade.map((r) => {
+        const activeSub = r.referred.memberships[0];
+        return {
+          id: r.id,
+          referredUsername: r.referred.username,
+          status: r.status,
+          hasActiveMembership: !!activeSub,
+          membershipTier: activeSub?.plan?.tier || 'FREE',
+          membershipName: activeSub?.plan?.name || 'Free Starter',
+          isPremium: activeSub?.plan?.tier === 'PREMIUM',
+          registeredAt: r.createdAt,
+          qualifiedAt: r.qualifiedAt,
+        };
+      }),
     };
   }
 
@@ -109,11 +137,21 @@ export class ReferralService {
       include: {
         referred: {
           include: {
-            memberships: { where: { status: 'ACTIVE' } },
+            memberships: {
+              where: { status: 'ACTIVE' },
+              include: { plan: true },
+            },
             riskScore: true,
           },
         },
-        referrer: true,
+        referrer: {
+          include: {
+            memberships: {
+              where: { status: 'ACTIVE' },
+              include: { plan: true },
+            },
+          },
+        },
       },
     });
 
@@ -162,8 +200,82 @@ export class ReferralService {
         newState: { referrerId: referral.referrerId, status: 'QUALIFIED' },
       });
 
+      // Check Referrer Status: If Creator, stop counting/granting referral commissions
+      const referrerUser = referral.referrer;
+      const isCreator =
+        referrerUser.role === 'CREATOR' ||
+        referrerUser.memberships.some((m) => m.status === 'ACTIVE' && m.plan.tier === 'CREATOR');
+
+      if (isCreator) {
+        logger.info(
+          `[REFERRAL] Referrer ${referrerUser.id} is on CREATOR tier - referral tracking/earnings ceased.`
+        );
+        return true;
+      }
+
       // 2. Check Referrer Milestone to unlock conditional reward if target reached
       await this.checkAndUnlockReferrerMilestones(referral.referrerId);
+
+      // 3. Post-Milestone Ongoing Referral Commission: ₦1,000 per qualified referral
+      // Check if referrer's milestone has been unlocked (no remaining LOCKED reward)
+      const remainingLockedReward = await prisma.reward.findFirst({
+        where: {
+          userId: referral.referrerId,
+          status: 'LOCKED',
+          sourceType: 'MEMBERSHIP_REWARD',
+        },
+      });
+
+      if (!remainingLockedReward) {
+        // Milestone is unlocked! Award base earning of ₦1,000 directly to AVAILABLE balance
+        const existingCommission = await prisma.reward.findFirst({
+          where: {
+            userId: referral.referrerId,
+            sourceType: 'REFERRAL_REWARD',
+            sourceId: referral.id,
+          },
+        });
+
+        if (!existingCommission) {
+          const reward = await prisma.reward.create({
+            data: {
+              userId: referral.referrerId,
+              sourceType: 'REFERRAL_REWARD',
+              sourceId: referral.id,
+              amount: 1000,
+              currency: 'NGN',
+              status: 'AVAILABLE',
+              unlockedAt: new Date(),
+            },
+          });
+
+          await LedgerService.recordTransaction({
+            userId: referral.referrerId,
+            amount: 1000,
+            currency: 'NGN',
+            direction: 'CREDIT',
+            bucket: 'AVAILABLE',
+            entryType: 'REWARD_CREDIT',
+            referenceType: 'REFERRAL',
+            referenceId: referral.id,
+            rewardId: reward.id,
+            description: 'Referral commission bonus (₦1,000) for qualified member activation',
+          });
+
+          await prisma.notification.create({
+            data: {
+              userId: referral.referrerId,
+              title: 'Referral Commission Earned! 🎉',
+              message: 'You earned ₦1,000 available balance from a qualified referral activation.',
+              type: 'REWARD',
+            },
+          });
+
+          logger.info(
+            `[REFERRAL COMMISSION] Credited ₦1,000 to Referrer ${referral.referrerId} for Referral ${referral.id}`
+          );
+        }
+      }
 
       return true;
     } else {
@@ -177,7 +289,7 @@ export class ReferralService {
   /**
    * Checks if referrer has satisfied locked conditional reward milestones.
    */
-  public static async checkAndUnlockReferrerMilestones(referrerId: string) {
+  public static async checkAndUnlockReferrerMilestones(referrerId: string): Promise<boolean> {
     const qualifiedCount = await prisma.referral.count({
       where: {
         referrerId,
@@ -185,25 +297,55 @@ export class ReferralService {
       },
     });
 
+    // Count qualified referrals whose active membership tier is PREMIUM
+    const premiumQualifiedCount = await prisma.referral.count({
+      where: {
+        referrerId,
+        status: 'QUALIFIED',
+        referred: {
+          memberships: {
+            some: {
+              status: 'ACTIVE',
+              plan: { tier: 'PREMIUM' },
+            },
+          },
+        },
+      },
+    });
+
     const lockedRewards = await prisma.reward.findMany({
       where: {
         userId: referrerId,
         status: 'LOCKED',
+        sourceType: 'MEMBERSHIP_REWARD',
       },
     });
 
+    let anyUnlocked = false;
+
     for (const reward of lockedRewards) {
       let requiredCount = 10;
+      let requiredPremiumCount = 0;
+
       if (reward.lockedConditionJson) {
         try {
           const cond = JSON.parse(reward.lockedConditionJson);
           requiredCount = cond.requiredQualifiedReferrals || 10;
+          requiredPremiumCount = cond.requiredPremiumReferrals || 0;
+          if (cond.planTier === 'PREMIUM' || reward.amount === 25000) {
+            requiredPremiumCount = cond.requiredPremiumReferrals !== undefined ? cond.requiredPremiumReferrals : 5;
+          }
         } catch {}
+      } else if (reward.amount === 25000) {
+        requiredPremiumCount = 5;
       }
 
-      if (qualifiedCount >= requiredCount) {
+      const satisfiesTotal = qualifiedCount >= requiredCount;
+      const satisfiesPremium = premiumQualifiedCount >= requiredPremiumCount;
+
+      if (satisfiesTotal && satisfiesPremium) {
         logger.info(
-          `[MILESTONE UNLOCKED] Referrer ${referrerId} reached ${qualifiedCount}/${requiredCount} referrals! Unlocking reward ${reward.id} (${reward.amount} ${reward.currency})`
+          `[MILESTONE UNLOCKED] Referrer ${referrerId} reached ${qualifiedCount}/${requiredCount} referrals (${premiumQualifiedCount}/${requiredPremiumCount} Premium)! Unlocking reward ${reward.id} (${reward.amount} ${reward.currency})`
         );
 
         // Perform double-entry transfer from LOCKED -> AVAILABLE
@@ -211,19 +353,23 @@ export class ReferralService {
           referrerId,
           reward.id,
           reward.amount,
-          `Unlocked conditional reward of ${reward.amount} ${reward.currency} after achieving ${qualifiedCount} qualified referrals`
+          `Unlocked conditional reward of ${reward.amount} ${reward.currency} after achieving ${qualifiedCount} qualified referrals (${premiumQualifiedCount} Premium)`
         );
 
         // Record in-app notification
         await prisma.notification.create({
           data: {
             userId: referrerId,
-            title: 'Conditional Reward Unlocked!',
-            message: `Congratulations! You have reached ${qualifiedCount} qualified referrals. Your reward of ₦${reward.amount.toLocaleString()} is now withdrawable!`,
+            title: 'Conditional Milestone Reward Unlocked! 🎉',
+            message: `Congratulations! You have satisfied your referral requirements (${qualifiedCount} qualified, ${premiumQualifiedCount} Premium). Your milestone bonus of ₦${reward.amount.toLocaleString()} is now available for withdrawal!`,
             type: 'REWARD',
           },
         });
+
+        anyUnlocked = true;
       }
     }
+
+    return anyUnlocked;
   }
 }

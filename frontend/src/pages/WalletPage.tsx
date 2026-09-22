@@ -35,6 +35,10 @@ export const WalletPage: React.FC = () => {
   const [accountName, setAccountName] = useState<string>('');
   const [resolvingAccount, setResolvingAccount] = useState<boolean>(false);
   const [resolvedName, setResolvedName] = useState<string | null>(null);
+  const minWithdrawalAmount = walletData?.withdrawalRules?.minWithdrawalAmount || 2000;
+  const isFirstWithdrawal = walletData?.withdrawalRules?.isFirstWithdrawal ?? true;
+  const userTier = walletData?.withdrawalRules?.userTier || 'FREE_STARTER';
+
   const [withdrawAmount, setWithdrawAmount] = useState<string>('2000');
   const [withdrawLoading, setWithdrawLoading] = useState<boolean>(false);
   const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -44,6 +48,9 @@ export const WalletPage: React.FC = () => {
     const res = await apiRequest('/wallet');
     if (res.success && res.data) {
       setWalletData(res.data);
+      if (res.data.withdrawalRules?.minWithdrawalAmount) {
+        setWithdrawAmount(res.data.withdrawalRules.minWithdrawalAmount.toString());
+      }
     }
 
     const txRes = await apiRequest('/wallet/transactions');
@@ -108,8 +115,11 @@ export const WalletPage: React.FC = () => {
     setWithdrawMessage(null);
     const amountNum = parseFloat(withdrawAmount);
 
-    if (isNaN(amountNum) || amountNum < 2000) {
-      setWithdrawMessage({ type: 'error', text: 'Minimum withdrawal amount is ₦2,000' });
+    if (isNaN(amountNum) || amountNum < minWithdrawalAmount) {
+      setWithdrawMessage({
+        type: 'error',
+        text: `Minimum withdrawal amount is ₦${minWithdrawalAmount.toLocaleString()}`,
+      });
       return;
     }
 
@@ -148,7 +158,7 @@ export const WalletPage: React.FC = () => {
     } else {
       setWithdrawMessage({
         type: 'error',
-        text: res.error?.message || 'Failed to submit withdrawal request',
+        text: res.error?.message || 'Failed to submit withdrawal request.',
       });
     }
     setWithdrawLoading(false);
@@ -340,16 +350,26 @@ export const WalletPage: React.FC = () => {
         </div>
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
           <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Payout Threshold</p>
-          <p className="text-sm font-bold text-slate-300 mt-1.5">Min ₦2,000</p>
+          <p className="text-sm font-bold text-slate-300 mt-1.5">
+            {isFirstWithdrawal
+              ? userTier === 'PREMIUM'
+                ? '₦25,000 (1st Payout)'
+                : '₦10,000 (1st Payout)'
+              : userTier === 'BASIC'
+              ? 'Min ₦5,000'
+              : 'Min ₦2,000'}
+          </p>
         </div>
       </div>
 
       {/* Conditional Reward Progress (If user has locked reward) */}
-      {lockedBal > 0 && walletData?.referralStats && (
+      {lockedBal > 0 && (
         <RewardProgressBar
           amount={lockedBal}
-          qualifiedCount={walletData.referralStats.qualifiedReferralsCount || 0}
-          targetCount={walletData.referralStats.milestoneTargetCount || 10}
+          qualifiedCount={walletData?.withdrawalRules?.totalQualified || 0}
+          targetCount={walletData?.withdrawalRules?.requiredTotalReferrals || 10}
+          requiredPremiumCount={walletData?.withdrawalRules?.requiredPremiumReferrals || 0}
+          premiumQualifiedCount={walletData?.withdrawalRules?.premiumQualified || 0}
           isUnlocked={lockedBal === 0 && totalEarned > 0}
         />
       )}
@@ -465,7 +485,7 @@ export const WalletPage: React.FC = () => {
             <form onSubmit={handleWithdraw} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Withdrawal Amount (Min ₦2,000)
+                  Withdrawal Amount (Min ₦{minWithdrawalAmount.toLocaleString()})
                 </label>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm font-bold">
@@ -473,7 +493,7 @@ export const WalletPage: React.FC = () => {
                   </span>
                   <input
                     type="number"
-                    min="2000"
+                    min={minWithdrawalAmount}
                     step="100"
                     value={withdrawAmount}
                     onChange={(e) => setWithdrawAmount(e.target.value)}
@@ -482,7 +502,7 @@ export const WalletPage: React.FC = () => {
                   />
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Max available: ₦{availableBal.toLocaleString()}
+                  Available for payout: ₦{availableBal.toLocaleString()}
                 </p>
               </div>
 
