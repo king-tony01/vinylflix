@@ -57,8 +57,9 @@ export class PaymentController {
         req.headers['x-webhook-signature'] ||
         req.headers['verif-hash']) as string | undefined;
 
-      const result = await PaymentService.processWebhook(provider, req.body, signature);
-      res.json({ success: true, result });
+      const rawBodyStr = (req as any).rawBody ? (req as any).rawBody.toString('utf8') : undefined;
+      const result = await PaymentService.processWebhook(provider, req.body, signature, rawBodyStr);
+      res.status(200).json({ success: true, result });
     } catch (error) {
       next(error);
     }

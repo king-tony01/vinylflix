@@ -53,8 +53,15 @@ export function createApp() {
   });
   app.use('/api', apiLimiter);
 
-  // Body parser
-  app.use(express.json({ limit: '10mb' }));
+  // Body parser with rawBody capture for HMAC webhook verification
+  app.use(
+    express.json({
+      limit: '10mb',
+      verify: (req: any, _res, buf) => {
+        req.rawBody = buf;
+      },
+    })
+  );
   app.use(express.urlencoded({ extended: true }));
 
   // Health check

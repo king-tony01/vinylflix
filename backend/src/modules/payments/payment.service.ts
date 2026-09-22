@@ -108,9 +108,10 @@ export class PaymentService {
   public static async processWebhook(
     providerName: string,
     rawPayload: any,
-    signature?: string
+    signature?: string,
+    rawBodyStr?: string
   ) {
-    const payloadStr = typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload);
+    const payloadStr = rawBodyStr || (typeof rawPayload === 'string' ? rawPayload : JSON.stringify(rawPayload));
     const payloadHash = hashPayload(payloadStr);
 
     // 1. Check duplicate webhook payload (Idempotency)
@@ -126,6 +127,7 @@ export class PaymentService {
     const provider = PaymentProviderFactory.getProvider(providerName);
     const isValidSignature = signature ? provider.verifyWebhookSignature(signature, payloadStr) : true;
     if (!isValidSignature) {
+      logger.warn(`[WEBHOOK] Invalid signature received for ${providerName} webhook event`);
       throw new AppError('Invalid webhook signature', 400);
     }
 
