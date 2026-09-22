@@ -9,6 +9,7 @@ import {
   Layers,
   Wallet as WalletIcon,
   LogOut,
+  LogIn,
   Lock,
 } from 'lucide-react';
 
@@ -21,13 +22,24 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const isFeed = location.pathname === '/';
 
-  const navItems = [
-    { label: 'Watch Feed', path: '/', icon: PlaySquare },
-    { label: 'Memberships', path: '/memberships', icon: Crown },
-    { label: 'Refer & Earn', path: '/referrals', icon: Users },
-    { label: 'Campaigns', path: '/campaigns', icon: Layers },
-    { label: 'Wallet', path: '/wallet', icon: WalletIcon },
+  const allNavItems = [
+    { label: 'Watch Feed', path: '/', icon: PlaySquare, isPublic: true },
+    { label: 'Memberships', path: '/memberships', icon: Crown, isPublic: true },
+    { label: 'Refer & Earn', path: '/referrals', icon: Users, isPublic: false },
+    { label: 'Campaigns', path: '/campaigns', icon: Layers, isPublic: false },
+    { label: 'Wallet', path: '/wallet', icon: WalletIcon, isPublic: false },
   ];
+
+  // Desktop navigation: public items only when logged out, all items when logged in
+  const desktopNavItems = allNavItems.filter((item) => item.isPublic || !!user);
+
+  // Mobile bottom navigation: public items + Log In when logged out, all items when logged in
+  const mobileNavItems = user
+    ? allNavItems
+    : [
+        ...allNavItems.filter((item) => item.isPublic),
+        { label: 'Log In', path: '/login', icon: LogIn, isPublic: true },
+      ];
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
@@ -59,7 +71,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
           {/* Desktop Navigation Links */}
           <nav className="space-y-1.5">
-            {navItems.map((item) => {
+            {desktopNavItems.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.path);
               return (
@@ -204,7 +216,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             : 'fixed bottom-0 left-0 right-0 h-16 bg-slate-900/95 border-t border-slate-800/90 backdrop-blur-2xl pointer-events-auto'
         }`}
       >
-        {navItems.map((item) => {
+        {mobileNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.path);
           return (
