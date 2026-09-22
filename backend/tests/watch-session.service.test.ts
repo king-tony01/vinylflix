@@ -120,47 +120,56 @@ describe('WatchSessionService - Anti-Cheat & Rewarded Viewing Engine', () => {
     expect(wallet?.availableBalance).toBe(0);
   });
 
-  it('should qualify paid member session and issue server-calculated ₦5 reward', async () => {
+  it('should qualify paid member session and issue duration-tiered ₦25 reward for standard video (120s)', async () => {
     const initialCampaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
     const initialRemaining = initialCampaign?.remainingBudget || 0;
 
     const session = await WatchSessionService.startSession(paidUserId, videoId, campaignId);
 
-    // Simulate 50 seconds of verified playback (satisfying 45s min duration for 120s video)
-    for (let i = 1; i <= 5; i++) {
+    // Simulate 125 seconds of verified playback (satisfying 120s min duration for 120s standard video)
+    for (let i = 1; i <= 13; i++) {
       await WatchSessionService.recordHeartbeat(session.sessionToken, i * 10, 'PLAYING');
     }
 
-    const result = await WatchSessionService.completeSession(session.sessionToken, 50);
+    const result = await WatchSessionService.completeSession(session.sessionToken, 125);
     expect(result.qualificationStatus).toBe('REWARDED');
-    expect(result.rewardEarned).toBe(5);
+    expect(result.rewardEarned).toBe(25);
 
     // Verify wallet updated via ledger
     const wallet = await prisma.wallet.findUnique({ where: { userId: paidUserId } });
-    expect(wallet?.availableBalance).toBe(5);
+    expect(wallet?.availableBalance).toBe(25);
 
     // Verify campaign budget decremented
     const updatedCampaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
-    expect(updatedCampaign?.remainingBudget).toBe(initialRemaining - 5);
+    expect(updatedCampaign?.remainingBudget).toBe(initialRemaining - 25);
   });
 
   it('should enforce daily view limits per campaign', async () => {
-    // 2nd view (limit is 2)
+    // 2nd view (limit is 2 per campaign)
     const session2 = await WatchSessionService.startSession(paidUserId, videoId, campaignId);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 13; i++) {
       await WatchSessionService.recordHeartbeat(session2.sessionToken, i * 10, 'PLAYING');
     }
-    const result2 = await WatchSessionService.completeSession(session2.sessionToken, 50);
+    const result2 = await WatchSessionService.completeSession(session2.sessionToken, 125);
     expect(result2.qualificationStatus).toBe('REWARDED');
+    expect(result2.rewardEarned).toBe(25);
 
-    // 3rd view (exceeds daily limit of 2)
+    // 3rd view (exceeds daily limit of 2 for this campaign)
     const session3 = await WatchSessionService.startSession(paidUserId, videoId, campaignId);
-    for (let i = 1; i <= 5; i++) {
+    for (let i = 1; i <= 13; i++) {
       await WatchSessionService.recordHeartbeat(session3.sessionToken, i * 10, 'PLAYING');
     }
-    const result3 = await WatchSessionService.completeSession(session3.sessionToken, 50);
+    const result3 = await WatchSessionService.completeSession(session3.sessionToken, 125);
     expect(result3.qualificationStatus).toBe('DISQUALIFIED');
     expect(result3.rewardEarned).toBe(0);
+  });
+
+  it('should calculate accurate daily stats and remaining quota', async () => {
+    const stats = await WatchSessionService.getUserDailyWatchStats(paidUserId);
+    expect(stats.todayCompletedCount).toBe(2);
+    expect(stats.todayTotalEarned).toBe(50); // 2 views * ₦25 = ₦50
+    expect(stats.maxDailyQuota).toBe(8); // Basic member limit
+    expect(stats.remainingSlots).toBe(6);
   });
 
   afterAll(async () => {

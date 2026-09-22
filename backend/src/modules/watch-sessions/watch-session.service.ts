@@ -96,11 +96,88 @@ export class WatchSessionService {
         heartbeatCount: { increment: 1 },
         lastHeartbeatAt: now,
       },
+      include: {
+        campaign: true,
+      },
     });
+
+    // Check if session has satisfied campaign watch duration and auto-qualify
+    if (
+      updated.campaign &&
+      updated.campaign.status === 'ACTIVE' &&
+      updated.watchDurationSeconds >= updated.campaign.minWatchDurationSeconds
+    ) {
+      const completionResult = await this.completeSession(
+        sessionToken,
+        updated.watchDurationSeconds
+      );
+      return {
+        watchDurationSeconds: updated.watchDurationSeconds,
+        status: completionResult.qualificationStatus,
+        isRewarded: completionResult.qualificationStatus === 'REWARDED',
+        rewardCredited: completionResult.rewardEarned,
+        message: completionResult.message,
+      };
+    }
 
     return {
       watchDurationSeconds: updated.watchDurationSeconds,
       status: updated.qualificationStatus,
+    };
+  }
+
+  /**
+   * Fetches the user's daily watch stats, today's earnings, and tier quota limits.
+   */
+  public static async getUserDailyWatchStats(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        memberships: {
+          where: { status: 'ACTIVE' },
+          include: { plan: true },
+          take: 1,
+        },
+      },
+    });
+
+    if (!user) throw new NotFoundError('User not found');
+
+    const activePlan = user.memberships[0]?.plan;
+    const tier = activePlan?.tier || (user.role === 'CREATOR' ? 'CREATOR' : user.role === 'PAID_MEMBER' ? 'BASIC' : 'FREE');
+
+    let maxDailyQuota = 0;
+    if (tier === 'PREMIUM' || tier === 'CREATOR' || user.role === 'ADMIN') {
+      maxDailyQuota = 15;
+    } else if (tier === 'BASIC' || user.role === 'PAID_MEMBER') {
+      maxDailyQuota = 8;
+    }
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const todaySessions = await prisma.watchSession.findMany({
+      where: {
+        userId,
+        qualificationStatus: 'REWARDED',
+        createdAt: { gte: startOfDay },
+      },
+      include: {
+        reward: true,
+      },
+    });
+
+    const todayCompletedCount = todaySessions.length;
+    const todayTotalEarned = todaySessions.reduce((sum, s) => sum + (s.reward?.amount || 0), 0);
+    const remainingSlots = Math.max(0, maxDailyQuota - todayCompletedCount);
+
+    return {
+      tier,
+      maxDailyQuota,
+      todayCompletedCount,
+      todayTotalEarned,
+      remainingSlots,
+      isQuotaReached: todayCompletedCount >= maxDailyQuota,
     };
   }
 
@@ -118,7 +195,11 @@ export class WatchSessionService {
       include: {
         user: {
           include: {
-            memberships: { where: { status: 'ACTIVE' }, take: 1 },
+            memberships: {
+              where: { status: 'ACTIVE' },
+              include: { plan: true },
+              take: 1,
+            },
           },
         },
         campaign: true,
@@ -128,9 +209,12 @@ export class WatchSessionService {
 
     if (!session) throw new NotFoundError('Watch session not found');
     if (session.qualificationStatus !== 'IN_PROGRESS') {
+      const existingReward = session.rewardId
+        ? await prisma.reward.findUnique({ where: { id: session.rewardId } })
+        : null;
       return {
         qualificationStatus: session.qualificationStatus,
-        rewardEarned: 0,
+        rewardEarned: existingReward?.amount || 0,
         message: `Session is already finalized (${session.qualificationStatus})`,
       };
     }
@@ -221,11 +305,47 @@ export class WatchSessionService {
       };
     }
 
-    // 4. Check Daily Limit for user on this campaign
+    // 4. Check Daily Limit for user's tier and on this campaign
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const todayQualifiedViews = await prisma.watchSession.count({
+    const userTier =
+      session.user.memberships[0]?.plan?.tier ||
+      (session.user.role === 'CREATOR'
+        ? 'CREATOR'
+        : session.user.role === 'PAID_MEMBER'
+        ? 'BASIC'
+        : 'FREE');
+    const tierMaxDailyQuota =
+      userTier === 'PREMIUM' || userTier === 'CREATOR' || session.user.role === 'ADMIN'
+        ? 15
+        : 8;
+
+    const todayTotalUserRewardedViews = await prisma.watchSession.count({
+      where: {
+        userId: session.userId,
+        qualificationStatus: 'REWARDED',
+        createdAt: { gte: startOfDay },
+      },
+    });
+
+    if (todayTotalUserRewardedViews >= tierMaxDailyQuota) {
+      await prisma.watchSession.update({
+        where: { id: session.id },
+        data: {
+          endedAt: now,
+          qualificationStatus: 'DISQUALIFIED',
+          disqualificationReason: `Daily rewarded video limit (${tierMaxDailyQuota} videos/day) reached for your tier`,
+        },
+      });
+      return {
+        qualificationStatus: 'DISQUALIFIED',
+        rewardEarned: 0,
+        message: `You have reached your daily limit (${tierMaxDailyQuota} videos) of rewarded views for today`,
+      };
+    }
+
+    const todayCampaignQualifiedViews = await prisma.watchSession.count({
       where: {
         userId: session.userId,
         campaignId: session.campaign.id,
@@ -234,7 +354,7 @@ export class WatchSessionService {
       },
     });
 
-    if (todayQualifiedViews >= session.campaign.dailyUserLimit) {
+    if (todayCampaignQualifiedViews >= session.campaign.dailyUserLimit) {
       await prisma.watchSession.update({
         where: { id: session.id },
         data: {

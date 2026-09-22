@@ -63,7 +63,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
   const channelId = video.channel?.channelId;
 
   const campaignId = video.campaign?.campaignId || video.campaigns?.[0]?.id;
-  const initialReward = video.campaign?.rewardAmount || video.campaigns?.[0]?.rewardPerQualifiedView || 5;
+  const initialReward = video.campaign?.rewardAmount || video.campaigns?.[0]?.rewardPerQualifiedView || 10;
   const initialMinWatch = video.campaign?.minWatchSeconds || video.campaigns?.[0]?.minWatchDurationSeconds || 30;
   const hasReward = !!(video.campaign || video.campaigns?.[0] || video.isRewarded);
 

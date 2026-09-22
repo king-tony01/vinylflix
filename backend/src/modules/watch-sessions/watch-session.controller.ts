@@ -55,4 +55,13 @@ export class WatchSessionController {
       next(error);
     }
   }
+
+  public static async getDailyStats(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const data = await WatchSessionService.getUserDailyWatchStats(req.user!.userId);
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

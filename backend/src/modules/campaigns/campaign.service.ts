@@ -7,27 +7,42 @@ import { Prisma } from '@prisma/client';
 
 export class CampaignService {
   /**
-   * System-calculated parameters formula:
-   * - rewardPerQualifiedView: Fixed at ₦5 (distributed to basic and premium viewers per qualified watch)
-   * - dailyUserLimit: Fixed at 2 (views per user per day per campaign)
-   * - minWatchDurationSeconds:
-   *     - if video.durationSeconds < 60 -> 30 seconds (or 80% if shorter)
-   *     - if video.durationSeconds >= 60 -> 45 seconds
-   * - totalBudget: Included with ₦15,000/mo Creator Tier (ongoing active reward pool: 1,000,000 NGN)
+   * Duration-Tiered High-Yield System-Calculated Parameters:
+   * 1. Shorts / Quick Drop (< 90 seconds video):
+   *    - rewardPerQualifiedView: ₦10 / view
+   *    - minWatchDurationSeconds: 30 seconds (or 80% if shorter)
+   * 2. Standard Highlight (90 seconds to 5 minutes video):
+   *    - rewardPerQualifiedView: ₦25 / view
+   *    - minWatchDurationSeconds: 120 seconds (2 minutes verified retention)
+   * 3. Deep Engagement / Podcast (> 5 minutes video):
+   *    - rewardPerQualifiedView: ₦50 / view
+   *    - minWatchDurationSeconds: 240 seconds (4 minutes verified retention)
+   * 
+   * Fixed dailyUserLimit: 2 (views per user per day per campaign)
+   * Included with ₦15,000/mo Creator Tier (active pool: 1,000,000 NGN)
    */
   public static calculateCampaignParameters(videoDurationSeconds: number = 0) {
-    const rewardPerQualifiedView = 5;
-    const dailyUserLimit = 2;
+    let rewardPerQualifiedView = 10;
     let minWatchDurationSeconds = 30;
-
-    if (videoDurationSeconds > 0 && videoDurationSeconds < 60) {
-      minWatchDurationSeconds = Math.min(30, Math.max(15, Math.floor(videoDurationSeconds * 0.8)));
-    } else if (videoDurationSeconds >= 60) {
-      minWatchDurationSeconds = 45;
-    }
-
-    // Ongoing active campaign pool included with ₦15,000/mo Creator Membership
+    const dailyUserLimit = 2;
     const totalBudget = 1000000;
+
+    if (videoDurationSeconds < 90) {
+      // Shorts / Quick Drops (< 90s)
+      rewardPerQualifiedView = 10;
+      minWatchDurationSeconds = Math.min(
+        45,
+        Math.max(30, Math.floor(videoDurationSeconds > 0 ? videoDurationSeconds * 0.8 : 30))
+      );
+    } else if (videoDurationSeconds >= 90 && videoDurationSeconds < 300) {
+      // Standard Highlights (1.5 - 5 mins) -> 2 mins watch time
+      rewardPerQualifiedView = 25;
+      minWatchDurationSeconds = 120;
+    } else {
+      // Deep Engagement / Podcast / Long-Form (5+ mins) -> 4 mins watch time
+      rewardPerQualifiedView = 50;
+      minWatchDurationSeconds = 240;
+    }
 
     return {
       rewardPerQualifiedView,

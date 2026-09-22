@@ -695,34 +695,30 @@ export const CampaignsPage: React.FC = () => {
               <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#FF0091]" /> Campaign Specifications (Platform Calculated)
+                    <Sparkles className="w-3.5 h-3.5 text-[#FF0091]" /> YouTube High-Retention Engagement Model
                   </span>
                   <span className="text-[10px] font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20">
                     Included in Creator Plan
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                <div className="grid grid-cols-3 gap-2 pt-1 text-center">
                   <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">Reward / View</span>
-                    <span className="text-xs font-bold text-pink-400">₦5 / qualified view</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">Shorts (&lt; 90s)</span>
+                    <span className="text-xs font-bold text-pink-400">₦10 • 30s Watch</span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">Min Watch Time</span>
-                    <span className="text-xs font-bold text-white">30s – 45s (Auto-tuned)</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">Standard (1.5–5m)</span>
+                    <span className="text-xs font-bold text-purple-400">₦25 • 2m Retention</span>
                   </div>
                   <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">Daily Viewer Cap</span>
-                    <span className="text-xs font-bold text-white">2 views / user / day</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-medium block">Total Campaign Reach</span>
-                    <span className="text-xs font-bold text-emerald-400">Unlimited Views</span>
+                    <span className="text-[10px] text-slate-400 font-medium block">Deep (5m+)</span>
+                    <span className="text-xs font-bold text-emerald-400">₦50 • 4m Retention</span>
                   </div>
                 </div>
 
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Views are organically distributed across verified Basic & Premium members with anti-bot verification.
+                  High Average View Duration (AVD) triggers YouTube's recommendation algorithm to push your video to thousands of organic viewers for AdSense monetization and watch hours.
                 </p>
               </div>
 

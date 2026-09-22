@@ -13,5 +13,6 @@ const router = Router();
 router.post('/start', authenticate, validateBody(startSessionSchema), WatchSessionController.start);
 router.post('/heartbeat', authenticate, validateBody(heartbeatSchema), WatchSessionController.heartbeat);
 router.post('/complete', authenticate, validateBody(completeSessionSchema), WatchSessionController.complete);
+router.get('/daily-stats', authenticate, WatchSessionController.getDailyStats);
 
 export default router;
