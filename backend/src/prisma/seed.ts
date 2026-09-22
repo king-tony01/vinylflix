@@ -113,7 +113,7 @@ async function main() {
         'Exclusive high-yield video campaigns',
       ],
       conditionalRewardAmount: 25000,
-      referralRequirementCount: 15,
+      referralRequirementCount: 10,
     },
     {
       name: 'Creator / Advertiser Tier',
