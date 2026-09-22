@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 export const createCampaignSchema = z.object({
   videoId: z.string().min(1),
-  title: z.string().min(3).max(100),
+  title: z.string().min(3).max(150),
   description: z.string().optional(),
-  totalBudget: z.number().positive(),
-  rewardPerQualifiedView: z.number().positive().default(5),
-  minWatchDurationSeconds: z.number().int().min(15).max(300).default(30),
-  dailyUserLimit: z.number().int().positive().default(20),
+  totalBudget: z.number().positive().optional(),
+  rewardPerQualifiedView: z.number().positive().optional(),
+  minWatchDurationSeconds: z.number().int().min(15).max(300).optional(),
+  dailyUserLimit: z.number().int().positive().optional(),
   targeting: z.record(z.any()).optional(),
 });
 

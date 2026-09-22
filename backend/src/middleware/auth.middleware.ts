@@ -34,6 +34,20 @@ export function requireRole(...allowedRoles: string[]) {
       return next();
     }
 
+    // If endpoint allows CREATOR or ADVERTISER, also check if user has active CREATOR membership
+    if (allowedRoles.includes('CREATOR') || allowedRoles.includes('ADVERTISER')) {
+      const activeCreatorMembership = await prisma.membership.findFirst({
+        where: {
+          userId: req.user.userId,
+          status: 'ACTIVE',
+          plan: { tier: 'CREATOR' },
+        },
+      });
+      if (activeCreatorMembership) {
+        return next();
+      }
+    }
+
     return next(new ForbiddenError(`Access forbidden for role: ${req.user.role}`));
   };
 }

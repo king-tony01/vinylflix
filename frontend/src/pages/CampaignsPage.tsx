@@ -48,10 +48,6 @@ export const CampaignsPage: React.FC = () => {
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [totalBudget, setTotalBudget] = useState<string>('50000');
-  const [rewardPerView, setRewardPerView] = useState<string>('5');
-  const [minWatchSeconds, setMinWatchSeconds] = useState<string>('30');
-  const [dailyLimit, setDailyLimit] = useState<string>('20');
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -221,7 +217,6 @@ export const CampaignsPage: React.FC = () => {
       setSelectedVideoId(vid.id);
       setTitle(vid.title || 'Promoted Video');
       setDescription(vid.description?.slice(0, 200) || `Campaign for ${vid.title}`);
-      setMinWatchSeconds(String(Math.min(60, Math.max(15, Math.floor(vid.durationSeconds / 2)))));
       setSyncedVideos((prev) => [vid, ...prev.filter((v) => v.id !== vid.id)]);
       setFormSuccess(`✓ Verified & imported "${vid.title}"!`);
       setVideoUrlInput('');
@@ -248,15 +243,11 @@ export const CampaignsPage: React.FC = () => {
         videoId: selectedVideoId,
         title,
         description,
-        totalBudget: parseFloat(totalBudget),
-        rewardPerQualifiedView: parseFloat(rewardPerView),
-        minWatchDurationSeconds: parseInt(minWatchSeconds, 10),
-        dailyUserLimit: parseInt(dailyLimit, 10),
       }),
     });
 
     if (res.success) {
-      setFormSuccess('Campaign created and submitted for platform review!');
+      setFormSuccess('🎉 Campaign launched successfully and is now active!');
       setShowCreateModal(false);
       fetchCampaigns();
     } else {
@@ -700,60 +691,39 @@ export const CampaignsPage: React.FC = () => {
                 </select>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Total Campaign Budget (₦)</label>
-                  <input
-                    type="number"
-                    min="5000"
-                    step="1000"
-                    value={totalBudget}
-                    onChange={(e) => setTotalBudget(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
-                    required
-                  />
+              {/* Platform Calculated Specifications Panel */}
+              <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-[#FF0091]" /> Campaign Specifications (Platform Calculated)
+                  </span>
+                  <span className="text-[10px] font-bold text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20">
+                    Included in Creator Plan
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Reward Per View (₦)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={rewardPerView}
-                    onChange={(e) => setRewardPerView(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Min Watch Duration (Seconds)</label>
-                  <input
-                    type="number"
-                    min="15"
-                    max="300"
-                    value={minWatchSeconds}
-                    onChange={(e) => setMinWatchSeconds(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
-                    required
-                  />
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-medium block">Reward / View</span>
+                    <span className="text-xs font-bold text-pink-400">₦5 / qualified view</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-medium block">Min Watch Time</span>
+                    <span className="text-xs font-bold text-white">30s – 45s (Auto-tuned)</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-medium block">Daily Viewer Cap</span>
+                    <span className="text-xs font-bold text-white">2 views / user / day</span>
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-slate-900/90 border border-slate-800">
+                    <span className="text-[10px] text-slate-400 font-medium block">Total Campaign Reach</span>
+                    <span className="text-xs font-bold text-emerald-400">Unlimited Views</span>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Daily Limit Per User</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={dailyLimit}
-                    onChange={(e) => setDailyLimit(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
-                    required
-                  />
-                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Views are organically distributed across verified Basic & Premium members with anti-bot verification.
+                </p>
               </div>
 
               {formError && (
@@ -765,9 +735,10 @@ export const CampaignsPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.99] transition-all"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-lg shadow-[#FF0091]/25 hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
               >
-                Submit Campaign for Review
+                <Sparkles className="w-4 h-4" />
+                Launch Video Campaign
               </button>
             </form>
           </div>
