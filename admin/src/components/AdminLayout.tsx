@@ -35,9 +35,9 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans">
+    <div className="h-screen h-[100dvh] w-full bg-slate-950 text-slate-100 flex overflow-hidden font-sans">
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-slate-900/95 border-r border-slate-800 flex flex-col justify-between p-4 flex-shrink-0 backdrop-blur-xl">
+      <aside className="w-64 bg-slate-900/95 border-r border-slate-800 flex flex-col justify-between p-4 flex-shrink-0 backdrop-blur-xl h-full overflow-y-auto select-none">
         <div className="space-y-6">
           {/* Admin Header / Brand */}
           <div className="flex items-center gap-3 px-2 py-1">
@@ -116,7 +116,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto min-h-screen bg-slate-950 p-8">
+      <main className="flex-1 h-full overflow-y-auto bg-slate-950 p-8">
         <div className="max-w-7xl mx-auto">{children}</div>
       </main>
     </div>

@@ -48,14 +48,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div
-      className={`w-full bg-slate-950 text-slate-100 flex flex-col md:flex-row ${
+      className={`w-full bg-slate-950 text-slate-100 flex flex-col md:flex-row overflow-hidden ${
         isFeed
-          ? 'fixed inset-0 h-full w-full overflow-hidden md:relative md:h-screen'
-          : 'min-h-screen'
+          ? 'fixed inset-0 h-full w-full md:relative md:h-screen'
+          : 'h-screen h-[100dvh]'
       }`}
     >
       {/* 1. DESKTOP / TABLET FIXED SIDEBAR (hidden on mobile) */}
-      <aside className="hidden md:flex flex-col justify-between w-64 lg:w-72 bg-slate-900/95 border-r border-slate-800/80 p-5 z-40 backdrop-blur-2xl flex-shrink-0 h-screen select-none">
+      <aside className="hidden md:flex flex-col justify-between w-64 lg:w-72 bg-slate-900/95 border-r border-slate-800/80 p-5 z-40 backdrop-blur-2xl flex-shrink-0 h-full overflow-y-auto select-none">
         <div className="space-y-8">
           {/* Vinylflix Official Logo */}
           <Link to="/" className="flex items-center gap-3 group">
@@ -199,7 +199,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
       {/* 3. MAIN CONTENT VIEWPORT */}
       <main
-        className={`flex-1 min-w-0 ${
+        className={`flex-1 min-w-0 h-full ${
           isFeed
             ? 'absolute inset-0 w-full h-full overflow-hidden p-0 z-10 md:relative md:h-screen'
             : 'p-4 sm:p-6 lg:p-8 overflow-y-auto pb-20 md:pb-8'
