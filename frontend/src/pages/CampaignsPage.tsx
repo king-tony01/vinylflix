@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.js';
 import { apiRequest } from '../lib/api.js';
 import {
   Layers,
@@ -15,9 +16,21 @@ import {
   XCircle,
   Unlink,
   Sparkles,
+  Crown,
+  TrendingUp,
+  BarChart3,
+  ShieldCheck,
+  ArrowRight,
 } from 'lucide-react';
 
 export const CampaignsPage: React.FC = () => {
+  const { user } = useAuth();
+  const isAdvertiser =
+    user?.role === 'CREATOR' ||
+    user?.role === 'ADVERTISER' ||
+    user?.role === 'ADMIN' ||
+    user?.activeMembership?.plan?.tier === 'CREATOR';
+
   const [searchParams] = useSearchParams();
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -170,8 +183,12 @@ export const CampaignsPage: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchCampaigns();
-    fetchConnectedChannel();
+    if (isAdvertiser) {
+      fetchCampaigns();
+      fetchConnectedChannel();
+    } else {
+      setLoading(false);
+    }
 
     // Check OAuth return status
     const isConnected = searchParams.get('connected');
@@ -180,11 +197,11 @@ export const CampaignsPage: React.FC = () => {
 
     if (isConnected && channelParam) {
       setFormSuccess(`🎉 Successfully connected YouTube channel "${decodeURIComponent(channelParam)}"!`);
-      fetchConnectedChannel();
+      if (isAdvertiser) fetchConnectedChannel();
     } else if (errorParam) {
       setFormError(`YouTube authorization error: ${decodeURIComponent(errorParam)}`);
     }
-  }, [searchParams]);
+  }, [searchParams, isAdvertiser]);
 
   const handleImportVideo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -246,6 +263,101 @@ export const CampaignsPage: React.FC = () => {
       setFormError(res.error?.message || 'Failed to create campaign');
     }
   };
+
+  // If user is not on Creator / Advertiser tier, show the Creator Upgrade Gate
+  if (!isAdvertiser) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-in fade-in">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-pink-500/10 border border-pink-500/30 text-pink-300 text-xs font-bold shadow-lg shadow-[#FF0091]/10">
+            <Crown className="w-4 h-4 text-[#FF0091]" />
+            <span>Creator / Advertiser Tier Exclusive</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+            Unlock the YouTube{' '}
+            <span className="bg-gradient-to-r from-[#FF0091] via-[#c026d3] to-[#7928CA] bg-clip-text text-transparent">
+              Campaign & Promotion Hub
+            </span>
+          </h1>
+
+          <p className="text-sm sm:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            Campaign creation tools, official YouTube channel synchronization, and targeted viewer distribution are reserved exclusively for members on the <strong className="text-white">Creator / Advertiser Tier</strong>.
+          </p>
+        </div>
+
+        {/* Feature Highlights Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-[#FF0091]">
+              <Youtube className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white">Connect YouTube Channels</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Verify your official channel and automatically sync uploaded videos & Shorts for instant 1-click campaign promotion.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white">Targeted Audience Reach</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Distribute your videos across thousands of verified human viewers with guaranteed minimum watch durations.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-[#FF0091]">
+              <BarChart3 className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white">Real-Time Performance Analytics</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Track live audience retention, completed views, budget utilization, and channel subscriber growth from your dashboard.
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <h3 className="text-base font-bold text-white">Anti-Bot Quality Shield</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Cryptographic server heartbeats and anomaly scoring ensure 100% authentic human viewers with zero fake bot traffic.
+            </p>
+          </div>
+        </div>
+
+        {/* Upgrade Action Card */}
+        <div className="rounded-3xl bg-gradient-to-r from-[#14002e] to-[#0a0017] border border-[#2a0054] p-8 sm:p-10 text-center space-y-6 shadow-2xl">
+          <div className="space-y-2">
+            <h3 className="text-xl sm:text-2xl font-black text-white">
+              Upgrade Your Account to Creator / Advertiser Tier
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto">
+              Get full access to all campaign creation tools, video promotion features, and YouTube channel integration for just <strong className="text-pink-300">₦15,000 / month</strong>.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              to="/memberships"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white font-bold text-sm shadow-xl shadow-[#FF0091]/30 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              <Crown className="w-4 h-4" /> Upgrade to Creator Plan <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              to="/"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white font-semibold text-sm transition-all"
+            >
+              Back to Discovery Feed
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">

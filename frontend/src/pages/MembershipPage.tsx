@@ -6,9 +6,7 @@ import {
   Check,
   Sparkles,
   Lock,
-  CreditCard,
   AlertCircle,
-  ExternalLink,
 } from 'lucide-react';
 
 export const MembershipPage: React.FC = () => {
@@ -214,8 +212,7 @@ export const MembershipPage: React.FC = () => {
                         'Connecting Gateway...'
                       ) : (
                         <>
-                          <CreditCard className="w-3.5 h-3.5" /> Pay with Paystack
-                          <ExternalLink className="w-3 h-3 opacity-70" />
+                          <Sparkles className="w-3.5 h-3.5" /> Upgrade
                         </>
                       )}
                     </button>
