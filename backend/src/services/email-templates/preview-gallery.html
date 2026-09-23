@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vinylflix Email Templates Preview Gallery</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: #030712;
+      color: #f3f4f6;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background-color: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+    }
+    .brand span {
+      color: #ff0091;
+    }
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 24px;
+      background: #090d16;
+      border-bottom: 1px solid #1e293b;
+    }
+    .tab-btn {
+      background: #1e293b;
+      color: #94a3b8;
+      border: 1px solid #334155;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      background: #334155;
+      color: #ffffff;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #ff0091, #7928ca);
+      color: #ffffff;
+      border-color: #ff0091;
+      box-shadow: 0 0 16px rgba(255, 0, 145, 0.4);
+    }
+    .preview-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 30px 16px;
+      background: radial-gradient(circle at 50% 10%, rgba(255,0,145,0.08) 0%, transparent 60%);
+    }
+    .iframe-wrapper {
+      width: 100%;
+      max-width: 680px;
+      background: #000000;
+      border-radius: 28px;
+      border: 1px solid #1e293b;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .device-bar {
+      background: #0f172a;
+      padding: 12px 18px;
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .device-dots {
+      display: flex;
+      gap: 6px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; }
+    .dot.green { background: #10b981; }
+    iframe {
+      width: 100%;
+      height: 800px;
+      border: none;
+      background: #090d16;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="19" stroke="#334155" stroke-width="2"/>
+        <circle cx="22" cy="22" r="14" stroke="#475569" stroke-width="1.5" stroke-dasharray="2 2"/>
+        <circle cx="22" cy="22" r="8" fill="#ff0091"/>
+        <circle cx="22" cy="22" r="3" fill="#ffffff"/>
+      </svg>
+      VINYL<span>FLIX</span> EMAIL SUITE
+    </div>
+    <div style="font-size: 12px; color: #94a3b8; font-weight: 600;">
+      7 Responsive Vector SVG Templates
+    </div>
+  </header>
+
+  <div class="tabs-nav" id="tabsNav">
+    <button class="tab-btn active" onclick="switchTemplate(0)">1. OTP Verification</button>
+    <button class="tab-btn" onclick="switchTemplate(1)">2. Welcome & Pre-Verify</button>
+    <button class="tab-btn" onclick="switchTemplate(2)">3. Welcome Verified</button>
+    <button class="tab-btn" onclick="switchTemplate(3)">4. Withdrawal Requested</button>
+    <button class="tab-btn" onclick="switchTemplate(4)">5. Payout Sent Success</button>
+    <button class="tab-btn" onclick="switchTemplate(5)">6. Sign-In Security Alert</button>
+    <button class="tab-btn" onclick="switchTemplate(6)">7. Account Suspension</button>
+  </div>
+
+  <div class="preview-container">
+    <div class="iframe-wrapper">
+      <div class="device-bar">
+        <div class="device-dots">
+          <div class="dot red"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
+        </div>
+        <span id="templateTitleLabel">Template: 1. OTP Verification Code</span>
+        <span style="font-family: monospace; font-size: 11px;">600px Responsive</span>
+      </div>
+      <iframe id="previewIframe" srcdoc=""></iframe>
+    </div>
+  </div>
+
+  <script type="module">
+    import {
+      renderOtpVerificationEmail,
+      renderWelcomePreVerifyEmail,
+      renderWelcomeVerifiedEmail,
+      renderWithdrawalRequestedEmail,
+      renderWithdrawalSuccessEmail,
+      renderSecurityLoginAlertEmail,
+      renderAccountStatusEmail,
+    } from './index.js';
+
+    const templates = [
+      {
+        name: '1. OTP Verification Code',
+        data: renderOtpVerificationEmail({
+          username: 'alex_creator',
+          code: '729401',
+          verificationUrl: 'https://app.vinylflix.com/verify-email',
+        }),
+      },
+      {
+        name: '2. Welcome & Pre-Verify Onboarding',
+        data: renderWelcomePreVerifyEmail({
+          username: 'sarah_growth',
+          code: '810349',
+          appUrl: 'https://app.vinylflix.com',
+        }),
+      },
+      {
+        name: '3. Welcome Verified Activation Guide',
+        data: renderWelcomeVerifiedEmail({
+          username: 'john_earner',
+          referralCode: 'GOLD777',
+          appUrl: 'https://app.vinylflix.com',
+        }),
+      },
+      {
+        name: '4. Withdrawal Requested Receipt',
+        data: renderWithdrawalRequestedEmail({
+          username: 'mark_payout',
+          amount: 25000,
+          fee: 1250,
+          netAmount: 23750,
+          currency: 'NGN',
+          bankName: 'Guaranty Trust Bank (GTBank)',
+          accountNumberMasked: '••••••••1234',
+          accountName: 'Mark Doe',
+          reference: 'wdraw_8492019384729102',
+        }),
+      },
+      {
+        name: '5. Successful Withdrawal Sent',
+        data: renderWithdrawalSuccessEmail({
+          username: 'lisa_cash',
+          netAmount: 50000,
+          currency: 'NGN',
+          bankName: 'Access Bank PLC',
+          accountNumberMasked: '••••••••5678',
+          reference: 'wdraw_succ_99482019',
+          processedAt: 'September 23, 2026, 11:30 AM',
+        }),
+      },
+      {
+        name: '6. Sign-In Security Alert',
+        data: renderSecurityLoginAlertEmail({
+          username: 'security_user',
+          ipAddress: '102.89.34.120',
+          userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X)',
+          deviceType: 'Safari on iPhone',
+          location: 'Lagos, Nigeria',
+          timestamp: 'Wed, 23 Sep 2026 11:00:00 GMT',
+        }),
+      },
+      {
+        name: '7. Account Suspension / Restriction Notice',
+        data: renderAccountStatusEmail({
+          username: 'flagged_account',
+          action: 'SUSPENDED',
+          reason: 'Irregular playback & automated bot patterns detected',
+          effectiveDate: 'September 23, 2026',
+        }),
+      },
+    ];
+
+    window.switchTemplate = function(index) {
+      const selected = templates[index];
+      const iframe = document.getElementById('previewIframe');
+      iframe.srcdoc = selected.data.html;
+      document.getElementById('templateTitleLabel').innerText = 'Template: ' + selected.name;
+
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach((btn, i) => {
+        if (i === index) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    };
+
+    // Initialize first tab
+    window.switchTemplate(0);
+  </script>
+</body>
+</html>

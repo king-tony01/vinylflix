@@ -333,6 +333,13 @@ export class AuthService {
       targetId: updatedUser.id,
     });
 
+    // Send onboarding quick-start guide to the newly verified user
+    await EmailService.sendWelcomeVerifiedEmail(
+      updatedUser.email,
+      updatedUser.username,
+      updatedUser.referralCode
+    );
+
     const tokenPayload = {
       userId: updatedUser.id,
       role: updatedUser.role,
