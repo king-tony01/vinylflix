@@ -2,22 +2,22 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import { VinylflixLogo } from '../components/VinylflixLogo.js';
-import { Lock, Mail, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const [loginInput, setLoginInput] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const res = await apiRequest('/auth/login', {
       method: 'POST',
@@ -28,16 +28,18 @@ export const LoginPage: React.FC = () => {
     });
 
     if (res.success && res.data) {
+      toast.success(`Welcome back, ${res.data.user.username || 'creator'}!`);
       login(res.data.tokens.accessToken, res.data.user);
       navigate('/');
     } else {
       const isUnverified = res.error?.details?.code === 'EMAIL_NOT_VERIFIED' || res.error?.message?.toLowerCase().includes('not verified');
       if (isUnverified) {
+        toast.warning('Please verify your email address to access your account.');
         const unverifiedEmail = res.error?.details?.email || (loginInput.includes('@') ? loginInput : '');
         navigate(`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`);
         return;
       }
-      setError(res.error?.message || 'Login failed. Please check your credentials.');
+      toast.error(res.error?.message || 'Login failed. Please check your credentials.');
     }
     setLoading(false);
   };
@@ -53,13 +55,6 @@ export const LoginPage: React.FC = () => {
           <h2 className="text-2xl font-black text-white tracking-tight">Welcome Back</h2>
           <p className="text-xs text-slate-400">Sign in to your Vinylflix account to continue earning</p>
         </div>
-
-        {error && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

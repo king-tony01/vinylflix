@@ -2,21 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import {
   Check,
   Sparkles,
   Lock,
-  AlertCircle,
 } from 'lucide-react';
 
 export const MembershipPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [purchasingPlanId, setPurchasingPlanId] = useState<string | null>(null);
-  const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
-  const [purchaseError, setPurchaseError] = useState<string | null>(null);
 
   const fetchPlans = async () => {
     setLoading(true);
@@ -36,10 +35,10 @@ export const MembershipPage: React.FC = () => {
         setLoading(true);
         const res = await apiRequest(`/payments/verify/${encodeURIComponent(reference)}`);
         if (res.success && res.data?.status === 'SETTLED') {
-          setPurchaseSuccess('🎉 Payment confirmed! Your membership tier has been successfully upgraded.');
+          toast.success('🎉 Payment confirmed! Your membership tier has been successfully upgraded.');
           await refreshUser();
         } else {
-          setPurchaseError('Payment verification is pending or was cancelled.');
+          toast.warning('Payment verification is pending or was cancelled.');
         }
         setLoading(false);
       };
@@ -55,8 +54,6 @@ export const MembershipPage: React.FC = () => {
     }
 
     setPurchasingPlanId(plan.id);
-    setPurchaseSuccess(null);
-    setPurchaseError(null);
 
     // 1. Initialize real payment gateway checkout
     const initRes = await apiRequest('/memberships/purchase', {
@@ -81,12 +78,12 @@ export const MembershipPage: React.FC = () => {
       if (reference) {
         const verifyRes = await apiRequest(`/payments/verify/${encodeURIComponent(reference)}`);
         if (verifyRes.success) {
-          setPurchaseSuccess(`Successfully activated ${plan.name}!`);
+          toast.success(`Successfully activated ${plan.name}!`);
           await refreshUser();
         }
       }
     } else {
-      setPurchaseError(initRes.error?.message || 'Failed to initialize payment checkout.');
+      toast.error(initRes.error?.message || 'Failed to initialize payment checkout.');
     }
 
     setPurchasingPlanId(null);
@@ -104,19 +101,6 @@ export const MembershipPage: React.FC = () => {
         </p>
       </div>
 
-      {purchaseSuccess && (
-        <div className="max-w-2xl mx-auto p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-3 text-sm font-semibold animate-in fade-in">
-          <Sparkles className="w-5 h-5 flex-shrink-0" />
-          <span>{purchaseSuccess}</span>
-        </div>
-      )}
-
-      {purchaseError && (
-        <div className="max-w-2xl mx-auto p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 flex items-center gap-3 text-sm font-semibold animate-in fade-in">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <span>{purchaseError}</span>
-        </div>
-      )}
 
       {/* Loading Indicator */}
       {loading && (

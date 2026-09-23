@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import {
   Heart,
   Share2,
@@ -56,6 +57,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
   isActive,
 }) => {
   const { user, refreshUser } = useAuth();
+  const { toast } = useToast();
 
   const channelTitle = video.channel?.channelTitle || video.channelTitle || 'Creator Channel';
   const channelHandle = video.channel?.customUrl || `@${channelTitle.toLowerCase().replace(/[^a-z0-9_]/g, '')}`;
@@ -157,7 +159,9 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
         if (res.success && res.data) {
           if (res.data.isRewarded && !rewardAwarded) {
             setRewardAwarded(true);
-            setRewardToast(`🎉 +₦${res.data.rewardCredited || rewardAmount} Added to Wallet!`);
+            const credited = res.data.rewardCredited || rewardAmount;
+            setRewardToast(`🎉 +₦${credited} Added to Wallet!`);
+            toast.success(`+₦${credited} reward credited to your available balance!`, 'Reward Earned!');
             refreshUser();
             setTimeout(() => setRewardToast(null), 4000);
           }
@@ -170,7 +174,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
     return () => {
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
     };
-  }, [isActive, sessionId, sessionToken, rewardAwarded, rewardAmount, initialMinWatch, refreshUser]);
+  }, [isActive, sessionId, sessionToken, rewardAwarded, rewardAmount, initialMinWatch, refreshUser, toast]);
 
   const handleToggleLike = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -184,6 +188,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
       const inviteUrl = `${window.location.origin}/register?ref=${user.referralCode}`;
       navigator.clipboard.writeText(inviteUrl);
       setCopyToast(true);
+      toast.success('Referral link copied to clipboard!');
       setTimeout(() => setCopyToast(false), 3000);
     }
   };
@@ -206,6 +211,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
 
     setIsSubscribed(true);
     setSubscribeToast(`Subscribed to ${channelTitle}! 🎉`);
+    toast.success(`Subscribed to ${channelTitle}!`);
     setTimeout(() => setSubscribeToast(null), 3500);
   };
 

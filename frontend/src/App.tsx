@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.js';
+import { ToastProvider } from './context/ToastContext.js';
 import { AppLayout } from './components/AppLayout.js';
 import { FeedPage } from './pages/FeedPage.js';
 import { WalletPage } from './pages/WalletPage.js';
@@ -64,11 +65,14 @@ export const AppContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ToastProvider>
     </BrowserRouter>
   );
 };
 
 export default App;
+

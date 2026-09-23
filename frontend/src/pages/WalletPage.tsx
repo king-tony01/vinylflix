@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import { RewardProgressBar } from '../components/RewardProgressBar.js';
 import {
   Wallet as WalletIcon,
@@ -16,12 +17,12 @@ import {
   Crown,
   Sparkles,
   CheckCircle2,
-  AlertCircle,
   Building2,
 } from 'lucide-react';
 
 export const WalletPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
+  const { toast } = useToast();
   const [walletData, setWalletData] = useState<any | null>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -41,7 +42,6 @@ export const WalletPage: React.FC = () => {
 
   const [withdrawAmount, setWithdrawAmount] = useState<string>('2000');
   const [withdrawLoading, setWithdrawLoading] = useState<boolean>(false);
-  const [withdrawMessage, setWithdrawMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const fetchWallet = async () => {
     setLoading(true);
@@ -112,24 +112,20 @@ export const WalletPage: React.FC = () => {
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
-    setWithdrawMessage(null);
     const amountNum = parseFloat(withdrawAmount);
 
     if (isNaN(amountNum) || amountNum < minWithdrawalAmount) {
-      setWithdrawMessage({
-        type: 'error',
-        text: `Minimum withdrawal amount is ₦${minWithdrawalAmount.toLocaleString()}`,
-      });
+      toast.error(`Minimum withdrawal amount is ₦${minWithdrawalAmount.toLocaleString()}`);
       return;
     }
 
     if (accountNumber.length !== 10) {
-      setWithdrawMessage({ type: 'error', text: 'Account number must be exactly 10 digits' });
+      toast.error('Account number must be exactly 10 digits');
       return;
     }
 
     if (!accountName.trim()) {
-      setWithdrawMessage({ type: 'error', text: 'Please ensure account holder name is verified' });
+      toast.error('Please ensure account holder name is verified');
       return;
     }
 
@@ -148,18 +144,12 @@ export const WalletPage: React.FC = () => {
     });
 
     if (res.success) {
-      setWithdrawMessage({
-        type: 'success',
-        text: 'Withdrawal request submitted! Funds will be reviewed and transferred to your bank.',
-      });
+      toast.success('Withdrawal request submitted! Funds will be reviewed and transferred to your bank.');
       setShowWithdrawModal(false);
       fetchWallet();
       refreshUser();
     } else {
-      setWithdrawMessage({
-        type: 'error',
-        text: res.error?.message || 'Failed to submit withdrawal request.',
-      });
+      toast.error(res.error?.message || 'Failed to submit withdrawal request.');
     }
     setWithdrawLoading(false);
   };
@@ -243,10 +233,7 @@ export const WalletPage: React.FC = () => {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => {
-              setWithdrawMessage(null);
-              setShowWithdrawModal(true);
-            }}
+            onClick={() => setShowWithdrawModal(true)}
             disabled={availableBal < 2000}
             className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] hover:opacity-95 text-white font-bold text-xs shadow-lg shadow-[#FF0091]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
           >
@@ -255,25 +242,9 @@ export const WalletPage: React.FC = () => {
         </div>
       </div>
 
-      {withdrawMessage && (
-        <div
-          className={`p-4 rounded-xl text-xs font-semibold flex items-center gap-2.5 animate-in fade-in ${
-            withdrawMessage.type === 'success'
-              ? 'bg-pink-500/10 border border-pink-500/30 text-pink-300'
-              : 'bg-rose-500/10 border border-rose-500/30 text-rose-300'
-          }`}
-        >
-          {withdrawMessage.type === 'success' ? (
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-          ) : (
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          )}
-          <span>{withdrawMessage.text}</span>
-        </div>
-      )}
-
       {/* Balance Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
         {/* 1. Available Balance */}
         <div className="bg-gradient-to-br from-slate-900 via-slate-900 to-[#360099]/30 border border-pink-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
           <div className="flex items-center justify-between text-slate-400 mb-2">

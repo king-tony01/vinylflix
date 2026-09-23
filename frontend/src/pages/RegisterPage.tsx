@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import { VinylflixLogo } from '../components/VinylflixLogo.js';
-import { Lock, Mail, User, Tag, AlertCircle, ArrowRight } from 'lucide-react';
+import { Lock, Mail, User, Tag, ArrowRight } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login } = useAuth();
+  const { toast } = useToast();
 
   const [email, setEmail] = useState<string>('');
   const [username, setUsername] = useState<string>('');
@@ -17,7 +19,6 @@ export const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [referralCode, setReferralCode] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const ref = searchParams.get('ref');
@@ -29,7 +30,6 @@ export const RegisterPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
 
     const res = await apiRequest('/auth/register', {
       method: 'POST',
@@ -44,12 +44,13 @@ export const RegisterPage: React.FC = () => {
     });
 
     if (res.success && res.data) {
+      toast.success('Account created! Please check your email for the 6-digit verification code.');
       if (res.data.tokens && res.data.user) {
         login(res.data.tokens.accessToken, res.data.user);
       }
       navigate(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
     } else {
-      setError(res.error?.message || 'Registration failed. Please try again.');
+      toast.error(res.error?.message || 'Registration failed. Please try again.');
     }
     setLoading(false);
   };
@@ -65,13 +66,6 @@ export const RegisterPage: React.FC = () => {
           <h2 className="text-2xl font-black text-white tracking-tight">Create an Account</h2>
           <p className="text-xs text-slate-400">Join the Vinylflix rewarded content and video ecosystem</p>
         </div>
-
-        {error && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>

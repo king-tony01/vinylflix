@@ -2,20 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import { VinylflixLogo } from '../components/VinylflixLogo.js';
-import { Mail, CheckCircle2, AlertCircle, RefreshCw, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Mail, RefreshCw, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const VerifyEmailPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { login, refreshUser } = useAuth();
+  const { toast } = useToast();
 
   const [email, setEmail] = useState<string>('');
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', '']);
   const [loading, setLoading] = useState<boolean>(false);
   const [resending, setResending] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState<number>(0);
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -75,17 +75,15 @@ export const VerifyEmailPage: React.FC = () => {
   const submitVerification = async (codeToSubmit?: string) => {
     const fullCode = codeToSubmit || otp.join('');
     if (fullCode.length !== 6) {
-      setError('Please enter all 6 digits of the verification code.');
+      toast.error('Please enter all 6 digits of the verification code.');
       return;
     }
     if (!email) {
-      setError('Please provide your email address.');
+      toast.error('Please provide your email address.');
       return;
     }
 
     setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
 
     const res = await apiRequest('/auth/verify-email', {
       method: 'POST',
@@ -96,7 +94,7 @@ export const VerifyEmailPage: React.FC = () => {
     });
 
     if (res.success && res.data) {
-      setSuccessMsg(res.data.message || 'Email verified successfully!');
+      toast.success(res.data.message || 'Email verified successfully! Welcome to Vinylflix.');
       if (res.data.tokens && res.data.user) {
         login(res.data.tokens.accessToken, res.data.user);
       } else {
@@ -104,23 +102,21 @@ export const VerifyEmailPage: React.FC = () => {
       }
       setTimeout(() => {
         navigate('/memberships');
-      }, 1200);
+      }, 1000);
     } else {
-      setError(res.error?.message || 'Invalid verification code. Please check and try again.');
+      toast.error(res.error?.message || 'Invalid verification code. Please check and try again.');
     }
     setLoading(false);
   };
 
   const handleResend = async () => {
     if (!email) {
-      setError('Please enter your email address to resend code.');
+      toast.error('Please enter your email address to resend code.');
       return;
     }
     if (cooldown > 0) return;
 
     setResending(true);
-    setError(null);
-    setSuccessMsg(null);
 
     const res = await apiRequest('/auth/resend-verification', {
       method: 'POST',
@@ -128,12 +124,12 @@ export const VerifyEmailPage: React.FC = () => {
     });
 
     if (res.success) {
-      setSuccessMsg(res.data?.message || 'A new 6-digit verification code has been sent to your email.');
+      toast.info(res.data?.message || 'A new 6-digit verification code has been sent to your email.');
       setCooldown(60);
       setOtp(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
     } else {
-      setError(res.error?.message || 'Failed to resend code. Please try again later.');
+      toast.error(res.error?.message || 'Failed to resend code. Please try again later.');
     }
     setResending(false);
   };
@@ -170,21 +166,6 @@ export const VerifyEmailPage: React.FC = () => {
             />
           </div>
         </div>
-
-        {/* Feedback Messages */}
-        {error && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {successMsg && (
-          <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-            <span>{successMsg}</span>
-          </div>
-        )}
 
         {/* 6-Digit OTP Boxes */}
         <div className="space-y-3">

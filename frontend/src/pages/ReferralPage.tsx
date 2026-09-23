@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import { RewardProgressBar } from '../components/RewardProgressBar.js';
 import {
   Users,
@@ -13,6 +14,7 @@ import {
 
 export const ReferralPage: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [data, setData] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [copied, setCopied] = useState<boolean>(false);
@@ -36,6 +38,7 @@ export const ReferralPage: React.FC = () => {
   const copyToClipboard = () => {
     navigator.clipboard.writeText(fullReferralLink);
     setCopied(true);
+    toast.success('Referral link copied to clipboard!');
     setTimeout(() => setCopied(false), 2500);
   };
 

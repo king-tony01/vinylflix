@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
+import { useToast } from '../context/ToastContext.js';
 import { apiRequest } from '../lib/api.js';
 import {
   Layers,
   Youtube,
   Plus,
   RefreshCw,
-  AlertCircle,
-  CheckCircle2,
   ExternalLink,
   Link as LinkIcon,
   Video,
@@ -25,6 +24,7 @@ import {
 
 export const CampaignsPage: React.FC = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const isAdvertiser =
     user?.role === 'CREATOR' ||
     user?.role === 'ADVERTISER' ||
@@ -48,8 +48,6 @@ export const CampaignsPage: React.FC = () => {
   const [selectedVideoId, setSelectedVideoId] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formSuccess, setFormSuccess] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const fetchCampaigns = async () => {
@@ -75,14 +73,12 @@ export const CampaignsPage: React.FC = () => {
 
   // Google OAuth flow
   const handleConnectOAuth = async () => {
-    setFormError(null);
-    setFormSuccess(null);
     const res = await apiRequest('/youtube/oauth/url');
     const oauthUrl = res.data?.url || (res as any).url;
     if (res.success && oauthUrl) {
       window.location.href = oauthUrl;
     } else {
-      setFormError(res.error?.message || 'Failed to initialize YouTube OAuth flow.');
+      toast.error(res.error?.message || 'Failed to initialize YouTube OAuth flow.');
     }
   };
 
@@ -90,8 +86,6 @@ export const CampaignsPage: React.FC = () => {
   const handleSyncChannelVideos = async () => {
     if (!connectedChannel) return;
     setSyncingVideos(true);
-    setFormError(null);
-    setFormSuccess(null);
 
     const res = await apiRequest(`/youtube/sync/${connectedChannel.id}`, {
       method: 'POST',
@@ -99,10 +93,10 @@ export const CampaignsPage: React.FC = () => {
 
     if (res.success && res.data) {
       setSyncedVideos(res.data);
-      setFormSuccess(`✓ Successfully synced ${res.data.length} videos from your YouTube channel!`);
+      toast.success(`Successfully synced ${res.data.length} videos from your YouTube channel!`);
       fetchConnectedChannel();
     } else {
-      setFormError(res.error?.message || 'Failed to sync videos from YouTube.');
+      toast.error(res.error?.message || 'Failed to sync videos from YouTube.');
     }
     setSyncingVideos(false);
   };
@@ -114,9 +108,6 @@ export const CampaignsPage: React.FC = () => {
     );
     if (!confirmDisconnect) return;
 
-    setFormError(null);
-    setFormSuccess(null);
-
     const res = await apiRequest('/youtube/channel', {
       method: 'DELETE',
     });
@@ -124,9 +115,9 @@ export const CampaignsPage: React.FC = () => {
     if (res.success) {
       setConnectedChannel(null);
       setSyncedVideos([]);
-      setFormSuccess('YouTube channel disconnected successfully.');
+      toast.success('YouTube channel disconnected successfully.');
     } else {
-      setFormError(res.error?.message || 'Failed to disconnect YouTube channel.');
+      toast.error(res.error?.message || 'Failed to disconnect YouTube channel.');
     }
   };
 
@@ -137,18 +128,16 @@ export const CampaignsPage: React.FC = () => {
     if (!confirmDelete) return;
 
     setActionLoadingId(campaignId);
-    setFormError(null);
-    setFormSuccess(null);
 
     const res = await apiRequest(`/campaigns/${campaignId}`, {
       method: 'DELETE',
     });
 
     if (res.success) {
-      setFormSuccess(`✓ Campaign "${campaignTitle}" was successfully deleted.`);
+      toast.success(`Campaign "${campaignTitle}" was successfully deleted.`);
       fetchCampaigns();
     } else {
-      setFormError(res.error?.message || 'Failed to delete campaign.');
+      toast.error(res.error?.message || 'Failed to delete campaign.');
     }
 
     setActionLoadingId(null);
@@ -161,18 +150,16 @@ export const CampaignsPage: React.FC = () => {
     if (!confirmCancel) return;
 
     setActionLoadingId(campaignId);
-    setFormError(null);
-    setFormSuccess(null);
 
     const res = await apiRequest(`/campaigns/${campaignId}/cancel`, {
       method: 'PATCH',
     });
 
     if (res.success) {
-      setFormSuccess(`✓ Campaign "${campaignTitle}" is now cancelled.`);
+      toast.success(`Campaign "${campaignTitle}" is now cancelled.`);
       fetchCampaigns();
     } else {
-      setFormError(res.error?.message || 'Failed to cancel campaign.');
+      toast.error(res.error?.message || 'Failed to cancel campaign.');
     }
 
     setActionLoadingId(null);
@@ -192,10 +179,10 @@ export const CampaignsPage: React.FC = () => {
     const errorParam = searchParams.get('error');
 
     if (isConnected && channelParam) {
-      setFormSuccess(`🎉 Successfully connected YouTube channel "${decodeURIComponent(channelParam)}"!`);
+      toast.success(`Successfully connected YouTube channel "${decodeURIComponent(channelParam)}"!`);
       if (isAdvertiser) fetchConnectedChannel();
     } else if (errorParam) {
-      setFormError(`YouTube authorization error: ${decodeURIComponent(errorParam)}`);
+      toast.error(`YouTube authorization error: ${decodeURIComponent(errorParam)}`);
     }
   }, [searchParams, isAdvertiser]);
 
@@ -204,7 +191,6 @@ export const CampaignsPage: React.FC = () => {
     if (!videoUrlInput.trim()) return;
 
     setImportingVideo(true);
-    setFormError(null);
 
     const res = await apiRequest('/youtube/import-video', {
       method: 'POST',
@@ -218,10 +204,10 @@ export const CampaignsPage: React.FC = () => {
       setTitle(vid.title || 'Promoted Video');
       setDescription(vid.description?.slice(0, 200) || `Campaign for ${vid.title}`);
       setSyncedVideos((prev) => [vid, ...prev.filter((v) => v.id !== vid.id)]);
-      setFormSuccess(`✓ Verified & imported "${vid.title}"!`);
+      toast.success(`Verified & imported "${vid.title}"!`);
       setVideoUrlInput('');
     } else {
-      setFormError(res.error?.message || 'Could not verify or fetch video from YouTube.');
+      toast.error(res.error?.message || 'Could not verify or fetch video from YouTube.');
     }
 
     setImportingVideo(false);
@@ -229,11 +215,9 @@ export const CampaignsPage: React.FC = () => {
 
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError(null);
-    setFormSuccess(null);
 
     if (!selectedVideoId) {
-      setFormError('Please select or import a YouTube video for this campaign');
+      toast.error('Please select or import a YouTube video for this campaign');
       return;
     }
 
@@ -247,13 +231,14 @@ export const CampaignsPage: React.FC = () => {
     });
 
     if (res.success) {
-      setFormSuccess('🎉 Campaign launched successfully and is now active!');
+      toast.success('🎉 Campaign launched successfully and is now active!');
       setShowCreateModal(false);
       fetchCampaigns();
     } else {
-      setFormError(res.error?.message || 'Failed to create campaign');
+      toast.error(res.error?.message || 'Failed to create campaign');
     }
   };
+
 
   // If user is not on Creator / Advertiser tier, show the Creator Upgrade Gate
   if (!isAdvertiser) {
@@ -463,21 +448,6 @@ export const CampaignsPage: React.FC = () => {
             Connect YouTube Channel
             <ExternalLink className="w-3 h-3 opacity-60" />
           </button>
-        </div>
-      )}
-
-      {/* Success Notification Banner */}
-      {formSuccess && (
-        <div className="p-4 rounded-xl border bg-pink-500/10 border-pink-500/30 text-pink-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-[#FF0091] flex-shrink-0" />
-          <span>{formSuccess}</span>
-        </div>
-      )}
-
-      {formError && (
-        <div className="p-4 rounded-xl border bg-rose-500/10 border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
-          <span>{formError}</span>
         </div>
       )}
 
@@ -721,13 +691,6 @@ export const CampaignsPage: React.FC = () => {
                   High Average View Duration (AVD) triggers YouTube's recommendation algorithm to push your video to thousands of organic viewers for AdSense monetization and watch hours.
                 </p>
               </div>
-
-              {formError && (
-                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {formError}
-                </div>
-              )}
 
               <button
                 type="submit"
