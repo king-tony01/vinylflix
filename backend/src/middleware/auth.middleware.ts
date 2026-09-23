@@ -64,3 +64,36 @@ export function optionalAuthenticate(req: AuthenticatedRequest, res: Response, n
   }
   next();
 }
+
+export async function requireVerifiedEmail(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return next(new UnauthorizedError('Authentication required'));
+  }
+
+  // Administrators bypass email verification check
+  if (req.user.role === 'ADMIN' || req.user.role === 'FINANCE_RISK_ADMIN') {
+    return next();
+  }
+
+  if (req.user.isEmailVerified === true) {
+    return next();
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.userId },
+    select: { isEmailVerified: true, email: true },
+  });
+
+  if (!user || !user.isEmailVerified) {
+    return next(
+      new ForbiddenError('Email verification required. Please verify your email address to access this feature.', {
+        code: 'EMAIL_NOT_VERIFIED',
+        email: user?.email || req.user.email,
+      })
+    );
+  }
+
+  req.user.isEmailVerified = true;
+  next();
+}
+

@@ -170,6 +170,8 @@ async function main() {
       passwordHash: adminPasswordHash,
       role: 'ADMIN',
       status: 'ACTIVE',
+      isEmailVerified: true,
+      emailVerifiedAt: new Date(),
       referralCode: 'ADMIN001',
       profile: {
         create: {
@@ -189,6 +191,8 @@ async function main() {
       passwordHash: adminPasswordHash,
       role: 'ADMIN',
       status: 'ACTIVE',
+      isEmailVerified: true,
+      emailVerifiedAt: new Date(),
     },
   });
 

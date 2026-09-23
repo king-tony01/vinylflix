@@ -11,6 +11,7 @@ import {
   LogOut,
   LogIn,
   Lock,
+  AlertCircle,
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -205,6 +206,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
             : 'p-4 sm:p-6 lg:p-8 overflow-y-auto pb-20 md:pb-8'
         }`}
       >
+        {user && user.isEmailVerified === false && location.pathname !== '/verify-email' && (
+          <div className="mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-rose-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-200 shadow-lg">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+              <span>
+                <strong>Action Required:</strong> Please verify your email address to unlock rewarded video earnings and payouts.
+              </span>
+            </div>
+            <Link
+              to={`/verify-email?email=${encodeURIComponent(user.email || '')}`}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-white font-bold rounded-xl text-center hover:opacity-90 transition-all flex-shrink-0 text-xs shadow-md shadow-[#FF0091]/20"
+            >
+              Verify Email
+            </Link>
+          </div>
+        )}
         {children}
       </main>
 

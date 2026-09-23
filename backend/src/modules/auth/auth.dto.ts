@@ -29,3 +29,13 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(6),
 });
+
+export const verifyEmailSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6, 'Verification code must be exactly 6 digits'),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email(),
+});
+

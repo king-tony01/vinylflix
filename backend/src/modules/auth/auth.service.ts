@@ -1,10 +1,11 @@
 import { prisma } from '../../prisma/client.js';
-import { hashPassword, comparePassword, generateReferralCode } from '../../utils/crypto.js';
+import { hashPassword, comparePassword, generateReferralCode, generateVerificationCode } from '../../utils/crypto.js';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../utils/jwt.js';
-import { AppError, ConflictError, UnauthorizedError, NotFoundError } from '../../utils/errors.js';
+import { AppError, ConflictError, UnauthorizedError, NotFoundError, ForbiddenError, ValidationError } from '../../utils/errors.js';
 import { AuditService } from '../audit/audit.service.js';
 import { RiskService } from '../risk/risk.service.js';
-import { registerSchema, loginSchema } from './auth.dto.js';
+import { EmailService } from '../../services/email.service.js';
+import { registerSchema, loginSchema, verifyEmailSchema, resendVerificationSchema } from './auth.dto.js';
 import { z } from 'zod';
 
 export class AuthService {
@@ -62,6 +63,8 @@ export class AuthService {
     }
 
     const passwordHash = await hashPassword(data.password);
+    const verificationCode = generateVerificationCode(6);
+    const emailVerificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
 
     // 4. Create user, profile, wallet, and referral record in an atomic transaction
     const newUser = await prisma.$transaction(async (tx) => {
@@ -73,6 +76,9 @@ export class AuthService {
           passwordHash,
           role: 'FREE_USER',
           status: 'ACTIVE',
+          isEmailVerified: false,
+          emailVerificationCode: verificationCode,
+          emailVerificationExpiresAt,
           referralCode: userReferralCode,
           referredById: referrerId,
           profile: {
@@ -113,7 +119,10 @@ export class AuthService {
       return user;
     });
 
-    // 5. Evaluate fraud/risk for new registration
+    // 5. Send verification email
+    await EmailService.sendVerificationEmail(newUser.email, newUser.username, verificationCode);
+
+    // 6. Evaluate fraud/risk for new registration
     await RiskService.evaluateRisk({
       userId: newUser.id,
       entityType: 'AUTH',
@@ -131,10 +140,6 @@ export class AuthService {
       ipAddress,
     });
 
-    const tokenPayload = { userId: newUser.id, role: newUser.role, email: newUser.email };
-    const accessToken = generateAccessToken(tokenPayload);
-    const refreshToken = generateRefreshToken(tokenPayload);
-
     return {
       user: {
         id: newUser.id,
@@ -143,14 +148,14 @@ export class AuthService {
         phone: newUser.phone,
         role: newUser.role,
         status: newUser.status,
+        isEmailVerified: false,
         referralCode: newUser.referralCode,
         profile: newUser.profile,
         wallet: newUser.wallet,
       },
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
+      requiresVerification: true,
+      email: newUser.email,
+      message: 'Registration successful! A 6-digit verification code has been sent to your email.',
     };
   }
 
@@ -184,6 +189,34 @@ export class AuthService {
       throw new UnauthorizedError('Invalid email/username or password');
     }
 
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      // If code is missing or expired, generate a new one and send email
+      let code = user.emailVerificationCode;
+      let expiresAt = user.emailVerificationExpiresAt;
+      if (!code || !expiresAt || new Date() > expiresAt) {
+        code = generateVerificationCode(6);
+        expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            emailVerificationCode: code,
+            emailVerificationExpiresAt: expiresAt,
+          },
+        });
+        await EmailService.sendVerificationEmail(user.email, user.username, code);
+      }
+
+      throw new ForbiddenError(
+        'Your email address is not verified. Please verify your email before logging in.',
+        {
+          code: 'EMAIL_NOT_VERIFIED',
+          email: user.email,
+          requiresVerification: true,
+        }
+      );
+    }
+
     await AuditService.log({
       actorId: user.id,
       actorRole: user.role,
@@ -193,7 +226,12 @@ export class AuthService {
       ipAddress,
     });
 
-    const tokenPayload = { userId: user.id, role: user.role, email: user.email };
+    const tokenPayload = {
+      userId: user.id,
+      role: user.role,
+      email: user.email,
+      isEmailVerified: true,
+    };
     const accessToken = generateAccessToken(tokenPayload);
     const refreshToken = generateRefreshToken(tokenPayload);
 
@@ -205,6 +243,7 @@ export class AuthService {
         phone: user.phone,
         role: user.role,
         status: user.status,
+        isEmailVerified: true,
         referralCode: user.referralCode,
         profile: user.profile,
         wallet: user.wallet,
@@ -213,6 +252,160 @@ export class AuthService {
         accessToken,
         refreshToken,
       },
+    };
+  }
+
+  public static async verifyEmail(data: z.infer<typeof verifyEmailSchema>) {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const inputCode = data.code.trim();
+
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: {
+        profile: true,
+        wallet: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundError('No account found with this email address');
+    }
+
+    if (user.isEmailVerified) {
+      const tokenPayload = {
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+        isEmailVerified: true,
+      };
+      const accessToken = generateAccessToken(tokenPayload);
+      const refreshToken = generateRefreshToken(tokenPayload);
+
+      return {
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          phone: user.phone,
+          role: user.role,
+          status: user.status,
+          isEmailVerified: true,
+          referralCode: user.referralCode,
+          profile: user.profile,
+          wallet: user.wallet,
+        },
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
+        message: 'Email is already verified.',
+      };
+    }
+
+    if (!user.emailVerificationCode || user.emailVerificationCode !== inputCode) {
+      throw new ValidationError('Invalid verification code. Please check the 6-digit code and try again.');
+    }
+
+    if (!user.emailVerificationExpiresAt || new Date() > user.emailVerificationExpiresAt) {
+      throw new ValidationError('Verification code has expired. Please request a new code.');
+    }
+
+    // Mark as verified & clear code
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isEmailVerified: true,
+        emailVerifiedAt: new Date(),
+        emailVerificationCode: null,
+        emailVerificationExpiresAt: null,
+      },
+      include: {
+        profile: true,
+        wallet: true,
+      },
+    });
+
+    await AuditService.log({
+      actorId: updatedUser.id,
+      actorRole: updatedUser.role,
+      action: 'USER_EMAIL_VERIFIED',
+      targetType: 'USER',
+      targetId: updatedUser.id,
+    });
+
+    const tokenPayload = {
+      userId: updatedUser.id,
+      role: updatedUser.role,
+      email: updatedUser.email,
+      isEmailVerified: true,
+    };
+    const accessToken = generateAccessToken(tokenPayload);
+    const refreshToken = generateRefreshToken(tokenPayload);
+
+    return {
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username: updatedUser.username,
+        phone: updatedUser.phone,
+        role: updatedUser.role,
+        status: updatedUser.status,
+        isEmailVerified: true,
+        referralCode: updatedUser.referralCode,
+        profile: updatedUser.profile,
+        wallet: updatedUser.wallet,
+      },
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
+      message: 'Email verified successfully! Welcome to Vinylflix.',
+    };
+  }
+
+  public static async resendVerificationCode(data: z.infer<typeof resendVerificationSchema>) {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+    });
+
+    if (!user) {
+      throw new NotFoundError('No account found with this email address');
+    }
+
+    if (user.isEmailVerified) {
+      return {
+        success: true,
+        message: 'Your email address is already verified. You can log in directly.',
+      };
+    }
+
+    // Rate limiting cooldown: If code was requested less than 60s ago
+    if (user.emailVerificationExpiresAt) {
+      const timeRemainingMs = user.emailVerificationExpiresAt.getTime() - Date.now();
+      // Total duration was 15 mins (900s). If > 840s (14 mins) remains, it was requested < 60s ago
+      if (timeRemainingMs > 14 * 60 * 1000) {
+        const waitSeconds = Math.ceil((timeRemainingMs - 14 * 60 * 1000) / 1000);
+        throw new AppError(`Please wait ${waitSeconds} seconds before requesting a new verification code.`, 429);
+      }
+    }
+
+    const newCode = generateVerificationCode(6);
+    const emailVerificationExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationCode: newCode,
+        emailVerificationExpiresAt,
+      },
+    });
+
+    await EmailService.sendVerificationEmail(user.email, user.username, newCode);
+
+    return {
+      success: true,
+      message: 'A new 6-digit verification code has been sent to your email.',
     };
   }
 
@@ -227,7 +420,16 @@ export class AuthService {
         throw new UnauthorizedError('User account not found or suspended');
       }
 
-      const tokenPayload = { userId: user.id, role: user.role, email: user.email };
+      if (!user.isEmailVerified) {
+        throw new UnauthorizedError('Email verification required');
+      }
+
+      const tokenPayload = {
+        userId: user.id,
+        role: user.role,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+      };
       const newAccessToken = generateAccessToken(tokenPayload);
       const newRefreshToken = generateRefreshToken(tokenPayload);
 
@@ -268,6 +470,8 @@ export class AuthService {
       phone: user.phone,
       role: user.role,
       status: user.status,
+      isEmailVerified: user.isEmailVerified,
+      emailVerifiedAt: user.emailVerifiedAt,
       referralCode: user.referralCode,
       profile: user.profile,
       wallet: user.wallet,
@@ -276,3 +480,4 @@ export class AuthService {
     };
   }
 }
+

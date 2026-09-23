@@ -39,6 +39,14 @@ export interface AppConfig {
     minWatchDurationSeconds: number;
     watchRewardAmount: number;
   };
+  email: {
+    host: string;
+    port: number;
+    secure: boolean;
+    user: string;
+    pass: string;
+    from: string;
+  };
 }
 
 export const config: AppConfig = {
@@ -77,5 +85,13 @@ export const config: AppConfig = {
     minWithdrawalAmount: parseFloat(process.env.DEFAULT_MIN_WITHDRAWAL_AMOUNT || '2000'),
     minWatchDurationSeconds: parseInt(process.env.DEFAULT_MIN_WATCH_DURATION || '30', 10),
     watchRewardAmount: parseFloat(process.env.DEFAULT_WATCH_REWARD_AMOUNT || '5'),
+  },
+  email: {
+    host: process.env.SMTP_HOST || 'mail.vinylflix.com',
+    port: parseInt(process.env.SMTP_PORT || '465', 10),
+    secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+    user: process.env.SMTP_USER || 'noreply@vinylflix.com',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || '"Vinylflix" <noreply@vinylflix.com>',
   },
 };

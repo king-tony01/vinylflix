@@ -44,8 +44,10 @@ export const RegisterPage: React.FC = () => {
     });
 
     if (res.success && res.data) {
-      login(res.data.tokens.accessToken, res.data.user);
-      navigate('/memberships');
+      if (res.data.tokens && res.data.user) {
+        login(res.data.tokens.accessToken, res.data.user);
+      }
+      navigate(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
     } else {
       setError(res.error?.message || 'Registration failed. Please try again.');
     }

@@ -28,6 +28,14 @@ export function generateSessionToken(): string {
   return `sess_${crypto.randomBytes(32).toString('hex')}`;
 }
 
+export function generateVerificationCode(length = 6): string {
+  // Generate cryptographically secure random 6-digit number between 100000 and 999999
+  const min = Math.pow(10, length - 1);
+  const max = Math.pow(10, length) - 1;
+  const num = crypto.randomInt(min, max + 1);
+  return num.toString();
+}
+
 export function hashPayload(payload: any): string {
   const str = typeof payload === 'string' ? payload : JSON.stringify(payload);
   return crypto.createHash('sha256').update(str).digest('hex');

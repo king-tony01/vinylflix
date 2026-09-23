@@ -7,6 +7,8 @@ export interface User {
   username: string;
   role: 'GUEST' | 'FREE_USER' | 'PAID_MEMBER' | 'CREATOR' | 'ADVERTISER' | 'ADMIN' | 'FINANCE_RISK_ADMIN';
   status: 'ACTIVE' | 'SUSPENDED' | 'RESTRICTED';
+  isEmailVerified?: boolean;
+  emailVerifiedAt?: string;
   referralCode: string;
   profile?: {
     fullName?: string;

@@ -16,6 +16,10 @@ model User {
   passwordHash  String
   role          String    @default("FREE_USER") // GUEST, FREE_USER, PAID_MEMBER, CREATOR, ADVERTISER, ADMIN, FINANCE_RISK_ADMIN
   status        String    @default("ACTIVE")    // ACTIVE, SUSPENDED, RESTRICTED
+  isEmailVerified             Boolean   @default(false)
+  emailVerifiedAt            DateTime?
+  emailVerificationCode      String?
+  emailVerificationExpiresAt DateTime?
   referralCode  String    @unique
   referredById  String?
   

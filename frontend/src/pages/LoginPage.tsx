@@ -31,6 +31,12 @@ export const LoginPage: React.FC = () => {
       login(res.data.tokens.accessToken, res.data.user);
       navigate('/');
     } else {
+      const isUnverified = res.error?.details?.code === 'EMAIL_NOT_VERIFIED' || res.error?.message?.toLowerCase().includes('not verified');
+      if (isUnverified) {
+        const unverifiedEmail = res.error?.details?.email || (loginInput.includes('@') ? loginInput : '');
+        navigate(`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`);
+        return;
+      }
       setError(res.error?.message || 'Login failed. Please check your credentials.');
     }
     setLoading(false);

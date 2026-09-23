@@ -13,26 +13,26 @@ export class AppError extends Error {
 }
 
 export class NotFoundError extends AppError {
-  constructor(message = 'Resource not found') {
-    super(message, 404);
+  constructor(message = 'Resource not found', details?: any) {
+    super(message, 404, details);
   }
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized access') {
-    super(message, 401);
+  constructor(message = 'Unauthorized access', details?: any) {
+    super(message, 401, details);
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden action') {
-    super(message, 403);
+  constructor(message = 'Forbidden action', details?: any) {
+    super(message, 403, details);
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message = 'Resource conflict or duplicate entry') {
-    super(message, 409);
+  constructor(message = 'Resource conflict or duplicate entry', details?: any) {
+    super(message, 409, details);
   }
 }
 
@@ -41,3 +41,4 @@ export class ValidationError extends AppError {
     super(message, 422, details);
   }
 }
+
