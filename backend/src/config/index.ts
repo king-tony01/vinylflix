@@ -87,9 +87,9 @@ export const config: AppConfig = {
     watchRewardAmount: parseFloat(process.env.DEFAULT_WATCH_REWARD_AMOUNT || '5'),
   },
   email: {
-    host: process.env.SMTP_HOST || 'mail.vinylflix.com',
+    host: process.env.SMTP_HOST || 'smtp.zoho.com',
     port: parseInt(process.env.SMTP_PORT || '465', 10),
-    secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465',
+    secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465' || !process.env.SMTP_PORT,
     user: process.env.SMTP_USER || 'noreply@vinylflix.com',
     pass: process.env.SMTP_PASS || '',
     from: process.env.SMTP_FROM || process.env.EMAIL_FROM || '"Vinylflix" <noreply@vinylflix.com>',
