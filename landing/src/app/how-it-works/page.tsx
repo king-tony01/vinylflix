@@ -41,13 +41,13 @@ export default function HowItWorksPage() {
     },
     {
       number: '02',
-      title: 'Define Watch Duration & Campaign Budget',
+      title: 'Automated High-Retention Calibration',
       description:
-        'Specify the exact minimum watch duration you want viewers to spend on your video before a view qualifies. Set your total budget and target view volume with transparent, predictable pricing.',
+        'Our platform automatically determines the ideal watch retention tier based on video duration — maximizing YouTube recommendation signals (AVD) under your flat ₦15,000/month Creator Subscription.',
       features: [
-        'Custom watch retention targets (15s – 300s+)',
-        'Flexible total view budgets powered by Paystack',
-        'Daily audience frequency & pacing controls',
+        'Smart retention tiers: Shorts (30s), Standard (2m), Deep (4m)',
+        'Flat ₦15,000/month with unlimited campaign launches',
+        'Automated distribution across active community viewers',
       ],
       icon: Clock,
       color: 'from-purple-500/20 to-indigo-500/20',
@@ -249,7 +249,7 @@ export default function HowItWorksPage() {
             </div>
             <h4 className="text-base font-bold text-white">3. Verified View Credit</h4>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Campaign funds are only deducted once the minimum duration is fully satisfied by a verified human.
+              View rewards are only credited to community members once the required watch duration is cryptographically verified with zero bot activity.
             </p>
           </div>
         </div>
@@ -262,7 +262,7 @@ export default function HowItWorksPage() {
             Ready to Boost Your YouTube Video Reach?
           </h2>
           <p className="text-sm sm:text-base text-pink-100 font-normal">
-            Launch your first campaign in less than 2 minutes. No contracts, complete control.
+            Launch unlimited campaigns with our flat ₦15,000/month Creator Plan. No hidden fees, instant channel growth.
           </p>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

@@ -31,7 +31,7 @@ export default function LandingPage() {
     },
     {
       q: 'How do I launch a video campaign on Vinylflix?',
-      a: 'Simply create an account, navigate to the Campaign Hub, paste any public YouTube video or Shorts URL, choose your target watch duration and budget, and launch your campaign for instant distribution.',
+      a: 'Upgrade to the Creator Plan for a flat ₦15,000/month, navigate to the Campaign Hub, paste your public YouTube video or Shorts link (or connect your channel), and launch your campaign for instant distribution.',
     },
     {
       q: 'Are the viewers and interactions authentic?',
@@ -42,8 +42,8 @@ export default function LandingPage() {
       a: 'You can promote any public YouTube video or YouTube Shorts — including channel introductions, music videos, educational tutorials, product reviews, podcasts, and brand showcases.',
     },
     {
-      q: 'How can I track my campaign analytics and budget?',
-      a: 'Your real-time Creator Dashboard provides granular tracking of views delivered, budget utilization percentage, retention rates, and subscriber conversion links.',
+      q: 'How can I track my campaign performance and reach?',
+      a: 'Your real-time Creator Dashboard provides granular tracking of views delivered, average retention duration, audience engagement rates, and channel subscriber growth.',
     },
   ];
 
@@ -129,14 +129,14 @@ export default function LandingPage() {
             </p>
           </div>
 
-          {/* Card 2: Precision Targeting */}
+          {/* Card 2: Precision Retention Model */}
           <div className="p-8 rounded-3xl bg-[#120029]/80 border border-[#2a0054] hover:border-[#FF0091]/40 transition-all space-y-4 relative overflow-hidden group">
             <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
               <Target className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-bold text-white">Custom Duration & Budget Controls</h3>
+            <h3 className="text-xl font-bold text-white">Automated High-Retention Model</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Set custom minimum watch durations, daily audience distribution limits, and flexible campaign budgets with complete control.
+              Our algorithmic engagement system automatically assigns optimal watch durations based on video length — delivering deep Average View Duration (AVD) without manual budgeting.
             </p>
           </div>
 
@@ -196,9 +196,9 @@ export default function LandingPage() {
 
           <div className="p-8 rounded-3xl bg-[#120029] border border-[#2a0054] space-y-4 hover:border-[#FF0091]/40 transition-all">
             <div className="text-3xl font-black text-purple-400">02</div>
-            <h3 className="text-xl font-bold text-white">Set Watch Goals & Budget</h3>
+            <h3 className="text-xl font-bold text-white">Automated Retention Calibration</h3>
             <p className="text-sm text-slate-400 leading-relaxed">
-              Choose your required minimum watch time (e.g. 30s – 120s), set your target view count, and fund your campaign securely via Paystack.
+              Our system automatically assigns the optimal retention requirement (Shorts: 30s, Standard: 2m, Deep: 4m) to maximize algorithmic discovery — all included with your Creator Plan.
             </p>
           </div>
 
@@ -229,7 +229,7 @@ export default function LandingPage() {
               </div>
               <h4 className="text-base font-bold text-white">Real-Time Performance Analytics</h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Monitor watch duration metrics, viewer completions, and budget burn rate live from your dashboard.
+                Monitor watch duration metrics, viewer completions, and audience retention rates live from your dashboard.
               </p>
             </div>
 

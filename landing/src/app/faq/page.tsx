@@ -39,7 +39,7 @@ export default function FaqPage() {
     {
       category: 'campaigns',
       q: 'How do I launch a video campaign on Vinylflix?',
-      a: 'Creating a campaign takes less than 2 minutes. Sign up for a free account, navigate to the Campaign Hub, paste your public YouTube video or Shorts link, select your target watch duration (e.g., 30s – 120s) and budget, and fund your campaign. Your video will immediately enter the discovery rotation.',
+      a: 'Creating a campaign takes less than 2 minutes. Upgrade to the Creator Plan (₦15,000/month), navigate to the Campaign Hub, paste your public YouTube video or Shorts link, and hit submit. Our algorithmic engine automatically assigns optimal retention durations and immediately places your video into discovery rotation.',
     },
     {
       category: 'campaigns',
@@ -54,7 +54,7 @@ export default function FaqPage() {
     {
       category: 'campaigns',
       q: 'Can I pause, edit, or delete my campaign after launching?',
-      a: 'Yes. From your Creator Dashboard, you can monitor live analytics, pause active campaigns, and delete campaigns at any time with unspent budget remaining in your account balance.',
+      a: 'Yes. From your Creator Dashboard, you can monitor live analytics, pause active campaigns, or adjust your video list at any time with full flexibility.',
     },
     {
       category: 'viewers',
@@ -69,7 +69,7 @@ export default function FaqPage() {
     {
       category: 'retention',
       q: 'Why is minimum watch duration important for YouTube growth?',
-      a: 'YouTube’s discovery algorithm heavily favors Average View Duration (AVD) and Audience Retention Percentage over vanity click-throughs. By requiring viewers to watch for a meaningful duration (e.g. 60s+), your video registers strong retention signals that support organic recommendations.',
+      a: 'YouTube’s discovery algorithm heavily favors Average View Duration (AVD) and Audience Retention Percentage over vanity clicks. Our automated retention tiers (30s for Shorts, 2m for standard videos, and 4m for deep long-form) ensure your video registers strong retention signals that support organic recommendations.',
     },
     {
       category: 'retention',
@@ -78,13 +78,13 @@ export default function FaqPage() {
     },
     {
       category: 'billing',
-      q: 'How does campaign pricing and budget deduction work?',
-      a: 'Vinylflix uses a transparent pay-per-qualified-view model. Your campaign balance is only deducted when a verified viewer completes the full required watch duration. Incomplete plays or abandoned sessions incur zero deduction.',
+      q: 'How does creator campaign pricing work?',
+      a: 'Vinylflix operates on a predictable, flat-rate subscription model of ₦15,000 per month for creators. With the Creator Plan, you enjoy unlimited video campaign creation and verified distribution across our active viewer community with zero per-view micro-deductions.',
     },
     {
       category: 'billing',
       q: 'What payment methods are supported?',
-      a: 'All transactions are processed securely via Paystack, supporting major credit/debit cards, bank transfers, and digital wallets with industry-standard encryption.',
+      a: 'All subscription transactions are processed securely via Paystack, supporting major credit/debit cards, bank transfers, and digital wallets with industry-standard encryption.',
     },
     {
       category: 'compliance',

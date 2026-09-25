@@ -40,13 +40,13 @@ export default function FeaturesPage() {
     },
     {
       icon: Target,
-      title: 'Precision Duration & Budget Targeting',
+      title: 'Automated High-Retention Model',
       description:
-        'Take complete control of your marketing spend. Specify the exact minimum watch time required per viewer (from 15s up to 300s) and set strict daily viewer distribution caps.',
+        'Engineered for organic algorithm distribution. Videos are automatically assigned optimal watch tiers based on video duration — from 30s for Shorts up to 4 minutes for deep long-form videos.',
       highlights: [
-        'Custom minimum watch duration (15s – 300s)',
-        'Daily viewer frequency caps',
-        'Transparent budget burn tracking',
+        'Shorts (< 90s): 30s minimum watch time',
+        'Standard (1.5m – 5m): 2m high-retention tier',
+        'Long-form (5m+): 4m deep-watch tier',
       ],
     },
     {
@@ -86,10 +86,10 @@ export default function FeaturesPage() {
       icon: BarChart3,
       title: 'Real-Time Campaign Performance Analytics',
       description:
-        'Access granular reporting on your campaign’s performance as it happens. Monitor views delivered, budget utilization, average watch duration, and completion rates live.',
+        'Access granular reporting on your campaign’s performance as it happens. Monitor views delivered, average watch duration, subscriber conversions, and completion rates live.',
       highlights: [
         'Live views and session metrics',
-        'Budget utilization percentage tracking',
+        'Audience reach & subscriber conversion tracking',
         'Audience retention & completion insights',
       ],
     },
@@ -194,10 +194,10 @@ export default function FeaturesPage() {
 
           <div className="p-6 rounded-2xl bg-[#0a0017]/70 border border-[#2a0054]/80 space-y-3">
             <div className="flex items-center gap-2 text-pink-400 text-sm font-bold">
-              <Sliders className="w-4 h-4" /> Budget Protection
+              <Sliders className="w-4 h-4" /> Fair Distribution Engine
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Budget deductions occur atomically on qualified view completion, ensuring you never pay for incomplete sessions.
+              Views are credited atomically on qualified completion, ensuring systematic, fair rotation across our entire viewer community.
             </p>
           </div>
         </div>

@@ -66,8 +66,8 @@ export default function CreatorsPage() {
       icon: TrendingUp,
       title: 'Stronger Algorithm Retention Signals',
       description:
-        'YouTube prioritizes Average View Duration (AVD) and completion rate above all else. By ensuring viewers watch for your custom required duration, your videos build the retention metrics that trigger organic discovery.',
-      highlight: 'Targeted minimum watch time (up to 300s)',
+        'YouTube prioritizes Average View Duration (AVD) and completion rate above all else. Our algorithmic calibration assigns optimal retention tiers based on video length to build metrics that trigger organic discovery.',
+      highlight: 'Automated high-retention tiers (30s – 4m)',
     },
     {
       icon: Users,
@@ -78,16 +78,16 @@ export default function CreatorsPage() {
     },
     {
       icon: Target,
-      title: 'Pay Only for Verified Human Engagement',
+      title: 'Predictable Flat-Rate Promotion',
       description:
-        'Traditional advertising charges you for accidental impressions and 2-second scroll-bys. With Vinylflix, your budget is only deducted when a verified human completes your required watch time.',
-      highlight: 'Transparent pay-per-qualified-view pricing',
+        'Traditional advertising burns budgets on accidental impressions and 2-second scroll-bys. With the Vinylflix Creator Plan (₦15,000/month), you get unlimited campaign creation and verified human watch time with zero micro-fees.',
+      highlight: 'Flat ₦15,000/month for unlimited campaigns',
     },
     {
       icon: BarChart3,
       title: 'Granular Real-Time Dashboard',
       description:
-        'Manage all your YouTube video campaigns from one central creator hub. Monitor view counts, remaining budget, average retention, and pause or adjust campaigns at any time.',
+        'Manage all your YouTube video campaigns from one central creator hub. Monitor real-time view counts, retention milestones, subscriber growth, and pause or adjust campaigns at any time.',
       highlight: 'Full creator dashboard control & analytics',
     },
   ];
@@ -216,7 +216,7 @@ export default function CreatorsPage() {
             Ready to Give Your Channel the Reach It Deserves?
           </h2>
           <p className="text-sm sm:text-base text-pink-100 font-normal">
-            Launch a campaign with any budget and watch your YouTube analytics soar.
+            Upgrade to the Creator Plan for just ₦15,000/month and watch your YouTube analytics soar.
           </p>
           <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

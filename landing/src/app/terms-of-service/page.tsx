@@ -56,7 +56,7 @@ export default function TermsOfServicePage() {
           <ul className="list-disc pl-5 space-y-2 text-slate-400">
             <li>Clients and web browsers cannot dictate reward values. Rewards are only issued upon successful cryptographic heartbeat verification of continuous playback.</li>
             <li>Fast-forwarding, tab-switching manipulation, headless automation, or scripted viewing will fail verification and may trigger anti-fraud penalties.</li>
-            <li>Rewards are credited to the user&apos;s available wallet balance based on active campaign budget availability.</li>
+            <li>Rewards are credited to the user&apos;s available wallet balance based on active campaign and reward tier availability.</li>
           </ul>
         </section>
 
