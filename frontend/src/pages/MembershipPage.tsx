@@ -307,7 +307,7 @@ export const MembershipPage: React.FC = () => {
                           : 'bg-slate-800 hover:bg-slate-700 text-white'
                       }`}
                     >
-                      <Sparkles className="w-3.5 h-3.5" /> Upgrade via Bank Transfer
+                      <Sparkles className="w-3.5 h-3.5" /> Upgrade
                     </button>
                   )}
                 </div>
