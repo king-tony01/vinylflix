@@ -104,6 +104,6 @@ export const config: AppConfig = {
     secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465' || !process.env.SMTP_PORT,
     user: process.env.SMTP_USER || 'noreply@vinylflix.com',
     pass: process.env.SMTP_PASS || '',
-    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || '"Vinylflix" <noreply@vinylflix.com>',
+    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || (process.env.SMTP_USER ? `"Vinylflix" <${process.env.SMTP_USER}>` : '"Vinylflix" <noreply@vinylflix.com>'),
   },
 };

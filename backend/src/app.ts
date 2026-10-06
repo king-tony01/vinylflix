@@ -28,6 +28,9 @@ const __dirname = path.dirname(__filename);
 export function createApp() {
   const app = express();
 
+  // Trust reverse proxy (Nginx / Cloudflare / Traefik)
+  app.set('trust proxy', 1);
+
   // Security Middleware
   app.use(
     helmet({
@@ -65,7 +68,7 @@ export function createApp() {
   app.use(express.urlencoded({ extended: true }));
 
   // Health check
-  app.get('/health', (req, res) => {
+  app.get(['/health', '/api/v1/health'], (req, res) => {
     res.json({ status: 'ok', app: 'Vinylflix', timestamp: new Date().toISOString() });
   });
 
