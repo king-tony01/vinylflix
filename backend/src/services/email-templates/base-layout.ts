@@ -185,29 +185,33 @@ export function renderEmailBaseLayout(options: EmailLayoutOptions): string {
               ${
                 ctaText && ctaUrl
                   ? `
-              <!-- Call to Action Buttons -->
-              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 32px;">
+              <!-- Call to Action Buttons (Stacked Vertically) -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 22px;">
                 <tr>
                   <td align="center">
-                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto; width: 100%; max-width: 320px;">
+                      <!-- Primary CTA Button -->
                       <tr>
-                        <td align="center" style="border-radius: 14px; background: linear-gradient(135deg, #FF0091 0%, #7928CA 50%, #360099 100%); box-shadow: 0 10px 25px -5px rgba(255, 0, 145, 0.4);">
-                          <a href="${ctaUrl}" target="_blank" class="mobile-cta" style="display: inline-block; padding: 15px 36px; font-size: 14px; font-weight: 800; color: #ffffff; text-decoration: none; border-radius: 14px; letter-spacing: 0.3px;">
+                        <td align="center" style="border-radius: 12px; background: linear-gradient(135deg, #FF0091 0%, #7928CA 50%, #360099 100%); box-shadow: 0 4px 14px rgba(255, 0, 145, 0.3);">
+                          <a href="${ctaUrl}" target="_blank" class="mobile-cta" style="display: block; padding: 11px 24px; font-size: 13px; font-weight: 700; color: #ffffff; text-decoration: none; border-radius: 12px; letter-spacing: 0.2px; line-height: 18px; text-align: center;">
                             ${ctaText} →
                           </a>
                         </td>
-                        ${
-                          secondaryCtaText && secondaryCtaUrl
-                            ? `
-                        <td align="center" style="padding-left: 12px;">
-                          <a href="${secondaryCtaUrl}" target="_blank" class="mobile-cta" style="display: inline-block; padding: 14px 24px; font-size: 13px; font-weight: 700; color: #cbd5e1; text-decoration: none; border-radius: 14px; background: #1e293b; border: 1px solid #334155;">
+                      </tr>
+                      ${
+                        secondaryCtaText && secondaryCtaUrl
+                          ? `
+                      <!-- Secondary CTA Button (Stacked Below) -->
+                      <tr>
+                        <td align="center" style="padding-top: 10px;">
+                          <a href="${secondaryCtaUrl}" target="_blank" class="mobile-cta" style="display: block; padding: 9px 20px; font-size: 12px; font-weight: 600; color: #cbd5e1; text-decoration: none; border-radius: 12px; background: #1e293b; border: 1px solid #334155; line-height: 16px; text-align: center;">
                             ${secondaryCtaText}
                           </a>
                         </td>
-                        `
-                            : ''
-                        }
                       </tr>
+                      `
+                          : ''
+                      }
                     </table>
                   </td>
                 </tr>
