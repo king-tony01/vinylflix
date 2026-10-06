@@ -55,6 +55,21 @@ export interface AppConfig {
   };
 }
 
+function resolveEmailFrom(fromEnv?: string, userEnv?: string): string {
+  const user = userEnv || 'noreply@vinylflix.com';
+  if (!fromEnv) {
+    return `"Vinylflix" <${user}>`;
+  }
+  if (fromEnv.includes('@')) {
+    if (fromEnv.includes('<') && fromEnv.includes('>')) {
+      return fromEnv;
+    }
+    return `"Vinylflix" <${fromEnv}>`;
+  }
+  // When fromEnv is just a display name (e.g. 'Vinylflix' after Coolify stripped brackets)
+  return `"${fromEnv.replace(/"/g, '')}" <${user}>`;
+}
+
 export const config: AppConfig = {
   appName: process.env.APP_NAME || 'Vinylflix',
   port: parseInt(process.env.PORT || '4000', 10),
@@ -104,6 +119,6 @@ export const config: AppConfig = {
     secure: process.env.SMTP_SECURE === 'true' || process.env.SMTP_PORT === '465' || !process.env.SMTP_PORT,
     user: process.env.SMTP_USER || 'noreply@vinylflix.com',
     pass: process.env.SMTP_PASS || '',
-    from: process.env.SMTP_FROM || process.env.EMAIL_FROM || (process.env.SMTP_USER ? `"Vinylflix" <${process.env.SMTP_USER}>` : '"Vinylflix" <noreply@vinylflix.com>'),
+    from: resolveEmailFrom(process.env.SMTP_FROM || process.env.EMAIL_FROM, process.env.SMTP_USER),
   },
 };
