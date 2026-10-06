@@ -191,30 +191,41 @@ export class AuthService {
 
     // Check if email is verified
     if (!user.isEmailVerified) {
-      // If code is missing or expired, generate a new one and send email
-      let code = user.emailVerificationCode;
-      let expiresAt = user.emailVerificationExpiresAt;
-      if (!code || !expiresAt || new Date() > expiresAt) {
-        code = generateVerificationCode(6);
-        expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+      if (user.role === 'ADMIN' || user.role === 'FINANCE_RISK_ADMIN') {
         await prisma.user.update({
           where: { id: user.id },
           data: {
-            emailVerificationCode: code,
-            emailVerificationExpiresAt: expiresAt,
+            isEmailVerified: true,
+            emailVerifiedAt: new Date(),
           },
         });
-        await EmailService.sendVerificationEmail(user.email, user.username, code);
-      }
-
-      throw new ForbiddenError(
-        'Your email address is not verified. Please verify your email before logging in.',
-        {
-          code: 'EMAIL_NOT_VERIFIED',
-          email: user.email,
-          requiresVerification: true,
+        user.isEmailVerified = true;
+      } else {
+        // If code is missing or expired, generate a new one and send email
+        let code = user.emailVerificationCode;
+        let expiresAt = user.emailVerificationExpiresAt;
+        if (!code || !expiresAt || new Date() > expiresAt) {
+          code = generateVerificationCode(6);
+          expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+          await prisma.user.update({
+            where: { id: user.id },
+            data: {
+              emailVerificationCode: code,
+              emailVerificationExpiresAt: expiresAt,
+            },
+          });
+          await EmailService.sendVerificationEmail(user.email, user.username, code);
         }
-      );
+
+        throw new ForbiddenError(
+          'Your email address is not verified. Please verify your email before logging in.',
+          {
+            code: 'EMAIL_NOT_VERIFIED',
+            email: user.email,
+            requiresVerification: true,
+          }
+        );
+      }
     }
 
     await AuditService.log({

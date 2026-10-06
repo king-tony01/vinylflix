@@ -9,8 +9,8 @@ export const AdminLoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
 
-  const [email, setEmail] = useState<string>('admin@platform.internal');
-  const [password, setPassword] = useState<string>('AdminPassword123!');
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -71,6 +71,8 @@ export const AdminLoginPage: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@vinylflix.com"
+                  autoComplete="email"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091] transition-colors"
                   required
                 />
@@ -85,6 +87,8 @@ export const AdminLoginPage: React.FC = () => {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091] transition-colors"
                   required
                 />
@@ -105,11 +109,6 @@ export const AdminLoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400 space-y-1">
-            <p className="font-semibold text-slate-300">Pre-seeded Super Admin Access:</p>
-            <p className="font-mono text-pink-400">admin@platform.internal / AdminPassword123!</p>
-          </div>
         </div>
       </div>
     </div>

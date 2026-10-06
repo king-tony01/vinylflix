@@ -143,15 +143,39 @@ export class MembershipService {
     }
 
     // 3. Super Administrator
+    const adminEmail = 'vinylflix@gmail.com';
     const adminPasswordHash = await hashPassword('AdminPassword123!');
+
+    // Clean up or migrate legacy placeholder admin if exists
+    const legacyAdmin = await prisma.user.findUnique({ where: { email: 'admin@platform.internal' } });
+    if (legacyAdmin) {
+      const targetExists = await prisma.user.findUnique({ where: { email: adminEmail } });
+      if (!targetExists) {
+        await prisma.user.update({
+          where: { email: 'admin@platform.internal' },
+          data: {
+            email: adminEmail,
+            isEmailVerified: true,
+            emailVerifiedAt: new Date(),
+            status: 'ACTIVE',
+            role: 'ADMIN',
+          },
+        }).catch(() => {});
+      } else {
+        await prisma.user.delete({ where: { email: 'admin@platform.internal' } }).catch(() => {});
+      }
+    }
+
     await prisma.user.upsert({
-      where: { email: 'admin@platform.internal' },
+      where: { email: adminEmail },
       create: {
-        email: 'admin@platform.internal',
+        email: adminEmail,
         username: 'platform_admin',
         passwordHash: adminPasswordHash,
         role: 'ADMIN',
         status: 'ACTIVE',
+        isEmailVerified: true,
+        emailVerifiedAt: new Date(),
         referralCode: 'ADMIN001',
         profile: {
           create: {
@@ -171,6 +195,8 @@ export class MembershipService {
         passwordHash: adminPasswordHash,
         role: 'ADMIN',
         status: 'ACTIVE',
+        isEmailVerified: true,
+        emailVerifiedAt: new Date(),
       },
     });
 
