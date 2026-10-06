@@ -37,38 +37,78 @@ export const VerifyEmailPage: React.FC = () => {
   }, [cooldown]);
 
   const handleOtpChange = (index: number, value: string) => {
-    if (!/^\d*$/.test(value)) return;
+    const cleaned = value.replace(/\D/g, '');
+    if (!cleaned) {
+      const newOtp = [...otp];
+      newOtp[index] = '';
+      setOtp(newOtp);
+      return;
+    }
 
+    // If multi-digit input (e.g. mobile autofill or fast paste)
+    if (cleaned.length > 1) {
+      const digits = cleaned.slice(0, 6).split('');
+      const newOtp = [...otp];
+      const startIdx = digits.length === 6 ? 0 : index;
+      digits.forEach((char, i) => {
+        if (startIdx + i < 6) {
+          newOtp[startIdx + i] = char;
+        }
+      });
+      setOtp(newOtp);
+      const nextFocus = Math.min(startIdx + digits.length, 5);
+      inputRefs.current[nextFocus]?.focus();
+
+      if (newOtp.every((digit) => digit !== '')) {
+        submitVerification(newOtp.join(''));
+      }
+      return;
+    }
+
+    // Single digit input
     const newOtp = [...otp];
-    // Handle single digit
-    newOtp[index] = value.slice(-1);
+    newOtp[index] = cleaned.slice(-1);
     setOtp(newOtp);
 
     // Auto advance focus
-    if (value && index < 5) {
+    if (index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
 
     // Auto submit when all 6 digits entered
-    if (newOtp.every((digit) => digit !== '') && value) {
+    if (newOtp.every((digit) => digit !== '')) {
       submitVerification(newOtp.join(''));
     }
   };
 
   const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+    if (e.key === 'Backspace') {
+      if (!otp[index] && index > 0) {
+        const newOtp = [...otp];
+        newOtp[index - 1] = '';
+        setOtp(newOtp);
+        inputRefs.current[index - 1]?.focus();
+      }
     }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').trim();
-    if (/^\d{6}$/.test(pastedData)) {
-      const digits = pastedData.split('');
-      setOtp(digits);
-      inputRefs.current[5]?.focus();
-      submitVerification(pastedData);
+    const rawData = e.clipboardData.getData('text');
+    const digits = rawData.replace(/\D/g, '').slice(0, 6);
+    if (!digits) return;
+
+    const newOtp = ['', '', '', '', '', ''];
+    digits.split('').forEach((char, i) => {
+      if (i < 6) newOtp[i] = char;
+    });
+    setOtp(newOtp);
+
+    const targetFocus = Math.min(digits.length, 5);
+    inputRefs.current[targetFocus]?.focus();
+
+    if (digits.length === 6) {
+      submitVerification(digits);
     }
   };
 
@@ -181,11 +221,13 @@ export const VerifyEmailPage: React.FC = () => {
                 }}
                 type="text"
                 inputMode="numeric"
-                maxLength={1}
+                pattern="[0-9]*"
+                autoComplete={index === 0 ? 'one-time-code' : 'off'}
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 onPaste={handlePaste}
+                onFocus={(e) => e.target.select()}
                 autoFocus={index === 0}
                 className="w-11 h-13 sm:w-12 sm:h-14 bg-slate-950 border border-slate-800 rounded-2xl text-center text-xl font-black text-white focus:outline-none focus:border-[#FF0091] focus:ring-2 focus:ring-[#FF0091]/20 transition-all font-mono shadow-inner"
               />
