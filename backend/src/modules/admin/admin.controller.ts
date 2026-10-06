@@ -82,6 +82,16 @@ export class AdminController {
     }
   }
 
+  public static async updateConfig(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { key, value, description } = req.body;
+      await ConfigService.set(key, value, description, req.user!.userId);
+      res.json({ success: true, message: `Configuration for ${key} updated.` });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async listManualPayments(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const status = req.query.status as string | undefined;

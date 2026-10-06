@@ -96,7 +96,7 @@ export class PaymentController {
 
   public static async reviewManualPayment(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const paymentId = req.params.id;
+      const paymentId = req.params.id as string;
       const { action, adminNote } = req.body;
 
       const data = await PaymentService.reviewManualPayment({
