@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useToast } from '../context/ToastContext.js';
+import { BankSelect } from '../components/BankSelect.js';
 import {
   Check,
   Sparkles,
@@ -41,31 +42,13 @@ export const MembershipPage: React.FC = () => {
   const [selectedPlanForTransfer, setSelectedPlanForTransfer] = useState<any | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [senderAccountName, setSenderAccountName] = useState<string>('');
-  const [senderBankName, setSenderBankName] = useState<string>('OPay');
+  const [senderBankName, setSenderBankName] = useState<string>('OPay Digital Services Limited (Paycom)');
   const [customBankName, setCustomBankName] = useState<string>('');
   const [proofFileBase64, setProofFileBase64] = useState<string>('');
   const [proofFileName, setProofFileName] = useState<string>('');
   const [paymentNotes, setPaymentNotes] = useState<string>('');
   const [submittingPayment, setSubmittingPayment] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const popularBanks = [
-    'OPay',
-    'PalmPay',
-    'Kuda Bank',
-    'Moniepoint',
-    'Access Bank',
-    'GTBank',
-    'Zenith Bank',
-    'First Bank',
-    'UBA',
-    'Stanbic IBTC',
-    'Wema Bank (ALAT)',
-    'Fidelity Bank',
-    'Sterling Bank',
-    'Union Bank',
-    'Other Bank',
-  ];
 
   const fetchPlansAndData = async () => {
     setLoading(true);
@@ -348,9 +331,6 @@ export const MembershipPage: React.FC = () => {
                 <span className="flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-[#FF0091]" /> Official Payment Account
                 </span>
-                <span className="px-2 py-0.5 rounded bg-pink-500/20 text-pink-200 text-[10px] font-mono uppercase">
-                  Manual Verification
-                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-xs">
@@ -416,17 +396,10 @@ export const MembershipPage: React.FC = () => {
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Sending Bank <span className="text-[#FF0091]">*</span>
                   </label>
-                  <select
+                  <BankSelect
                     value={senderBankName}
-                    onChange={(e) => setSenderBankName(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-[#FF0091] transition-colors"
-                  >
-                    {popularBanks.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setSenderBankName}
+                  />
                 </div>
 
                 {senderBankName === 'Other Bank' && (
@@ -526,10 +499,10 @@ export const MembershipPage: React.FC = () => {
                   className="w-2/3 py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] text-white text-xs font-black shadow-lg shadow-[#FF0091]/25 hover:shadow-[#FF0091]/40 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                 >
                   {submittingPayment ? (
-                    'Submitting Proof...'
+                    'Submitting...'
                   ) : (
                     <>
-                      <Sparkles className="w-4 h-4" /> Submit Payment for Verification
+                      <Sparkles className="w-4 h-4" /> Submit
                     </>
                   )}
                 </button>
