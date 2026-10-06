@@ -1,7 +1,7 @@
 # ==========================================
 # Multi-Stage Production Dockerfile for Vinylflix
 # Deploys Backend API + Frontend SPA + Admin SPA at once
-# Optimized for Render, Railway, Fly.io, and Docker
+# Optimized for Coolify, Docker Compose, Render, and Railway
 # ==========================================
 
 # ------------------------------------------
@@ -9,9 +9,10 @@
 # ------------------------------------------
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
+ENV NODE_ENV=development
 
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY frontend/ ./
 RUN npm run build
@@ -21,9 +22,10 @@ RUN npm run build
 # ------------------------------------------
 FROM node:20-alpine AS admin-builder
 WORKDIR /app/admin
+ENV NODE_ENV=development
 
 COPY admin/package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY admin/ ./
 ENV VITE_BASE_PATH=/admin/
@@ -34,12 +36,13 @@ RUN npm run build
 # ------------------------------------------
 FROM node:20-alpine AS backend-builder
 WORKDIR /app/backend
+ENV NODE_ENV=development
 
 # Install OpenSSL for Prisma engines
 RUN apk add --no-cache openssl
 
 COPY backend/package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY backend/ ./
 RUN npx prisma generate
