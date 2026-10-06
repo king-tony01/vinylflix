@@ -20,6 +20,7 @@ import {
   BarChart3,
   ShieldCheck,
   ArrowRight,
+  Clock,
 } from 'lucide-react';
 
 export const CampaignsPage: React.FC = () => {
@@ -231,7 +232,7 @@ export const CampaignsPage: React.FC = () => {
     });
 
     if (res.success) {
-      toast.success('🎉 Campaign launched successfully and is now active!');
+      toast.success('🎉 Campaign submitted for review! It will appear on the video feed once approved by an administrator.');
       setShowCreateModal(false);
       fetchCampaigns();
     } else {
@@ -479,23 +480,47 @@ export const CampaignsPage: React.FC = () => {
               const spentPercent = Math.min(100, Math.round((c.spentBudget / c.totalBudget) * 100));
               return (
                 <div key={c.id} className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
                       <h4 className="text-base font-bold text-white">{c.title}</h4>
                       <p className="text-xs text-slate-400 mt-0.5">Target Video: {c.video?.title}</p>
                     </div>
                     <span
-                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                      className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0 ${
                         c.status === 'ACTIVE'
-                          ? 'bg-pink-500/10 text-[#FF0091] border border-pink-500/20'
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                           : c.status === 'PENDING_REVIEW'
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                          ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 animate-pulse'
+                          : c.status === 'REJECTED'
+                          ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                          : c.status === 'PAUSED'
+                          ? 'bg-slate-800 text-slate-400 border border-slate-700'
                           : 'bg-slate-800 text-slate-400'
                       }`}
                     >
-                      {c.status}
+                      {c.status === 'ACTIVE'
+                        ? '🟢 Live on Feed'
+                        : c.status === 'PENDING_REVIEW'
+                        ? '⏳ Pending Approval'
+                        : c.status === 'REJECTED'
+                        ? '🔴 Rejected'
+                        : c.status}
                     </span>
                   </div>
+
+                  {c.status === 'PENDING_REVIEW' && (
+                    <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      <span>This campaign is currently awaiting admin moderation. It will automatically go live on the user video feeds once approved.</span>
+                    </div>
+                  )}
+
+                  {c.status === 'REJECTED' && c.reviewNote && (
+                    <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
+                      <XCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                      <span>Rejection reason: {c.reviewNote}</span>
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between text-xs text-slate-400">

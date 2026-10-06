@@ -5,12 +5,22 @@ export class VideoService {
   public static async getFeed(query: { limit?: number; offset?: number; search?: string }) {
     const where: any = {
       availabilityStatus: 'PUBLIC',
+      campaigns: {
+        some: {
+          status: 'ACTIVE',
+          remainingBudget: { gt: 0 },
+        },
+      },
     };
 
     if (query.search) {
-      where.OR = [
-        { title: { contains: query.search } },
-        { description: { contains: query.search } },
+      where.AND = [
+        {
+          OR: [
+            { title: { contains: query.search } },
+            { description: { contains: query.search } },
+          ],
+        },
       ];
     }
 

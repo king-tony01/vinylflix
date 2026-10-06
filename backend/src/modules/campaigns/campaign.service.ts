@@ -106,9 +106,9 @@ export class CampaignService {
         rewardPerQualifiedView,
         minWatchDurationSeconds,
         dailyUserLimit,
-        status: 'ACTIVE',
+        status: 'PENDING_REVIEW',
         targetingJson: data.targeting ? JSON.stringify(data.targeting) : null,
-        startsAt: new Date(),
+        startsAt: null,
       },
       include: {
         video: true,
@@ -117,7 +117,7 @@ export class CampaignService {
 
     await AuditService.log({
       actorId: advertiserId,
-      action: 'CAMPAIGN_CREATED',
+      action: 'CAMPAIGN_SUBMITTED_FOR_REVIEW',
       targetType: 'CAMPAIGN',
       targetId: campaign.id,
       newState: {
@@ -126,6 +126,7 @@ export class CampaignService {
         minWatchDuration: minWatchDurationSeconds,
         dailyLimit: dailyUserLimit,
         videoId: data.videoId,
+        status: 'PENDING_REVIEW',
       },
     });
 

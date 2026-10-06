@@ -14,6 +14,8 @@ router.post('/rewards/reverse', AdminController.reverseReward);
 router.get('/withdrawals/pending', AdminController.listPendingWithdrawals);
 router.get('/payments/manual', AdminController.listManualPayments);
 router.post('/payments/manual/:id/review', AdminController.reviewManualPayment);
+router.get('/campaigns', AdminController.listCampaigns);
+router.post('/campaigns/:id/review', AdminController.reviewCampaign);
 router.get('/audit-logs', AdminController.getAuditLogs);
 router.get('/configs', AdminController.getConfigs);
 router.post('/configs', AdminController.updateConfig);

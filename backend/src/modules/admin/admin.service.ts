@@ -161,4 +161,124 @@ export class AdminService {
     await ConfigService.set(key, value, description, adminId);
     return { key, value };
   }
+
+  public static async listCampaigns(query: {
+    status?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const where: any = {};
+    if (query.status && query.status !== 'ALL') {
+      where.status = query.status;
+    }
+    if (query.search) {
+      where.OR = [
+        { title: { contains: query.search } },
+        { video: { title: { contains: query.search } } },
+        { advertiser: { username: { contains: query.search } } },
+        { advertiser: { email: { contains: query.search } } },
+      ];
+    }
+
+    const [campaigns, total, pendingCount, activeCount] = await Promise.all([
+      prisma.campaign.findMany({
+        where,
+        take: query.limit || 50,
+        skip: query.offset || 0,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          advertiser: {
+            select: { id: true, username: true, email: true, role: true },
+          },
+          video: {
+            include: {
+              channel: {
+                select: { channelTitle: true, channelThumbnail: true, customUrl: true },
+              },
+            },
+          },
+          _count: {
+            select: {
+              watchSessions: { where: { qualificationStatus: 'QUALIFIED' } },
+            },
+          },
+        },
+      }),
+      prisma.campaign.count({ where }),
+      prisma.campaign.count({ where: { status: 'PENDING_REVIEW' } }),
+      prisma.campaign.count({ where: { status: 'ACTIVE' } }),
+    ]);
+
+    return {
+      campaigns: campaigns.map((c) => ({
+        id: c.id,
+        title: c.title,
+        description: c.description,
+        status: c.status,
+        totalBudget: c.totalBudget,
+        spentBudget: c.spentBudget,
+        remainingBudget: c.remainingBudget,
+        rewardPerQualifiedView: c.rewardPerQualifiedView,
+        minWatchDurationSeconds: c.minWatchDurationSeconds,
+        dailyUserLimit: c.dailyUserLimit,
+        reviewNote: c.reviewNote,
+        approvedById: c.approvedById,
+        startsAt: c.startsAt,
+        createdAt: c.createdAt,
+        qualifiedViews: c._count.watchSessions,
+        advertiser: c.advertiser,
+        video: c.video,
+      })),
+      total,
+      stats: {
+        pendingCount,
+        activeCount,
+      },
+    };
+  }
+
+  public static async reviewCampaign(params: {
+    campaignId: string;
+    adminId: string;
+    action: 'APPROVE' | 'REJECT' | 'PAUSE' | 'RESUME';
+    reviewNote?: string;
+  }) {
+    const campaign = await prisma.campaign.findUnique({
+      where: { id: params.campaignId },
+      include: { video: true, advertiser: true },
+    });
+    if (!campaign) throw new NotFoundError('Campaign not found');
+
+    let newStatus = 'ACTIVE';
+    if (params.action === 'APPROVE' || params.action === 'RESUME') {
+      newStatus = 'ACTIVE';
+    } else if (params.action === 'REJECT') {
+      newStatus = 'REJECTED';
+    } else if (params.action === 'PAUSE') {
+      newStatus = 'PAUSED';
+    }
+
+    const updated = await prisma.campaign.update({
+      where: { id: params.campaignId },
+      data: {
+        status: newStatus,
+        approvedById: params.adminId,
+        reviewNote: params.reviewNote || null,
+        startsAt: newStatus === 'ACTIVE' && !campaign.startsAt ? new Date() : undefined,
+      },
+    });
+
+    await AuditService.log({
+      actorId: params.adminId,
+      action: `CAMPAIGN_${params.action}`,
+      targetType: 'CAMPAIGN',
+      targetId: params.campaignId,
+      previousState: { status: campaign.status },
+      newState: { status: newStatus, reviewNote: params.reviewNote },
+      reason: params.reviewNote || `Admin ${params.action} campaign`,
+    });
+
+    return updated;
+  }
 }

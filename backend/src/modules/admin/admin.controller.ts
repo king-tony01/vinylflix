@@ -129,4 +129,45 @@ export class AdminController {
       next(error);
     }
   }
+
+  public static async listCampaigns(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const status = req.query.status as string | undefined;
+      const search = req.query.search as string | undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      const data = await AdminService.listCampaigns({ status, search, limit, offset });
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async reviewCampaign(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const { action, reviewNote } = req.body;
+
+      const data = await AdminService.reviewCampaign({
+        campaignId: id,
+        adminId: req.user!.userId,
+        action,
+        reviewNote,
+      });
+
+      res.json({
+        success: true,
+        message:
+          action === 'APPROVE'
+            ? 'Campaign approved and pushed live to video feed.'
+            : action === 'REJECT'
+            ? 'Campaign rejected.'
+            : `Campaign status updated to ${action}.`,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
