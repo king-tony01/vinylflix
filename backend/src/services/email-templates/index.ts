@@ -6,3 +6,4 @@ export * from './withdrawal-requested.template.js';
 export * from './withdrawal-success.template.js';
 export * from './security-login-alert.template.js';
 export * from './account-status-update.template.js';
+export * from './manual-payment.template.js';

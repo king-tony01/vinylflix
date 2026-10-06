@@ -3,6 +3,15 @@ import { PaymentService } from './payment.service.js';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware.js';
 
 export class PaymentController {
+  public static async getBankDetails(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = PaymentService.getBankTransferDetails();
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   public static async initialize(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const data = await PaymentService.initializePayment({
@@ -15,6 +24,93 @@ export class PaymentController {
         callbackUrl: req.body.callbackUrl,
       });
       res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async submitManualTransfer(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const {
+        amount,
+        currency,
+        purpose,
+        planId,
+        planName,
+        senderAccountName,
+        senderBankName,
+        proofOfPaymentUrl,
+        notes,
+      } = req.body;
+
+      const data = await PaymentService.submitManualBankTransfer({
+        userId: req.user!.userId,
+        amount: parseFloat(amount),
+        currency,
+        purpose: purpose || 'MEMBERSHIP_PURCHASE',
+        planId,
+        planName,
+        senderAccountName,
+        senderBankName,
+        proofOfPaymentUrl,
+        notes,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Proof of payment submitted successfully. Your transfer is now under verification.',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async getUserPayments(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const data = await PaymentService.getUserPayments(req.user!.userId);
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async listManualPending(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const status = req.query.status as string | undefined;
+      const search = req.query.search as string | undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      const data = await PaymentService.listPendingManualPayments({
+        status,
+        search,
+        limit,
+        offset,
+      });
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async reviewManualPayment(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const paymentId = req.params.id;
+      const { action, adminNote } = req.body;
+
+      const data = await PaymentService.reviewManualPayment({
+        paymentId,
+        adminId: req.user!.userId,
+        action,
+        adminNote,
+      });
+
+      res.json({
+        success: true,
+        message: action === 'APPROVE' ? 'Payment approved and membership activated.' : 'Payment rejected.',
+        data,
+      });
     } catch (error) {
       next(error);
     }

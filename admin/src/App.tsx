@@ -6,6 +6,7 @@ import { AdminLayout } from './components/AdminLayout.js';
 import { AdminLoginPage } from './pages/AdminLoginPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
 import { WithdrawalsQueuePage } from './pages/WithdrawalsQueuePage.js';
+import { ManualPaymentsPage } from './pages/ManualPaymentsPage.js';
 import { UserGovernancePage } from './pages/UserGovernancePage.js';
 import { CampaignReviewsPage } from './pages/CampaignReviewsPage.js';
 import { PlatformConfigPage } from './pages/PlatformConfigPage.js';
@@ -48,6 +49,14 @@ export const AppContent: React.FC = () => {
         element={
           <AdminRoute>
             <WithdrawalsQueuePage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/payments"
+        element={
+          <AdminRoute>
+            <ManualPaymentsPage />
           </AdminRoute>
         }
       />

@@ -16,6 +16,7 @@ export class AdminService {
       rewardsAgg,
       paymentsAgg,
       riskAlertsCount,
+      pendingManualPayments,
     ] = await Promise.all([
       prisma.user.count(),
       prisma.membership.count({ where: { status: 'ACTIVE' } }),
@@ -34,6 +35,9 @@ export class AdminService {
       prisma.riskEvent.count({
         where: { riskLevel: { in: ['HIGH', 'CRITICAL'] } },
       }),
+      prisma.payment.count({
+        where: { provider: 'MANUAL_BANK_TRANSFER', status: 'PENDING_REVIEW' },
+      }),
     ]);
 
     return {
@@ -50,6 +54,7 @@ export class AdminService {
         totalRewardsIssued: rewardsAgg._sum.amount || 0,
         pendingWithdrawalsCount: pendingWithdrawals,
         completedWithdrawalsCount: completedWithdrawals,
+        pendingManualPaymentsCount: pendingManualPayments,
       },
       risk: {
         highRiskAlerts: riskAlertsCount,

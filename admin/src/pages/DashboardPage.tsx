@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import {
   TrendingUp,
   DollarSign,
+  CreditCard,
   Users,
   AlertTriangle,
   RefreshCw,
@@ -122,7 +123,29 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Quick Action Navigation Panels */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <Link
+              to="/payments"
+              className="bg-slate-900/70 hover:bg-slate-850 border border-slate-800 hover:border-[#FF0091]/40 p-6 rounded-2xl transition-all group"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-pink-500/10 text-[#FF0091] flex items-center justify-center">
+                    <CreditCard className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white group-hover:text-pink-300 transition-colors">
+                      Bank Transfers
+                    </h4>
+                    <p className="text-xs text-slate-400">
+                      {metrics.financials?.pendingManualPaymentsCount || 0} pending review
+                    </p>
+                  </div>
+                </div>
+                <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-pink-400 transition-colors" />
+              </div>
+            </Link>
+
             <Link
               to="/withdrawals"
               className="bg-slate-900/70 hover:bg-slate-850 border border-slate-800 hover:border-purple-500/40 p-6 rounded-2xl transition-all group"

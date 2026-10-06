@@ -39,6 +39,12 @@ export interface AppConfig {
     minWatchDurationSeconds: number;
     watchRewardAmount: number;
   };
+  manualBankDetails: {
+    bankName: string;
+    accountName: string;
+    accountNumber: string;
+    instructions: string;
+  };
   email: {
     host: string;
     port: number;
@@ -68,7 +74,7 @@ export const config: AppConfig = {
     apiKey: process.env.YOUTUBE_API_KEY || '',
   },
   payment: {
-    provider: (process.env.PAYMENT_PROVIDER || 'PAYSTACK').toUpperCase(),
+    provider: (process.env.PAYMENT_PROVIDER || 'MANUAL_BANK_TRANSFER').toUpperCase(),
     secretKey: process.env.PAYSTACK_SECRET_KEY || process.env.PAYMENT_SECRET_KEY || '',
     publicKey: process.env.PAYSTACK_PUBLIC_KEY || process.env.PAYMENT_PUBLIC_KEY || '',
     webhookSecret: process.env.PAYMENT_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY || '',
@@ -85,6 +91,12 @@ export const config: AppConfig = {
     minWithdrawalAmount: parseFloat(process.env.DEFAULT_MIN_WITHDRAWAL_AMOUNT || '2000'),
     minWatchDurationSeconds: parseInt(process.env.DEFAULT_MIN_WATCH_DURATION || '30', 10),
     watchRewardAmount: parseFloat(process.env.DEFAULT_WATCH_REWARD_AMOUNT || '5'),
+  },
+  manualBankDetails: {
+    bankName: process.env.MANUAL_BANK_NAME || 'Opay',
+    accountName: process.env.MANUAL_ACCOUNT_NAME || 'Okolie Amauche Anthony',
+    accountNumber: process.env.MANUAL_ACCOUNT_NUMBER || '9063213825',
+    instructions: process.env.MANUAL_PAYMENT_INSTRUCTIONS || 'Please transfer the exact membership fee to this account and upload your payment receipt for manual verification.',
   },
   email: {
     host: process.env.SMTP_HOST || 'smtp.zoho.com',

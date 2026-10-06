@@ -12,6 +12,8 @@ router.get('/users', AdminController.listUsers);
 router.patch('/users/:id/status', AdminController.updateUserStatus);
 router.post('/rewards/reverse', AdminController.reverseReward);
 router.get('/withdrawals/pending', AdminController.listPendingWithdrawals);
+router.get('/payments/manual', AdminController.listManualPayments);
+router.post('/payments/manual/:id/review', AdminController.reviewManualPayment);
 router.get('/audit-logs', AdminController.getAuditLogs);
 router.get('/configs', AdminController.getConfigs);
 router.post('/configs', AdminController.updateConfig);

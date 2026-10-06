@@ -10,6 +10,9 @@ import {
   renderSecurityLoginAlertEmail,
   renderAccountStatusEmail,
   type AccountStatusAction,
+  renderManualPaymentSubmittedEmail,
+  renderManualPaymentApprovedEmail,
+  renderManualPaymentRejectedEmail,
 } from './email-templates/index.js';
 
 export class EmailService {
@@ -258,6 +261,101 @@ export class EmailService {
       subject,
       html,
       `Important Notice regarding your Vinylflix account status: ${data.action}`
+    );
+  }
+
+  /**
+   * 8. Send Manual Bank Transfer Submission Received Confirmation
+   */
+  public static async sendManualPaymentSubmittedEmail(
+    toEmail: string,
+    username: string,
+    data: {
+      amount: number;
+      currency?: string;
+      purpose: string;
+      planName?: string;
+      senderBankName: string;
+      senderAccountName: string;
+      reference: string;
+    }
+  ): Promise<boolean> {
+    const { subject, html } = renderManualPaymentSubmittedEmail({
+      username,
+      amount: data.amount,
+      currency: data.currency || config.businessDefaults.currency,
+      purpose: data.purpose,
+      planName: data.planName,
+      senderBankName: data.senderBankName,
+      senderAccountName: data.senderAccountName,
+      reference: data.reference,
+      appUrl: config.appUrl,
+    });
+    return this.dispatchMail(
+      toEmail,
+      subject,
+      html,
+      `Your payment submission of ${data.amount} is currently under verification.`
+    );
+  }
+
+  /**
+   * 9. Send Manual Bank Transfer Approved & Membership Activated
+   */
+  public static async sendManualPaymentApprovedEmail(
+    toEmail: string,
+    username: string,
+    data: {
+      amount: number;
+      currency?: string;
+      planName?: string;
+      reference: string;
+    }
+  ): Promise<boolean> {
+    const { subject, html } = renderManualPaymentApprovedEmail({
+      username,
+      amount: data.amount,
+      currency: data.currency || config.businessDefaults.currency,
+      planName: data.planName,
+      reference: data.reference,
+      appUrl: config.appUrl,
+    });
+    return this.dispatchMail(
+      toEmail,
+      subject,
+      html,
+      `Your payment for ${data.planName || 'Membership'} has been verified and approved!`
+    );
+  }
+
+  /**
+   * 10. Send Manual Bank Transfer Rejected Notice
+   */
+  public static async sendManualPaymentRejectedEmail(
+    toEmail: string,
+    username: string,
+    data: {
+      amount: number;
+      currency?: string;
+      planName?: string;
+      reference: string;
+      reason?: string;
+    }
+  ): Promise<boolean> {
+    const { subject, html } = renderManualPaymentRejectedEmail({
+      username,
+      amount: data.amount,
+      currency: data.currency || config.businessDefaults.currency,
+      planName: data.planName,
+      reference: data.reference,
+      reason: data.reason,
+      appUrl: config.appUrl,
+    });
+    return this.dispatchMail(
+      toEmail,
+      subject,
+      html,
+      `Your bank transfer submission ${data.reference} was not approved: ${data.reason || 'Verification failed.'}`
     );
   }
 }

@@ -299,13 +299,19 @@ model Payment {
   id                 String    @id @default(uuid())
   userId             String
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  provider           String    // MOCK, PAYSTACK, FLUTTERWAVE, STRIPE
+  provider           String    // MOCK, PAYSTACK, FLUTTERWAVE, STRIPE, MANUAL_BANK_TRANSFER
   reference          String    @unique
   amount             Float
   currency           String    @default("NGN")
-  purpose            String    // MEMBERSHIP_PURCHASE, CAMPAIGN_BUDGET
+  purpose            String    // MEMBERSHIP_PURCHASE, CAMPAIGN_BUDGET, WALLET_FUNDING
   metadataJson       String?
-  status             String    @default("PENDING") // PENDING, SETTLED, FAILED, REFUNDED
+  status             String    @default("PENDING") // PENDING, PENDING_REVIEW, SETTLED, FAILED, REFUNDED, REJECTED
+  proofOfPaymentUrl  String?
+  senderAccountName  String?
+  senderBankName     String?
+  adminNote          String?
+  reviewedById       String?
+  reviewedAt         DateTime?
   idempotencyKey     String?   @unique
   settledAt          DateTime?
   createdAt          DateTime  @default(now())
@@ -314,6 +320,7 @@ model Payment {
   @@index([userId])
   @@index([reference])
   @@index([status])
+  @@index([provider])
 }
 
 model PaymentWebhookLog {

@@ -5,6 +5,7 @@ import { VinylflixLogo } from './VinylflixLogo.js';
 import {
   LayoutDashboard,
   DollarSign,
+  CreditCard,
   Users,
   Layers,
   Settings,
@@ -26,6 +27,7 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const navItems = [
     { path: '/', label: 'Overview Dashboard', icon: LayoutDashboard },
+    { path: '/payments', label: 'Bank Transfers', icon: CreditCard },
     { path: '/withdrawals', label: 'Withdrawals Queue', icon: DollarSign },
     { path: '/users', label: 'User Governance', icon: Users },
     { path: '/campaigns', label: 'Campaign Reviews', icon: Layers },
