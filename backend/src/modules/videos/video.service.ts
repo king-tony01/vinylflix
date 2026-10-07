@@ -2,27 +2,60 @@ import { prisma } from '../../prisma/client.js';
 import { NotFoundError } from '../../utils/errors.js';
 
 export class VideoService {
-  public static async getFeed(query: { limit?: number; offset?: number; search?: string }) {
-    const where: any = {
-      availabilityStatus: 'PUBLIC',
-      campaigns: {
-        some: {
-          status: 'ACTIVE',
-          remainingBudget: { gt: 0 },
+  public static async getFeed(query: { limit?: number; offset?: number; search?: string; type?: string }) {
+    const andConditions: any[] = [];
+
+    // Filter by type if provided
+    if (query.type === 'rewarded') {
+      andConditions.push({
+        campaigns: {
+          some: {
+            status: 'ACTIVE',
+            remainingBudget: { gt: 0 },
+          },
         },
-      },
-    };
+      });
+    } else if (query.type === 'entertainment' || query.type === 'curated') {
+      andConditions.push({
+        campaigns: {
+          none: {},
+        },
+      });
+    } else {
+      // Default: include curated non-campaign entertainment videos OR active approved campaign videos
+      // Videos attached to unapproved/pending campaigns are excluded until approved
+      andConditions.push({
+        OR: [
+          {
+            campaigns: {
+              none: {},
+            },
+          },
+          {
+            campaigns: {
+              some: {
+                status: 'ACTIVE',
+                remainingBudget: { gt: 0 },
+              },
+            },
+          },
+        ],
+      });
+    }
 
     if (query.search) {
-      where.AND = [
-        {
-          OR: [
-            { title: { contains: query.search } },
-            { description: { contains: query.search } },
-          ],
-        },
-      ];
+      andConditions.push({
+        OR: [
+          { title: { contains: query.search } },
+          { description: { contains: query.search } },
+        ],
+      });
     }
+
+    const where: any = {
+      availabilityStatus: 'PUBLIC',
+      AND: andConditions,
+    };
 
     const [videos, total] = await Promise.all([
       prisma.video.findMany({

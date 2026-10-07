@@ -4,6 +4,7 @@ import { useAdminAuth } from '../context/AdminAuthContext.js';
 import { VinylflixLogo } from './VinylflixLogo.js';
 import {
   LayoutDashboard,
+  Film,
   DollarSign,
   CreditCard,
   Users,
@@ -27,10 +28,11 @@ export const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const navItems = [
     { path: '/', label: 'Overview Dashboard', icon: LayoutDashboard },
+    { path: '/videos', label: 'Video Library & Curation', icon: Film },
+    { path: '/campaigns', label: 'Campaign Reviews', icon: Layers },
     { path: '/payments', label: 'Bank Transfers', icon: CreditCard },
     { path: '/withdrawals', label: 'Withdrawals Queue', icon: DollarSign },
     { path: '/users', label: 'User Governance', icon: Users },
-    { path: '/campaigns', label: 'Campaign Reviews', icon: Layers },
     { path: '/configs', label: 'Platform Config', icon: Settings },
     { path: '/risk', label: 'Risk Surveillance', icon: ShieldAlert },
     { path: '/audit', label: 'Audit Trail', icon: FileText },

@@ -271,17 +271,18 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
 
         {/* TOP GRADIENT & SPONSOR BADGE */}
         <div className="absolute top-0 left-0 right-0 p-4 pt-16 md:pt-4 bg-gradient-to-b from-black/85 via-black/30 to-transparent flex items-center justify-between z-20 pointer-events-none">
-          {/* Sponsor Tag */}
+          {/* Top Tag: Rewarded Campaign vs Entertainment Video */}
           {hasReward ? (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/40 backdrop-blur-md">
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-pink-500/20 border border-pink-500/40 backdrop-blur-md shadow-lg shadow-pink-500/10">
               <Sparkles className="w-3.5 h-3.5 text-[#FF0091]" />
               <span className="text-[11px] font-bold text-pink-300">
                 Earn ₦{rewardAmount} Rewarded View
               </span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/60 border border-slate-700/50 backdrop-blur-md">
-              <span className="text-[11px] font-semibold text-slate-300">Sponsored Video</span>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700/60 backdrop-blur-md">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-[11px] font-semibold text-emerald-300">Entertainment Stream</span>
             </div>
           )}
 
@@ -366,21 +367,32 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
             <span className="text-[11px] font-bold text-white drop-shadow-md">Share</span>
           </button>
 
-          {/* Reward Status Pill */}
-          <div className="flex flex-col items-center gap-1">
-            <div
-              className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full backdrop-blur-md border flex items-center justify-center ${
-                rewardAwarded
-                  ? 'bg-gradient-to-tr from-[#FF0091] to-[#360099] border-[#FF0091] text-white font-black shadow-lg shadow-[#FF0091]/50 animate-bounce'
-                  : 'bg-black/50 border-pink-500/40 text-pink-400'
-              }`}
-            >
-              {rewardAwarded ? <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" /> : <DollarSign className="w-5 h-5" />}
+          {/* Reward Status or Free Stream Pill */}
+          {hasReward ? (
+            <div className="flex flex-col items-center gap-1">
+              <div
+                className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full backdrop-blur-md border flex items-center justify-center ${
+                  rewardAwarded
+                    ? 'bg-gradient-to-tr from-[#FF0091] to-[#360099] border-[#FF0091] text-white font-black shadow-lg shadow-[#FF0091]/50 animate-bounce'
+                    : 'bg-black/50 border-pink-500/40 text-pink-400'
+                }`}
+              >
+                {rewardAwarded ? <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-white" /> : <DollarSign className="w-5 h-5" />}
+              </div>
+              <span className="text-[10px] font-bold text-pink-300 drop-shadow-md">
+                {rewardAwarded ? 'Earned' : `₦${rewardAmount}`}
+              </span>
             </div>
-            <span className="text-[10px] font-bold text-pink-300 drop-shadow-md">
-              {rewardAwarded ? 'Earned' : `₦${rewardAmount}`}
-            </span>
-          </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1">
+              <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/50 border border-emerald-500/30 backdrop-blur-md flex items-center justify-center text-emerald-400">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+              </div>
+              <span className="text-[10px] font-semibold text-emerald-300 drop-shadow-md">
+                Free Stream
+              </span>
+            </div>
+          )}
         </div>
 
         {/* BOTTOM OVERLAY DETAILS */}

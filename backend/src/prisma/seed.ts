@@ -218,7 +218,81 @@ async function main() {
     },
   });
 
-  logger.info('✅ Clean slate established. Only Super Administrator and standard plans exist.');
+  // 7. Seed Starter Curated Entertainment Videos
+  const adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (adminUser) {
+    const channel = await prisma.youTubeConnection.create({
+      data: {
+        userId: adminUser.id,
+        channelId: 'UC_vinylflix_official_curated',
+        channelTitle: 'Vinylflix Entertainment',
+        channelThumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+        customUrl: '@vinylflix',
+        accessTokenEncrypted: 'curated_seed_connection',
+        isConnected: true,
+        syncedAt: new Date(),
+      },
+    });
+
+    const starterVideos = [
+      {
+        youtubeVideoId: '4T7HwL272Tw',
+        title: 'Rema, Selena Gomez - Calm Down (Official Music Video)',
+        description: 'Official music video for Calm Down by Rema & Selena Gomez.',
+        durationSeconds: 239,
+        thumbnailUrl: 'https://i.ytimg.com/vi/4T7HwL272Tw/hqdefault.jpg',
+        availabilityStatus: 'PUBLIC',
+      },
+      {
+        youtubeVideoId: 'L_LUpnjgPso',
+        title: 'Burna Boy - Last Last [Official Music Video]',
+        description: 'Official Music Video for Burna Boy - Last Last from the Love, Damini album.',
+        durationSeconds: 174,
+        thumbnailUrl: 'https://i.ytimg.com/vi/L_LUpnjgPso/hqdefault.jpg',
+        availabilityStatus: 'PUBLIC',
+      },
+      {
+        youtubeVideoId: 'hT_nvWreIhg',
+        title: 'Asake - Lonely At The Top (Official Video)',
+        description: 'Official music video for Lonely At The Top by Asake.',
+        durationSeconds: 156,
+        thumbnailUrl: 'https://i.ytimg.com/vi/hT_nvWreIhg/hqdefault.jpg',
+        availabilityStatus: 'PUBLIC',
+      },
+      {
+        youtubeVideoId: 'JFcgOboQZ08',
+        title: 'Lofi Hip Hop Radio - Beats to Relax / Study to',
+        description: 'Peaceful lofi hip hop beats for focus, work, and relaxation.',
+        durationSeconds: 300,
+        thumbnailUrl: 'https://i.ytimg.com/vi/JFcgOboQZ08/hqdefault.jpg',
+        availabilityStatus: 'PUBLIC',
+      },
+      {
+        youtubeVideoId: 'kJQP7kiw5Fk',
+        title: 'Luis Fonsi - Despacito ft. Daddy Yankee',
+        description: 'Official music video for Despacito by Luis Fonsi.',
+        durationSeconds: 282,
+        thumbnailUrl: 'https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg',
+        availabilityStatus: 'PUBLIC',
+      },
+    ];
+
+    for (const sv of starterVideos) {
+      await prisma.video.upsert({
+        where: { youtubeVideoId: sv.youtubeVideoId },
+        create: {
+          ...sv,
+          channelId: channel.id,
+          lastCheckedAt: new Date(),
+        },
+        update: {
+          availabilityStatus: 'PUBLIC',
+        },
+      });
+    }
+  }
+
+  logger.info('✅ Clean slate established. Super Administrator, standard plans, and curated videos exist.');
 }
 
 main()

@@ -170,4 +170,100 @@ export class AdminController {
       next(error);
     }
   }
+
+  public static async listVideos(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const type = req.query.type as string | undefined;
+      const availabilityStatus = req.query.availabilityStatus as string | undefined;
+      const search = req.query.search as string | undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+      const data = await AdminService.listVideos({ type, availabilityStatus, search, limit, offset });
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async previewVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { videoUrlOrId } = req.body;
+      if (!videoUrlOrId) {
+        return res.status(400).json({ success: false, error: { message: 'Video URL or ID is required' } });
+      }
+      const data = await AdminService.previewVideo(videoUrlOrId);
+      res.json({ success: true, data });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async addCuratedVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const {
+        videoUrlOrId,
+        title,
+        description,
+        durationSeconds,
+        thumbnailUrl,
+        channelTitle,
+        availabilityStatus,
+      } = req.body;
+
+      if (!videoUrlOrId) {
+        return res.status(400).json({ success: false, error: { message: 'Video URL or ID is required' } });
+      }
+
+      const data = await AdminService.addCuratedVideo(req.user!.userId, {
+        videoUrlOrId,
+        title,
+        description,
+        durationSeconds,
+        thumbnailUrl,
+        channelTitle,
+        availabilityStatus,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Video added to platform successfully and is now live on the discovery feed.',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async updateVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const { title, description, availabilityStatus, durationSeconds } = req.body;
+
+      const data = await AdminService.updateVideo(id, req.user!.userId, {
+        title,
+        description,
+        availabilityStatus,
+        durationSeconds,
+      });
+
+      res.json({
+        success: true,
+        message: 'Video updated successfully.',
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  public static async deleteVideo(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const id = req.params.id as string;
+      const data = await AdminService.deleteVideo(id, req.user!.userId);
+      res.json({ success: true, message: 'Video removed from platform.', data });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

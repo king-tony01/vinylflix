@@ -3,6 +3,7 @@ import { NotFoundError, AppError } from '../../utils/errors.js';
 import { LedgerService } from '../ledger/ledger.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { ConfigService } from '../config/config.service.js';
+import { YouTubeService } from '../youtube/youtube.service.js';
 
 export class AdminService {
   public static async getDashboardMetrics() {
@@ -280,5 +281,256 @@ export class AdminService {
     });
 
     return updated;
+  }
+
+  public static async listVideos(query: {
+    type?: string;
+    availabilityStatus?: string;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const andConditions: any[] = [];
+
+    if (query.availabilityStatus && query.availabilityStatus !== 'ALL') {
+      andConditions.push({ availabilityStatus: query.availabilityStatus });
+    }
+
+    if (query.type === 'CURATED' || query.type === 'ENTERTAINMENT') {
+      andConditions.push({ campaigns: { none: {} } });
+    } else if (query.type === 'CAMPAIGN' || query.type === 'REWARDED') {
+      andConditions.push({ campaigns: { some: {} } });
+    }
+
+    if (query.search) {
+      andConditions.push({
+        OR: [
+          { title: { contains: query.search } },
+          { description: { contains: query.search } },
+          { youtubeVideoId: { contains: query.search } },
+          { channel: { channelTitle: { contains: query.search } } },
+        ],
+      });
+    }
+
+    const where: any = andConditions.length > 0 ? { AND: andConditions } : {};
+
+    const [videos, total, totalCurated, totalCampaigns, totalViews] = await Promise.all([
+      prisma.video.findMany({
+        where,
+        take: query.limit || 50,
+        skip: query.offset || 0,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          channel: {
+            select: { channelTitle: true, channelThumbnail: true, customUrl: true },
+          },
+          campaigns: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              rewardPerQualifiedView: true,
+              totalBudget: true,
+              remainingBudget: true,
+            },
+          },
+          _count: {
+            select: {
+              watchSessions: true,
+            },
+          },
+        },
+      }),
+      prisma.video.count({ where }),
+      prisma.video.count({ where: { campaigns: { none: {} } } }),
+      prisma.video.count({ where: { campaigns: { some: {} } } }),
+      prisma.watchSession.count(),
+    ]);
+
+    return {
+      videos: videos.map((v) => ({
+        id: v.id,
+        youtubeVideoId: v.youtubeVideoId,
+        title: v.title,
+        description: v.description,
+        durationSeconds: v.durationSeconds,
+        thumbnailUrl: v.thumbnailUrl,
+        availabilityStatus: v.availabilityStatus,
+        createdAt: v.createdAt,
+        channel: v.channel,
+        campaigns: v.campaigns,
+        isCurated: v.campaigns.length === 0,
+        watchCount: v._count.watchSessions,
+      })),
+      total,
+      stats: {
+        totalVideos: totalCurated + totalCampaigns,
+        curatedCount: totalCurated,
+        campaignCount: totalCampaigns,
+        totalViews,
+      },
+    };
+  }
+
+  public static async previewVideo(videoUrlOrId: string) {
+    return YouTubeService.fetchVideoDetails(videoUrlOrId);
+  }
+
+  public static async addCuratedVideo(
+    adminId: string,
+    data: {
+      videoUrlOrId: string;
+      title?: string;
+      description?: string;
+      durationSeconds?: number;
+      thumbnailUrl?: string;
+      channelTitle?: string;
+      availabilityStatus?: string;
+    }
+  ) {
+    const details = await YouTubeService.fetchVideoDetails(data.videoUrlOrId);
+
+    // Find or create platform/admin channel identity
+    let channel = await prisma.youTubeConnection.findFirst({
+      where: { userId: adminId },
+    });
+
+    if (!channel) {
+      channel = await prisma.youTubeConnection.create({
+        data: {
+          userId: adminId,
+          channelId: details.channelId || `UC_${details.youtubeVideoId}_${Date.now()}`,
+          channelTitle: data.channelTitle || details.channelTitle || 'Vinylflix Curated',
+          channelThumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150',
+          customUrl: `@${(data.channelTitle || details.channelTitle || 'vinylflix').toLowerCase().replace(/[^a-z0-9_]/g, '')}`,
+          accessTokenEncrypted: 'admin_curated_connection',
+          isConnected: true,
+          syncedAt: new Date(),
+        },
+      });
+    }
+
+    const title = data.title?.trim() || details.title;
+    const description = data.description !== undefined ? data.description : details.description;
+    const durationSeconds =
+      data.durationSeconds && data.durationSeconds > 0 ? data.durationSeconds : details.durationSeconds || 180;
+    const thumbnailUrl = data.thumbnailUrl || details.thumbnailUrl;
+    const availabilityStatus = data.availabilityStatus || details.availabilityStatus || 'PUBLIC';
+
+    const video = await prisma.video.upsert({
+      where: { youtubeVideoId: details.youtubeVideoId },
+      create: {
+        youtubeVideoId: details.youtubeVideoId,
+        channelId: channel.id,
+        title,
+        description,
+        durationSeconds,
+        thumbnailUrl,
+        availabilityStatus,
+        lastCheckedAt: new Date(),
+      },
+      update: {
+        title,
+        description,
+        durationSeconds,
+        thumbnailUrl,
+        availabilityStatus,
+        lastCheckedAt: new Date(),
+      },
+      include: {
+        channel: true,
+        campaigns: true,
+      },
+    });
+
+    await AuditService.log({
+      actorId: adminId,
+      action: 'VIDEO_CURATED_ADDED',
+      targetType: 'VIDEO',
+      targetId: video.id,
+      newState: {
+        youtubeVideoId: video.youtubeVideoId,
+        title: video.title,
+        availabilityStatus: video.availabilityStatus,
+      },
+      reason: 'Admin added curated entertainment video to platform',
+    });
+
+    return video;
+  }
+
+  public static async updateVideo(
+    videoId: string,
+    adminId: string,
+    data: {
+      title?: string;
+      description?: string;
+      availabilityStatus?: string;
+      durationSeconds?: number;
+    }
+  ) {
+    const video = await prisma.video.findUnique({ where: { id: videoId } });
+    if (!video) throw new NotFoundError('Video not found');
+
+    const updated = await prisma.video.update({
+      where: { id: videoId },
+      data: {
+        title: data.title !== undefined ? data.title.trim() : undefined,
+        description: data.description !== undefined ? data.description : undefined,
+        availabilityStatus: data.availabilityStatus || undefined,
+        durationSeconds: data.durationSeconds || undefined,
+      },
+    });
+
+    await AuditService.log({
+      actorId: adminId,
+      action: 'VIDEO_UPDATED',
+      targetType: 'VIDEO',
+      targetId: videoId,
+      previousState: {
+        title: video.title,
+        availabilityStatus: video.availabilityStatus,
+      },
+      newState: {
+        title: updated.title,
+        availabilityStatus: updated.availabilityStatus,
+      },
+      reason: 'Admin updated video metadata or visibility',
+    });
+
+    return updated;
+  }
+
+  public static async deleteVideo(videoId: string, adminId: string) {
+    const video = await prisma.video.findUnique({
+      where: { id: videoId },
+      include: {
+        campaigns: true,
+        watchSessions: { take: 1 },
+      },
+    });
+    if (!video) throw new NotFoundError('Video not found');
+
+    // If campaigns or watch sessions exist, mark as UNAVAILABLE instead of hard deleting to preserve ledger and campaign integrity
+    if (video.campaigns.length > 0 || video.watchSessions.length > 0) {
+      await prisma.video.update({
+        where: { id: videoId },
+        data: { availabilityStatus: 'UNAVAILABLE' },
+      });
+    } else {
+      await prisma.video.delete({ where: { id: videoId } });
+    }
+
+    await AuditService.log({
+      actorId: adminId,
+      action: 'VIDEO_DELETED',
+      targetType: 'VIDEO',
+      targetId: videoId,
+      previousState: { title: video.title, youtubeVideoId: video.youtubeVideoId },
+      reason: 'Admin removed video from platform',
+    });
+
+    return { success: true, message: 'Video removed from platform.' };
   }
 }

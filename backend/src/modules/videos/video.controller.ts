@@ -7,8 +7,9 @@ export class VideoController {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
       const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
       const search = req.query.search as string | undefined;
+      const type = req.query.type as string | undefined;
 
-      const data = await VideoService.getFeed({ limit, offset, search });
+      const data = await VideoService.getFeed({ limit, offset, search, type });
       res.json({ success: true, data });
     } catch (error) {
       next(error);

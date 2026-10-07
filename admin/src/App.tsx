@@ -5,6 +5,7 @@ import { AdminLayout } from './components/AdminLayout.js';
 
 import { AdminLoginPage } from './pages/AdminLoginPage.js';
 import { DashboardPage } from './pages/DashboardPage.js';
+import { VideoManagementPage } from './pages/VideoManagementPage.js';
 import { WithdrawalsQueuePage } from './pages/WithdrawalsQueuePage.js';
 import { ManualPaymentsPage } from './pages/ManualPaymentsPage.js';
 import { UserGovernancePage } from './pages/UserGovernancePage.js';
@@ -41,6 +42,14 @@ export const AppContent: React.FC = () => {
         element={
           <AdminRoute>
             <DashboardPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/videos"
+        element={
+          <AdminRoute>
+            <VideoManagementPage />
           </AdminRoute>
         }
       />
