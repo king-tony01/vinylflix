@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { CustomSelect } from './CustomSelect.js';
 
 export interface PaginationProps {
   currentPage: number;
@@ -41,17 +42,17 @@ export const Pagination: React.FC<PaginationProps> = ({
         {onPageSizeChange && (
           <div className="hidden sm:flex items-center gap-1.5 ml-2 border-l border-slate-800 pl-3">
             <span className="text-slate-500">Per page:</span>
-            <select
-              value={pageSize}
-              onChange={(e) => onPageSizeChange(Number(e.target.value))}
-              className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-white text-xs focus:outline-none focus:border-[#FF0091]"
-            >
-              {pageSizeOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
+            <div className="w-20">
+              <CustomSelect<number>
+                value={pageSize}
+                onChange={(val) => onPageSizeChange(val)}
+                options={pageSizeOptions.map((opt) => ({
+                  value: opt,
+                  label: String(opt),
+                }))}
+                size="sm"
+              />
+            </div>
           </div>
         )}
       </div>

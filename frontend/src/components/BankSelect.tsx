@@ -58,9 +58,11 @@ const POPULAR_SLUGS = [
 
 export const BankSelect: React.FC<{
   value: string;
-  onChange: (bankName: string) => void;
+  onChange: (bankName: string, bankCode?: string, bankOption?: BankOption) => void;
+  onSelectBank?: (bank: BankOption) => void;
+  placeholder?: string;
   className?: string;
-}> = ({ value, onChange, className }) => {
+}> = ({ value, onChange, onSelectBank, placeholder = 'Select Bank...', className }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [banks, setBanks] = useState<BankOption[]>(
@@ -99,7 +101,7 @@ export const BankSelect: React.FC<{
           setBanks(sorted);
         }
       } catch {
-        // Quietly maintain fallback list on network interruption
+        // Maintain fallback list on error
       }
     };
 
@@ -129,12 +131,13 @@ export const BankSelect: React.FC<{
     }
   }, [isOpen]);
 
-  // Resolve currently selected bank item
+  // Resolve currently selected bank item (matches by name or code)
   const selectedBank = useMemo(() => {
     if (!value) return null;
     return (
       banks.find(
         (b) =>
+          b.code === value ||
           b.name.toLowerCase() === value.toLowerCase() ||
           (value.toLowerCase().includes('opay') && b.slug.includes('paycom')) ||
           (value.toLowerCase().includes('palmpay') && b.slug.includes('palmpay')) ||
@@ -159,7 +162,7 @@ export const BankSelect: React.FC<{
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-semibold focus:outline-none focus:border-[#FF0091] focus:ring-1 focus:ring-[#FF0091]/30 transition-all flex items-center justify-between gap-2 shadow-inner hover:border-slate-700"
+        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-semibold focus:outline-none focus:border-[#FF0091] focus:ring-1 focus:ring-[#FF0091]/30 transition-all flex items-center justify-between gap-2 shadow-inner hover:border-slate-700 min-h-[42px]"
       >
         <div className="flex items-center gap-2.5 truncate">
           {selectedBank ? (
@@ -173,7 +176,9 @@ export const BankSelect: React.FC<{
               <Landmark className="w-3.5 h-3.5" />
             </div>
           )}
-          <span className="truncate">{selectedBank?.name || value || 'Select Sending Bank...'}</span>
+          <span className={`truncate ${!selectedBank && !value ? 'text-slate-500' : 'text-slate-100'}`}>
+            {selectedBank?.name || (value === 'Other Bank' ? 'Other Bank / Fintech' : value) || placeholder}
+          </span>
         </div>
         <ChevronDown
           className={`w-4 h-4 text-slate-400 transition-transform duration-200 flex-shrink-0 ${
@@ -184,7 +189,7 @@ export const BankSelect: React.FC<{
 
       {/* Popover Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 max-w-full">
           {/* Instant Search Bar */}
           <div className="p-2.5 border-b border-slate-800 bg-slate-950/90 flex items-center gap-2">
             <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
@@ -216,6 +221,7 @@ export const BankSelect: React.FC<{
             ) : (
               filteredBanks.map((bank) => {
                 const isSelected =
+                  value === bank.code ||
                   value.toLowerCase() === bank.name.toLowerCase() ||
                   (value.toLowerCase().includes('opay') && bank.slug.includes('paycom'));
                 return (
@@ -223,7 +229,8 @@ export const BankSelect: React.FC<{
                     key={`${bank.code}-${bank.slug}`}
                     type="button"
                     onClick={() => {
-                      onChange(bank.name);
+                      onChange(bank.name, bank.code, bank);
+                      if (onSelectBank) onSelectBank(bank);
                       setIsOpen(false);
                     }}
                     className={`w-full px-3 py-2 rounded-xl text-left text-xs font-medium flex items-center justify-between gap-2.5 transition-colors ${
@@ -246,7 +253,7 @@ export const BankSelect: React.FC<{
             <button
               type="button"
               onClick={() => {
-                onChange('Other Bank');
+                onChange('Other Bank', 'OTHER');
                 setIsOpen(false);
               }}
               className={`w-full px-3 py-2 rounded-xl text-left text-xs font-semibold flex items-center justify-between gap-2.5 transition-colors border-t border-slate-800/80 mt-1 ${

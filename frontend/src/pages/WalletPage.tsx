@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useToast } from '../context/ToastContext.js';
 import { RewardProgressBar } from '../components/RewardProgressBar.js';
+import { BankSelect } from '../components/BankSelect.js';
 import {
   Wallet as WalletIcon,
   ArrowUpRight,
@@ -29,7 +30,6 @@ export const WalletPage: React.FC = () => {
   const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
 
   // Bank form & real-time resolution
-  const [banks, setBanks] = useState<any[]>([]);
   const [selectedBankCode, setSelectedBankCode] = useState<string>('999992');
   const [bankName, setBankName] = useState<string>('OPay Digital Services (Paycom)');
   const [accountNumber, setAccountNumber] = useState<string>('');
@@ -60,19 +60,7 @@ export const WalletPage: React.FC = () => {
     setLoading(false);
   };
 
-  // 1. Load Real Bank Directory
   useEffect(() => {
-    const fetchBanks = async () => {
-      const res = await apiRequest('/payments/banks');
-      if (res.success && res.data?.banks) {
-        setBanks(res.data.banks);
-        if (res.data.banks.length > 0) {
-          setSelectedBankCode(res.data.banks[0].code);
-          setBankName(res.data.banks[0].name);
-        }
-      }
-    };
-    fetchBanks();
     fetchWallet();
   }, []);
 
@@ -482,21 +470,13 @@ export const WalletPage: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1">
                   <Building2 className="w-3.5 h-3.5 text-[#FF0091]" /> Select Bank
                 </label>
-                <select
-                  value={selectedBankCode}
-                  onChange={(e) => {
-                    setSelectedBankCode(e.target.value);
-                    const b = banks.find((item) => item.code === e.target.value);
-                    if (b) setBankName(b.name);
+                <BankSelect
+                  value={bankName || selectedBankCode}
+                  onChange={(name, code) => {
+                    setBankName(name);
+                    if (code) setSelectedBankCode(code);
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
-                >
-                  {banks.map((b) => (
-                    <option key={b.code} value={b.code}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
 
               {/* 10-Digit NUBAN Account Number */}

@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.js';
 import { useToast } from '../context/ToastContext.js';
 import { apiRequest } from '../lib/api.js';
+import { CustomSelect } from '../components/CustomSelect.js';
 import {
   Layers,
   Youtube,
@@ -668,22 +669,19 @@ export const CampaignsPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Select Video</label>
-                <select
+                <CustomSelect
                   value={selectedVideoId}
-                  onChange={(e) => setSelectedVideoId(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-[#FF0091]"
-                  required
-                >
-                  {syncedVideos.length === 0 ? (
-                    <option value="">Paste YouTube URL above or select a video</option>
-                  ) : (
-                    syncedVideos.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.title} ({v.durationSeconds}s)
-                      </option>
-                    ))
-                  )}
-                </select>
+                  onChange={(val) => setSelectedVideoId(String(val))}
+                  placeholder={syncedVideos.length === 0 ? "Paste YouTube URL above or select a video" : "Choose a video..."}
+                  options={syncedVideos.map((v) => ({
+                    value: v.id,
+                    label: v.title,
+                    sublabel: `${v.durationSeconds}s duration`,
+                  }))}
+                  searchable={syncedVideos.length > 4}
+                  searchPlaceholder="Search synced videos..."
+                  disabled={syncedVideos.length === 0}
+                />
               </div>
 
               {/* Platform Calculated Specifications Panel */}

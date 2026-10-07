@@ -4,6 +4,7 @@ import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
 import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
+import { CustomSelect } from '../components/CustomSelect.js';
 import {
   Film,
   Plus,
@@ -1018,14 +1019,14 @@ export const VideoManagementPage: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
                   Feed Visibility
                 </label>
-                <select
+                <CustomSelect
                   value={addVisibility}
-                  onChange={(e) => setAddVisibility(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-[#FF0091]"
-                >
-                  <option value="PUBLIC">Public (Live on Discovery Feed Immediately)</option>
-                  <option value="UNAVAILABLE">Hidden (Draft / Archive)</option>
-                </select>
+                  onChange={(val) => setAddVisibility(String(val))}
+                  options={[
+                    { value: 'PUBLIC', label: 'Public (Live on Discovery Feed Immediately)' },
+                    { value: 'UNAVAILABLE', label: 'Hidden (Draft / Archive)' },
+                  ]}
+                />
               </div>
 
               {/* Action Buttons */}
@@ -1089,14 +1090,14 @@ export const VideoManagementPage: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">Visibility</label>
-                <select
+                <CustomSelect
                   value={editVisibility}
-                  onChange={(e) => setEditVisibility(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-[#FF0091]"
-                >
-                  <option value="PUBLIC">Public (Live on Feed)</option>
-                  <option value="UNAVAILABLE">Hidden (Unavailable)</option>
-                </select>
+                  onChange={(val) => setEditVisibility(String(val))}
+                  options={[
+                    { value: 'PUBLIC', label: 'Public (Live on Feed)' },
+                    { value: 'UNAVAILABLE', label: 'Hidden (Unavailable)' },
+                  ]}
+                />
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">

@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
 import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
+import { CustomSelect } from '../components/CustomSelect.js';
 import {
   FileText,
   RefreshCw,
@@ -73,23 +74,27 @@ export const AuditLogsPage: React.FC = () => {
         <div className="flex items-center gap-3">
           <Filter className="w-4 h-4 text-slate-400" />
           <span className="text-xs font-semibold text-slate-300">Target Type:</span>
-          <select
-            value={targetTypeFilter}
-            onChange={(e) => {
-              setTargetTypeFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-purple-500"
-          >
-            <option value="">All Target Types</option>
-            <option value="USER">USER</option>
-            <option value="WITHDRAWAL">WITHDRAWAL</option>
-            <option value="CAMPAIGN">CAMPAIGN</option>
-            <option value="CONFIG">CONFIG</option>
-            <option value="REWARD">REWARD</option>
-            <option value="MEMBERSHIP">MEMBERSHIP</option>
-            <option value="REFERRAL">REFERRAL</option>
-          </select>
+          <div className="w-48">
+            <CustomSelect
+              value={targetTypeFilter}
+              onChange={(val) => {
+                setTargetTypeFilter(String(val));
+                setCurrentPage(1);
+              }}
+              size="sm"
+              placeholder="All Target Types"
+              options={[
+                { value: '', label: 'All Target Types' },
+                { value: 'USER', label: 'USER' },
+                { value: 'WITHDRAWAL', label: 'WITHDRAWAL' },
+                { value: 'CAMPAIGN', label: 'CAMPAIGN' },
+                { value: 'CONFIG', label: 'CONFIG' },
+                { value: 'REWARD', label: 'REWARD' },
+                { value: 'MEMBERSHIP', label: 'MEMBERSHIP' },
+                { value: 'REFERRAL', label: 'REFERRAL' },
+              ]}
+            />
+          </div>
         </div>
 
         <span className="text-xs text-slate-400">Total Recorded Audit Events: <strong className="text-white">{total}</strong></span>

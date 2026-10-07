@@ -4,6 +4,7 @@ import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
 import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
+import { CustomSelect } from '../components/CustomSelect.js';
 import {
   Users,
   Search,
@@ -202,35 +203,43 @@ export const UserGovernancePage: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <select
-            value={roleFilter}
-            onChange={(e) => {
-              setRoleFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
-          >
-            <option value="">All Roles</option>
-            <option value="USER">Free User (USER)</option>
-            <option value="PAID_MEMBER">Paid Member</option>
-            <option value="CREATOR">Creator / Advertiser</option>
-            <option value="ADMIN">Administrator</option>
-          </select>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="w-full sm:w-44">
+            <CustomSelect
+              value={roleFilter}
+              onChange={(val) => {
+                setRoleFilter(String(val));
+                setCurrentPage(1);
+              }}
+              size="sm"
+              placeholder="All Roles"
+              options={[
+                { value: '', label: 'All Roles' },
+                { value: 'USER', label: 'Free User (USER)' },
+                { value: 'PAID_MEMBER', label: 'Paid Member' },
+                { value: 'CREATOR', label: 'Creator / Advertiser' },
+                { value: 'ADMIN', label: 'Administrator' },
+              ]}
+            />
+          </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-purple-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="SUSPENDED">SUSPENDED</option>
-            <option value="RESTRICTED">RESTRICTED</option>
-          </select>
+          <div className="w-full sm:w-40">
+            <CustomSelect
+              value={statusFilter}
+              onChange={(val) => {
+                setStatusFilter(String(val));
+                setCurrentPage(1);
+              }}
+              size="sm"
+              placeholder="All Statuses"
+              options={[
+                { value: '', label: 'All Statuses' },
+                { value: 'ACTIVE', label: 'ACTIVE' },
+                { value: 'SUSPENDED', label: 'SUSPENDED' },
+                { value: 'RESTRICTED', label: 'RESTRICTED' },
+              ]}
+            />
+          </div>
         </div>
       </div>
 
