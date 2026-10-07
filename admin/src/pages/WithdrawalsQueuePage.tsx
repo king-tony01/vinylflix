@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../lib/api.js';
+import { AdminActionModal } from '../components/AdminActionModal.js';
+import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
+import { Pagination } from '../components/Pagination.js';
 import {
   DollarSign,
   CheckCircle2,
@@ -9,19 +12,58 @@ import {
   ShieldAlert,
   AlertCircle,
   Clock,
+  User as UserIcon,
+  Check,
+  X,
+  ChevronRight,
+  Info,
+  ShieldCheck,
+  Search,
 } from 'lucide-react';
 
 export const WithdrawalsQueuePage: React.FC = () => {
   const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+
+  // Detail Drawer State
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<any | null>(null);
+
+  // Action Modal State
+  const [actionModalConfig, setActionModalConfig] = useState<{
+    isOpen: boolean;
+    withdrawal: any | null;
+    action: 'APPROVE' | 'REJECT';
+    title: string;
+    description: string;
+    variant: 'success' | 'danger';
+    confirmText: string;
+    isPrompt?: boolean;
+    inputLabel?: string;
+    inputPlaceholder?: string;
+    details?: Array<{ label: string; value: React.ReactNode }>;
+  }>({
+    isOpen: false,
+    withdrawal: null,
+    action: 'APPROVE',
+    title: '',
+    description: '',
+    variant: 'success',
+    confirmText: 'Confirm',
+  });
 
   const fetchWithdrawals = async () => {
     setLoading(true);
     const res = await apiRequest('/admin/withdrawals/pending');
     if (res.success && res.data) {
       setWithdrawals(res.data || []);
+      setCurrentPage(1);
     }
     setLoading(false);
   };
@@ -30,34 +72,118 @@ export const WithdrawalsQueuePage: React.FC = () => {
     fetchWithdrawals();
   }, []);
 
-  const handleReview = async (id: string, action: 'APPROVE' | 'REJECT') => {
-    const reason = window.prompt(
-      action === 'APPROVE' ? 'Enter approval note (optional):' : 'Enter reason for rejection (required for audit):'
-    );
-    if (action === 'REJECT' && !reason) return;
+  const openApproveModal = (w: any) => {
+    let bankInfo: any = {};
+    try {
+      bankInfo = JSON.parse(w.accountDetailsJson || '{}');
+    } catch {}
 
-    setActionLoading(id);
+    setActionModalConfig({
+      isOpen: true,
+      withdrawal: w,
+      action: 'APPROVE',
+      title: 'Approve Payout Request',
+      description: `Confirm payout authorization for @${w.user?.username || 'user'}. The net amount of ₦${w.netAmount.toLocaleString()} will be marked as disbursed.`,
+      variant: 'success',
+      confirmText: 'Approve Payout',
+      isPrompt: true,
+      inputLabel: 'Approval Reference / Admin Note (Optional)',
+      inputPlaceholder: 'e.g. Bank transfer session ID or reference...',
+      details: [
+        { label: 'Recipient', value: `@${w.user?.username} (${w.user?.email})` },
+        { label: 'Net Payout', value: `₦${w.netAmount.toLocaleString()}` },
+        { label: 'Gross & Fee', value: `₦${w.amount.toLocaleString()} (Fee: ₦${w.fee})` },
+        { label: 'Bank Name', value: bankInfo.bankName || 'N/A' },
+        { label: 'Account Number', value: bankInfo.accountNumber || 'N/A' },
+        { label: 'Account Name', value: bankInfo.accountName || 'N/A' },
+        { label: 'Risk Score', value: `${w.user?.riskScore?.score || 0}/100` },
+      ],
+    });
+  };
+
+  const openRejectModal = (w: any) => {
+    let bankInfo: any = {};
+    try {
+      bankInfo = JSON.parse(w.accountDetailsJson || '{}');
+    } catch {}
+
+    setActionModalConfig({
+      isOpen: true,
+      withdrawal: w,
+      action: 'REJECT',
+      title: 'Reject & Refund Withdrawal',
+      description: `Rejecting this request will immediately cancel the payout and credit ₦${w.amount.toLocaleString()} back to @${w.user?.username}'s wallet available balance.`,
+      variant: 'danger',
+      confirmText: 'Reject & Issue Refund',
+      isPrompt: true,
+      inputLabel: 'Rejection Reason (Required for audit & user notification)',
+      inputPlaceholder: 'e.g. Invalid bank account name mismatch, fraud flag, suspicious watch velocity...',
+      details: [
+        { label: 'Recipient', value: `@${w.user?.username}` },
+        { label: 'Refund Amount', value: `₦${w.amount.toLocaleString()}` },
+        { label: 'Bank Account', value: `${bankInfo.bankName} - ${bankInfo.accountNumber}` },
+      ],
+    });
+  };
+
+  const handleConfirmAction = async (inputValue?: string) => {
+    const w = actionModalConfig.withdrawal;
+    if (!w) return;
+
+    setActionLoading(true);
     setMessage(null);
 
-    const res = await apiRequest(`/withdrawals/${id}/review`, {
+    const res = await apiRequest(`/withdrawals/${w.id}/review`, {
       method: 'POST',
-      body: JSON.stringify({ action, reviewNote: reason || undefined }),
+      body: JSON.stringify({
+        action: actionModalConfig.action,
+        reviewNote: inputValue || undefined,
+      }),
     });
 
     if (res.success) {
       setMessage({
         type: 'success',
-        text: action === 'APPROVE' ? 'Withdrawal approved and marked as completed.' : 'Withdrawal rejected and funds refunded to user available balance.',
+        text:
+          actionModalConfig.action === 'APPROVE'
+            ? `Withdrawal approved and marked as completed.`
+            : `Withdrawal rejected and funds refunded to user available balance.`,
       });
-      fetchWithdrawals();
+      setActionModalConfig((prev) => ({ ...prev, isOpen: false }));
+      if (selectedWithdrawal?.id === w.id) {
+        setSelectedWithdrawal(null);
+      }
+      await fetchWithdrawals();
     } else {
       setMessage({
         type: 'error',
         text: res.error?.message || 'Failed to process withdrawal action',
       });
     }
-    setActionLoading(null);
+
+    setActionLoading(false);
   };
+
+  // Filter withdrawals by search query
+  const filteredWithdrawals = withdrawals.filter((w) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    let bankInfo: any = {};
+    try {
+      bankInfo = JSON.parse(w.accountDetailsJson || '{}');
+    } catch {}
+
+    return (
+      w.user?.username?.toLowerCase().includes(q) ||
+      w.user?.email?.toLowerCase().includes(q) ||
+      bankInfo.bankName?.toLowerCase().includes(q) ||
+      bankInfo.accountNumber?.includes(q) ||
+      bankInfo.accountName?.toLowerCase().includes(q)
+    );
+  });
+
+  const totalItems = filteredWithdrawals.length;
+  const paginatedWithdrawals = filteredWithdrawals.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -74,7 +200,7 @@ export const WithdrawalsQueuePage: React.FC = () => {
 
         <button
           onClick={fetchWithdrawals}
-          className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors self-start sm:self-auto"
+          className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors self-start sm:self-auto shadow-md"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh Queue
         </button>
@@ -94,210 +220,385 @@ export const WithdrawalsQueuePage: React.FC = () => {
         </div>
       )}
 
-      {/* Withdrawals Table */}
+      {/* Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-slate-900/90 p-4 rounded-2xl border border-slate-800">
+        <div className="relative flex-1 sm:max-w-md">
+          <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Search by username, email, bank, account number..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-emerald-500"
+          />
+        </div>
+
+        <div className="text-xs text-slate-400 flex items-center gap-2">
+          <span>Queue Count:</span>
+          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+            {totalItems} Pending
+          </span>
+        </div>
+      </div>
+
+      {/* Withdrawals Table Container */}
       <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
-        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-white">Pending Payout Requests ({withdrawals.length})</h3>
+            <h3 className="text-sm sm:text-base font-bold text-white">Pending Payout Requests</h3>
             <p className="text-xs text-slate-400 mt-0.5">
               Funds are currently on hold via immutable ledger debit. Rejection will automatically issue a refund credit.
             </p>
           </div>
         </div>
 
-        {/* Desktop / Tablet Table View */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/60 text-slate-400 uppercase font-semibold border-b border-slate-800">
-              <tr>
-                <th className="py-3 px-4">User Details</th>
-                <th className="py-3 px-4">Requested Date</th>
-                <th className="py-3 px-4">Gross & Net Amount</th>
-                <th className="py-3 px-4">Bank Account Info</th>
-                <th className="py-3 px-4">Risk Evaluation</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800 text-slate-300">
-              {loading ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-500">
-                    <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-600" />
-                    Loading withdrawal queue...
-                  </td>
-                </tr>
-              ) : withdrawals.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="text-center py-12 text-slate-500">
-                    <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500/40" />
-                    No pending withdrawals in queue. All requests have been processed!
-                  </td>
-                </tr>
-              ) : (
-                withdrawals.map((w) => {
-                  let bankInfo: any = {};
-                  try {
-                    bankInfo = JSON.parse(w.accountDetailsJson);
-                  } catch {}
+        {loading ? (
+          <div className="p-12 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
+            <RefreshCw className="w-4 h-4 animate-spin text-emerald-400" /> Loading withdrawal queue...
+          </div>
+        ) : totalItems === 0 ? (
+          <div className="p-12 text-center text-slate-500 text-xs space-y-2">
+            <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500/40" />
+            <p className="font-semibold text-slate-400">No pending withdrawals in queue.</p>
+            <p className="text-[11px]">All payout requests have been verified and settled.</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
+                  <tr>
+                    <th className="py-3.5 px-4">User Details</th>
+                    <th className="py-3.5 px-4">Requested Date</th>
+                    <th className="py-3.5 px-4">Gross & Net Amount</th>
+                    <th className="py-3.5 px-4">Bank Account Info</th>
+                    <th className="py-3.5 px-4">Risk Evaluation</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {paginatedWithdrawals.map((w) => {
+                    let bankInfo: any = {};
+                    try {
+                      bankInfo = JSON.parse(w.accountDetailsJson || '{}');
+                    } catch {}
 
-                  const riskScore = w.user?.riskScore?.score || 0;
-                  const isHighRisk = riskScore >= 50;
+                    const riskScore = w.user?.riskScore?.score || 0;
+                    const isHighRisk = riskScore >= 50;
 
-                  return (
-                    <tr key={w.id} className="hover:bg-slate-800/40 transition-colors">
-                      {/* User */}
-                      <td className="py-3.5 px-4">
-                        <p className="font-bold text-white">{w.user?.username}</p>
-                        <p className="text-[10px] text-slate-400">{w.user?.email}</p>
-                      </td>
+                    return (
+                      <tr
+                        key={w.id}
+                        onClick={() => setSelectedWithdrawal(w)}
+                        className="hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                      >
+                        {/* User */}
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-white flex items-center gap-1.5 group-hover:text-emerald-300 transition-colors">
+                            <UserIcon className="w-3.5 h-3.5 text-emerald-400" />
+                            @{w.user?.username || 'User'}
+                          </p>
+                          <p className="text-[11px] text-slate-400">{w.user?.email}</p>
+                        </td>
 
-                      {/* Date */}
-                      <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400">
-                        {new Date(w.createdAt).toLocaleString()}
-                      </td>
+                        {/* Date */}
+                        <td className="py-3.5 px-4 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                          {new Date(w.createdAt).toLocaleDateString()} {new Date(w.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </td>
 
-                      {/* Amounts */}
-                      <td className="py-3.5 px-4">
-                        <p className="font-bold text-emerald-400 text-sm">
-                          Net: ₦{w.netAmount.toLocaleString()}
-                        </p>
-                        <p className="text-[10px] text-slate-400">
-                          Gross: ₦{w.amount.toLocaleString()} (Fee: ₦{w.fee})
-                        </p>
-                      </td>
+                        {/* Amounts */}
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-emerald-400 text-sm">
+                            Net: ₦{w.netAmount.toLocaleString()}
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            Gross: ₦{w.amount.toLocaleString()} (Fee: ₦{w.fee})
+                          </p>
+                        </td>
 
-                      {/* Bank Details */}
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-1.5 font-semibold text-white">
-                          <Landmark className="w-3.5 h-3.5 text-slate-400" />
-                          {bankInfo.bankName || 'Bank'}
-                        </div>
-                        <p className="text-[10px] font-mono text-slate-300 mt-0.5">
-                          {bankInfo.accountNumber} • {bankInfo.accountName}
-                        </p>
-                      </td>
+                        {/* Bank Details */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 font-semibold text-white">
+                            <Landmark className="w-3.5 h-3.5 text-slate-400" />
+                            {bankInfo.bankName || 'Bank'}
+                          </div>
+                          <p className="text-[10px] font-mono text-slate-300 mt-0.5">
+                            {bankInfo.accountNumber} • {bankInfo.accountName}
+                          </p>
+                        </td>
 
-                      {/* Risk Score */}
-                      <td className="py-3.5 px-4">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 ${
-                            isHighRisk
-                              ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                          }`}
-                        >
-                          {isHighRisk && <ShieldAlert className="w-3 h-3" />}
-                          Score: {riskScore}/100
-                        </span>
-                      </td>
+                        {/* Risk Score */}
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 ${
+                              isHighRisk
+                                ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                                : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            }`}
+                          >
+                            {isHighRisk ? <ShieldAlert className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                            Score: {riskScore}/100
+                          </span>
+                        </td>
 
-                      {/* Actions */}
-                      <td className="py-3.5 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => handleReview(w.id, 'APPROVE')}
-                          disabled={actionLoading === w.id}
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-md transition-all"
-                        >
-                          Approve Payout
-                        </button>
-                        <button
-                          onClick={() => handleReview(w.id, 'REJECT')}
-                          disabled={actionLoading === w.id}
-                          className="px-3 py-1.5 rounded-lg bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50 text-rose-400 font-bold text-xs transition-all"
-                        >
-                          Reject & Refund
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Responsive Cards View */}
-        <div className="md:hidden divide-y divide-slate-800">
-          {loading ? (
-            <div className="p-8 text-center text-slate-500 text-xs">
-              <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-slate-600" />
-              Loading withdrawal queue...
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-right">
+                          <div
+                            className="flex items-center justify-end gap-1.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => openApproveModal(w)}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1 transition-all"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Approve
+                            </button>
+                            <button
+                              onClick={() => openRejectModal(w)}
+                              className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 font-bold text-xs flex items-center gap-1 transition-all"
+                            >
+                              <X className="w-3.5 h-3.5" /> Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
-          ) : withdrawals.length === 0 ? (
-            <div className="p-8 text-center text-slate-500 text-xs">
-              <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-emerald-500/40" />
-              No pending withdrawals in queue.
-            </div>
-          ) : (
-            withdrawals.map((w) => {
-              let bankInfo: any = {};
-              try {
-                bankInfo = JSON.parse(w.accountDetailsJson);
-              } catch {}
-              const riskScore = w.user?.riskScore?.score || 0;
-              const isHighRisk = riskScore >= 50;
 
-              return (
-                <div key={w.id} className="p-4 space-y-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-bold text-white text-sm">{w.user?.username}</p>
-                      <p className="text-[10px] text-slate-400">{w.user?.email}</p>
-                      <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                        {new Date(w.createdAt).toLocaleString()}
-                      </p>
-                    </div>
+            {/* Mobile Adaptive Cards View */}
+            <div className="md:hidden divide-y divide-slate-800/80">
+              {paginatedWithdrawals.map((w) => {
+                let bankInfo: any = {};
+                try {
+                  bankInfo = JSON.parse(w.accountDetailsJson || '{}');
+                } catch {}
+                const riskScore = w.user?.riskScore?.score || 0;
+                const isHighRisk = riskScore >= 50;
 
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 ${
-                        isHighRisk
-                          ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                          : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                      }`}
-                    >
-                      Risk: {riskScore}/100
-                    </span>
-                  </div>
+                return (
+                  <div
+                    key={w.id}
+                    onClick={() => setSelectedWithdrawal(w)}
+                    className="p-4 space-y-3 active:bg-slate-800/40 transition-colors"
+                  >
+                    {/* User Header & Risk */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-white text-sm flex items-center gap-1.5">
+                          <UserIcon className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                          <span className="truncate">@{w.user?.username || 'User'}</span>
+                        </p>
+                        <p className="text-[11px] text-slate-400 truncate">{w.user?.email}</p>
+                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                          {new Date(w.createdAt).toLocaleDateString()} {new Date(w.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
 
-                  <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400">Net Amount:</span>
-                      <span className="font-bold text-emerald-400 text-sm">₦{w.netAmount.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-[11px] text-slate-500">
-                      <span>Gross (Fee):</span>
-                      <span>₦{w.amount.toLocaleString()} (₦{w.fee})</span>
-                    </div>
-                    <div className="pt-1.5 border-t border-slate-900 flex justify-between items-center text-[11px]">
-                      <span className="text-slate-400 flex items-center gap-1">
-                        <Landmark className="w-3 h-3 text-slate-400" /> {bankInfo.bankName}
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 flex-shrink-0 ${
+                          isHighRisk
+                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        }`}
+                      >
+                        {isHighRisk && <ShieldAlert className="w-3 h-3" />}
+                        Risk: {riskScore}/100
                       </span>
-                      <span className="font-mono text-slate-300">{bankInfo.accountNumber}</span>
+                    </div>
+
+                    {/* Metadata Box */}
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2 text-xs">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Net Payout:</span>
+                        <span className="font-bold text-emerald-400 text-sm">₦{w.netAmount.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px] text-slate-400">
+                        <span>Gross (Fee):</span>
+                        <span>₦{w.amount.toLocaleString()} (₦{w.fee})</span>
+                      </div>
+                      <div className="pt-1.5 border-t border-slate-900 flex justify-between items-center text-[11px]">
+                        <span className="text-slate-400 flex items-center gap-1">
+                          <Landmark className="w-3 h-3 text-slate-400" /> {bankInfo.bankName || 'Bank'}
+                        </span>
+                        <span className="font-mono text-slate-300">{bankInfo.accountNumber}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div
+                      className="grid grid-cols-2 gap-2 pt-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={() => openApproveModal(w)}
+                        className="py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow transition-all flex items-center justify-center gap-1"
+                      >
+                        <Check className="w-3.5 h-3.5" /> Approve
+                      </button>
+                      <button
+                        onClick={() => openRejectModal(w)}
+                        className="py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-1"
+                      >
+                        <X className="w-3.5 h-3.5" /> Reject
+                      </button>
                     </div>
                   </div>
+                );
+              })}
+            </div>
 
-                  <div className="grid grid-cols-2 gap-2 pt-1">
-                    <button
-                      onClick={() => handleReview(w.id, 'APPROVE')}
-                      disabled={actionLoading === w.id}
-                      className="py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow transition-all"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => handleReview(w.id, 'REJECT')}
-                      disabled={actionLoading === w.id}
-                      className="py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 disabled:opacity-50 text-rose-400 font-bold text-xs transition-all"
-                    >
-                      Reject & Refund
-                    </button>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
+            {/* Pagination Controls */}
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(newSize) => {
+                setPageSize(newSize);
+                setCurrentPage(1);
+              }}
+            />
+          </>
+        )}
       </div>
+
+      {/* Slide-Over Detail Drawer */}
+      {selectedWithdrawal && (
+        <DetailDrawer
+          isOpen={Boolean(selectedWithdrawal)}
+          onClose={() => setSelectedWithdrawal(null)}
+          title={`Payout @${selectedWithdrawal.user?.username || 'User'}`}
+          subtitle={`Requested: ${new Date(selectedWithdrawal.createdAt).toLocaleDateString()}`}
+          badge={
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-300 border border-amber-500/30">
+              Pending Payout
+            </span>
+          }
+          icon={<DollarSign className="w-5 h-5 text-emerald-400" />}
+          footerActions={
+            <>
+              <button
+                type="button"
+                onClick={() => openRejectModal(selectedWithdrawal)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <X className="w-4 h-4" /> Reject & Refund
+              </button>
+              <button
+                type="button"
+                onClick={() => openApproveModal(selectedWithdrawal)}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <Check className="w-4 h-4" /> Approve Payout
+              </button>
+            </>
+          }
+        >
+          {/* User Section */}
+          <DrawerSection title="User Information">
+            <DrawerItem label="Username" value={`@${selectedWithdrawal.user?.username}`} copyable />
+            <DrawerItem label="Email" value={selectedWithdrawal.user?.email || 'N/A'} copyable />
+            <DrawerItem label="User ID" value={selectedWithdrawal.userId} copyable />
+          </DrawerSection>
+
+          {/* Amount Section */}
+          <DrawerSection title="Withdrawal Amounts">
+            <DrawerItem
+              label="Net Payout Amount"
+              value={`₦${selectedWithdrawal.netAmount.toLocaleString()}`}
+            />
+            <DrawerItem
+              label="Gross Requested Amount"
+              value={`₦${selectedWithdrawal.amount.toLocaleString()}`}
+            />
+            <DrawerItem
+              label="Processing Fee"
+              value={`₦${selectedWithdrawal.fee.toLocaleString()}`}
+            />
+            <DrawerItem
+              label="Requested Date"
+              value={new Date(selectedWithdrawal.createdAt).toLocaleString()}
+            />
+          </DrawerSection>
+
+          {/* Bank Section */}
+          {(() => {
+            let bankInfo: any = {};
+            try {
+              bankInfo = JSON.parse(selectedWithdrawal.accountDetailsJson || '{}');
+            } catch {}
+            return (
+              <DrawerSection title="Destination Bank Account">
+                <DrawerItem label="Bank Name" value={bankInfo.bankName || 'N/A'} copyable />
+                <DrawerItem
+                  label="Account Number"
+                  value={bankInfo.accountNumber || 'N/A'}
+                  copyable
+                />
+                <DrawerItem
+                  label="Account Holder Name"
+                  value={bankInfo.accountName || 'N/A'}
+                  copyable
+                />
+                {bankInfo.recipientCode && (
+                  <DrawerItem
+                    label="Paystack Recipient Code"
+                    value={bankInfo.recipientCode}
+                    copyable
+                  />
+                )}
+              </DrawerSection>
+            );
+          })()}
+
+          {/* Risk Evaluation Section */}
+          <DrawerSection title="Risk Surveillance Metrics">
+            <DrawerItem
+              label="Calculated Risk Score"
+              value={`${selectedWithdrawal.user?.riskScore?.score || 0} / 100`}
+            />
+            <DrawerItem
+              label="Risk Classification"
+              value={
+                (selectedWithdrawal.user?.riskScore?.score || 0) >= 50 ? (
+                  <span className="text-rose-400 font-bold flex items-center gap-1">
+                    <ShieldAlert className="w-3.5 h-3.5" /> High Risk Account
+                  </span>
+                ) : (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Normal Risk Account
+                  </span>
+                )
+              }
+            />
+          </DrawerSection>
+        </DetailDrawer>
+      )}
+
+      {/* Custom Admin Action Modal */}
+      <AdminActionModal
+        isOpen={actionModalConfig.isOpen}
+        onClose={() => setActionModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmAction}
+        title={actionModalConfig.title}
+        description={actionModalConfig.description}
+        variant={actionModalConfig.variant}
+        confirmText={actionModalConfig.confirmText}
+        isPrompt={actionModalConfig.isPrompt}
+        isTextArea={true}
+        inputRequired={actionModalConfig.action === 'REJECT'}
+        inputLabel={actionModalConfig.inputLabel}
+        inputPlaceholder={actionModalConfig.inputPlaceholder}
+        details={actionModalConfig.details}
+        loading={actionLoading}
+      />
     </div>
   );
 };

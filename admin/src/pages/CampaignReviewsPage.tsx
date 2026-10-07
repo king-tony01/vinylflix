@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../lib/api.js';
+import { AdminActionModal } from '../components/AdminActionModal.js';
+import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
+import { Pagination } from '../components/Pagination.js';
 import {
   Layers,
   RefreshCw,
@@ -15,6 +18,11 @@ import {
   ShieldAlert,
   User,
   Check,
+  X,
+  ChevronRight,
+  Info,
+  DollarSign,
+  BarChart2,
 } from 'lucide-react';
 
 type TabStatus = 'PENDING_REVIEW' | 'ACTIVE' | 'ALL' | 'PAUSED' | 'REJECTED';
@@ -28,12 +36,38 @@ export const CampaignReviewsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabStatus>('PENDING_REVIEW');
   const [search, setSearch] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Review Reject Note Modal State
-  const [rejectModalCampaign, setRejectModalCampaign] = useState<any | null>(null);
-  const [rejectReason, setRejectReason] = useState<string>('');
+  // Pagination
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(20);
+
+  // Detail Drawer State
+  const [selectedCampaign, setSelectedCampaign] = useState<any | null>(null);
+
+  // Action Modal State
+  const [actionModalConfig, setActionModalConfig] = useState<{
+    isOpen: boolean;
+    campaign: any | null;
+    action: 'APPROVE' | 'REJECT' | 'PAUSE' | 'RESUME';
+    title: string;
+    description: string;
+    variant: 'success' | 'danger' | 'warning' | 'primary';
+    confirmText: string;
+    isPrompt?: boolean;
+    inputLabel?: string;
+    inputPlaceholder?: string;
+    details?: Array<{ label: string; value: React.ReactNode }>;
+  }>({
+    isOpen: false,
+    campaign: null,
+    action: 'APPROVE',
+    title: '',
+    description: '',
+    variant: 'success',
+    confirmText: 'Confirm',
+  });
 
   const fetchCampaigns = async () => {
     setLoading(true);
@@ -51,6 +85,7 @@ export const CampaignReviewsPage: React.FC = () => {
       if (res.data.stats) {
         setStats(res.data.stats);
       }
+      setCurrentPage(1);
     }
     setLoading(false);
   };
@@ -64,17 +99,76 @@ export const CampaignReviewsPage: React.FC = () => {
     fetchCampaigns();
   };
 
-  const handleReviewAction = async (
-    campaignId: string,
-    action: 'APPROVE' | 'REJECT' | 'PAUSE' | 'RESUME',
-    reviewNote?: string
-  ) => {
-    setActionLoading(campaignId);
+  const openApproveModal = (campaign: any) => {
+    setActionModalConfig({
+      isOpen: true,
+      campaign,
+      action: 'APPROVE',
+      title: 'Approve Campaign & Push Live to Feed',
+      description: `Approve "${campaign.title}" to start distributing rewarded views across eligible user feeds.`,
+      variant: 'success',
+      confirmText: 'Approve & Push to Feed',
+      isPrompt: false,
+      details: [
+        { label: 'Campaign Title', value: campaign.title },
+        { label: 'Creator', value: `@${campaign.advertiser?.username || 'Creator'}` },
+        { label: 'Total Budget', value: `₦${campaign.totalBudget.toLocaleString()}` },
+        { label: 'Reward / View', value: `₦${campaign.rewardPerQualifiedView}` },
+        { label: 'Video', value: campaign.video?.title || 'YouTube Video' },
+      ],
+    });
+  };
+
+  const openRejectModal = (campaign: any) => {
+    setActionModalConfig({
+      isOpen: true,
+      campaign,
+      action: 'REJECT',
+      title: 'Reject Campaign Promotion',
+      description: `Provide a reason for rejecting "${campaign.title}". This note will be recorded and displayed to the creator.`,
+      variant: 'danger',
+      confirmText: 'Confirm Rejection',
+      isPrompt: true,
+      inputLabel: 'Rejection Reason',
+      inputPlaceholder: 'e.g. Video violates community guidelines, copyright issues, or low content quality...',
+      details: [
+        { label: 'Campaign Title', value: campaign.title },
+        { label: 'Creator', value: `@${campaign.advertiser?.username}` },
+        { label: 'Budget to Refund', value: `₦${campaign.remainingBudget.toLocaleString()}` },
+      ],
+    });
+  };
+
+  const openPauseModal = (campaign: any) => {
+    setActionModalConfig({
+      isOpen: true,
+      campaign,
+      action: 'PAUSE',
+      title: 'Pause Campaign',
+      description: `Are you sure you want to pause "${campaign.title}"? The video will be temporarily hidden from user feeds.`,
+      variant: 'warning',
+      confirmText: 'Pause Campaign',
+      isPrompt: false,
+      details: [
+        { label: 'Campaign Title', value: campaign.title },
+        { label: 'Remaining Budget', value: `₦${campaign.remainingBudget.toLocaleString()}` },
+      ],
+    });
+  };
+
+  const handleConfirmAction = async (inputValue?: string) => {
+    const campaign = actionModalConfig.campaign;
+    if (!campaign) return;
+
+    setActionLoading(true);
     setMessage(null);
 
-    const res = await apiRequest(`/admin/campaigns/${campaignId}/review`, {
+    const res = await apiRequest(`/admin/campaigns/${campaign.id}/review`, {
       method: 'POST',
-      body: JSON.stringify({ action, reviewNote }),
+      body: JSON.stringify({
+        action: actionModalConfig.action,
+        reviewNote: inputValue || undefined,
+      }),
     });
 
     if (res.success) {
@@ -82,17 +176,23 @@ export const CampaignReviewsPage: React.FC = () => {
         type: 'success',
         text: (res.data?.message as string) || `Campaign successfully updated.`,
       });
-      setRejectModalCampaign(null);
-      setRejectReason('');
-      fetchCampaigns();
+      setActionModalConfig((prev) => ({ ...prev, isOpen: false }));
+      if (selectedCampaign?.id === campaign.id) {
+        setSelectedCampaign(null);
+      }
+      await fetchCampaigns();
     } else {
       setMessage({
         type: 'error',
         text: res.error?.message || 'Failed to moderate campaign',
       });
     }
-    setActionLoading(null);
+
+    setActionLoading(false);
   };
+
+  const totalItems = campaigns.length;
+  const paginatedCampaigns = campaigns.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="space-y-6">
@@ -109,7 +209,7 @@ export const CampaignReviewsPage: React.FC = () => {
 
         <button
           onClick={fetchCampaigns}
-          className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors self-start sm:self-auto shadow-sm"
+          className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold flex items-center gap-2 transition-colors self-start sm:self-auto shadow-md"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Refresh Queue
         </button>
@@ -163,27 +263,27 @@ export const CampaignReviewsPage: React.FC = () => {
       )}
 
       {/* Filter Tabs & Search Bar */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 bg-slate-900/90 p-4 rounded-2xl border border-slate-800">
         {/* Status Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800">
+        <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-2 md:pb-0">
           {[
             { id: 'PENDING_REVIEW' as TabStatus, label: 'Pending Review', count: stats.pendingCount },
             { id: 'ACTIVE' as TabStatus, label: 'Active on Feed', count: stats.activeCount },
-            { id: 'ALL' as TabStatus, label: 'All Campaigns', count: 0 },
-            { id: 'PAUSED' as TabStatus, label: 'Paused', count: 0 },
-            { id: 'REJECTED' as TabStatus, label: 'Rejected', count: 0 },
+            { id: 'ALL' as TabStatus, label: 'All Campaigns', count: null },
+            { id: 'PAUSED' as TabStatus, label: 'Paused', count: null },
+            { id: 'REJECTED' as TabStatus, label: 'Rejected', count: null },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  ? 'bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-[#FF0091]/20'
+                  : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
               }`}
             >
               <span>{tab.label}</span>
-              {Boolean(tab.count && tab.count > 0) && (
+              {tab.count !== null && tab.count > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-white/20 text-[10px] font-mono">
                   {tab.count}
                 </span>
@@ -201,7 +301,7 @@ export const CampaignReviewsPage: React.FC = () => {
               placeholder="Search title, creator, video..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF0091]"
+              className="w-full pl-9 pr-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-[#FF0091]"
             />
           </div>
           <button
@@ -213,219 +313,447 @@ export const CampaignReviewsPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Campaigns List */}
-      {loading ? (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {[1, 2, 3, 4].map((n) => (
-            <div key={n} className="h-64 bg-slate-900 rounded-2xl border border-slate-800 animate-pulse" />
-          ))}
-        </div>
-      ) : campaigns.length === 0 ? (
-        <div className="bg-slate-900 rounded-3xl border border-slate-800 p-12 text-center text-slate-500 space-y-3">
-          <Layers className="w-12 h-12 mx-auto text-slate-700" />
-          <p className="text-sm font-semibold text-slate-400">
-            No campaigns found under "{activeTab.replace('_', ' ')}".
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {campaigns.map((c) => {
-            const spentPercent = Math.min(100, Math.round((c.spentBudget / (c.totalBudget || 1)) * 100));
-            const youtubeUrl = c.video?.youtubeVideoId
-              ? `https://www.youtube.com/watch?v=${c.video.youtubeVideoId}`
-              : null;
-
-            return (
-              <div key={c.id} className="bg-slate-900 rounded-2xl border border-slate-800 p-6 shadow-xl space-y-4">
-                {/* Header info */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1">
-                    <h4 className="text-base font-bold text-white leading-snug">{c.title}</h4>
-                    <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-pink-400" />
-                      <span>{c.advertiser?.username || 'Creator'} ({c.advertiser?.email})</span>
-                    </p>
-                  </div>
-
-                  <span
-                    className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider flex-shrink-0 ${
-                      c.status === 'ACTIVE'
-                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                        : c.status === 'PENDING_REVIEW'
-                        ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 animate-pulse'
-                        : c.status === 'REJECTED'
-                        ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                        : c.status === 'PAUSED'
-                        ? 'bg-slate-800 text-slate-400 border border-slate-700'
-                        : 'bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    {c.status === 'ACTIVE'
-                      ? '🟢 Live on Feed'
-                      : c.status === 'PENDING_REVIEW'
-                      ? '⏳ Pending Review'
-                      : c.status === 'REJECTED'
-                      ? '🔴 Rejected'
-                      : c.status}
-                  </span>
-                </div>
-
-                {/* Target YouTube Video Preview */}
-                <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center gap-3">
-                  {c.video?.thumbnailUrl ? (
-                    <img
-                      src={c.video.thumbnailUrl}
-                      alt={c.video.title}
-                      className="w-20 h-12 object-cover rounded-lg flex-shrink-0 border border-slate-800"
-                    />
-                  ) : (
-                    <div className="w-20 h-12 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
-                      <Youtube className="w-6 h-6" />
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-bold text-white truncate">{c.video?.title || 'Promoted Video'}</p>
-                    <p className="text-[11px] text-slate-400 truncate mt-0.5">
-                      {c.video?.channel?.channelTitle || 'Channel'} • {c.video?.durationSeconds || 0}s duration
-                    </p>
-                  </div>
-                  {youtubeUrl && (
-                    <a
-                      href={youtubeUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white transition-colors flex-shrink-0"
-                      title="Open Video on YouTube"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  )}
-                </div>
-
-                {/* Metrics Grid */}
-                <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-slate-400 font-semibold">Total Budget</span>
-                    <p className="font-bold text-white mt-0.5">₦{c.totalBudget.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-emerald-400 font-semibold">Remaining</span>
-                    <p className="font-bold text-emerald-400 mt-0.5">₦{c.remainingBudget.toLocaleString()}</p>
-                  </div>
-                  <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
-                    <span className="text-[10px] text-pink-400 font-semibold">Reward/View</span>
-                    <p className="font-bold text-white mt-0.5">₦{c.rewardPerQualifiedView}</p>
-                  </div>
-                </div>
-
-                {/* Spent Progress Bar */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[11px] text-slate-400">
-                    <span>Spent: ₦{c.spentBudget.toLocaleString()}</span>
-                    <span>{spentPercent}%</span>
-                  </div>
-                  <div className="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
-                    <div className="bg-gradient-to-r from-[#FF0091] to-[#360099] h-2 rounded-full" style={{ width: `${spentPercent}%` }} />
-                  </div>
-                </div>
-
-                {/* Moderation Notes if rejected */}
-                {c.reviewNote && (
-                  <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-300">
-                    <span className="text-slate-500 font-semibold">Moderator Note:</span> {c.reviewNote}
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="pt-2 border-t border-slate-800 flex items-center justify-end gap-2">
-                  {c.status !== 'ACTIVE' && (
-                    <button
-                      type="button"
-                      onClick={() => handleReviewAction(c.id, 'APPROVE')}
-                      disabled={actionLoading === c.id}
-                      className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-1.5 disabled:opacity-50"
-                    >
-                      {actionLoading === c.id ? (
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      ) : (
-                        <Check className="w-3.5 h-3.5" />
-                      )}
-                      Approve & Push to Feed
-                    </button>
-                  )}
-
-                  {c.status === 'ACTIVE' && (
-                    <button
-                      type="button"
-                      onClick={() => handleReviewAction(c.id, 'PAUSE')}
-                      disabled={actionLoading === c.id}
-                      className="px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 font-bold text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
-                    >
-                      <Pause className="w-3.5 h-3.5" /> Pause
-                    </button>
-                  )}
-
-                  {c.status !== 'REJECTED' && (
-                    <button
-                      type="button"
-                      onClick={() => setRejectModalCampaign(c)}
-                      disabled={actionLoading === c.id}
-                      className="px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 font-bold text-xs transition-all flex items-center gap-1.5 disabled:opacity-50"
-                    >
-                      <XCircle className="w-3.5 h-3.5" /> Reject
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Reject Reason Modal */}
-      {rejectModalCampaign && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <XCircle className="w-5 h-5 text-rose-500" />
-              Reject Campaign Promotion
-            </h3>
-            <p className="text-xs text-slate-400">
-              Provide a reason for rejecting <strong className="text-white">{rejectModalCampaign.title}</strong>. This note will be visible to the creator.
+      {/* Campaigns Table Container */}
+      <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
+        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-white">Campaign Directory</h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Showing {totalItems} total campaigns under {activeTab.replace('_', ' ')}
             </p>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">Rejection Reason</label>
-              <textarea
-                rows={3}
-                required
-                placeholder="e.g. Video content violates platform policies or is age-restricted..."
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-rose-500"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setRejectModalCampaign(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold hover:text-white"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleReviewAction(rejectModalCampaign.id, 'REJECT', rejectReason)}
-                disabled={actionLoading === rejectModalCampaign.id}
-                className="px-4 py-2 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 transition-colors"
-              >
-                Confirm Rejection
-              </button>
-            </div>
           </div>
         </div>
+
+        {loading ? (
+          <div className="p-12 text-center text-slate-500 text-xs flex items-center justify-center gap-2">
+            <RefreshCw className="w-4 h-4 animate-spin text-pink-500" /> Loading campaigns...
+          </div>
+        ) : totalItems === 0 ? (
+          <div className="p-12 text-center text-slate-500 text-xs space-y-2">
+            <Layers className="w-10 h-10 mx-auto text-slate-700" />
+            <p className="font-semibold text-slate-400">No campaigns found under "{activeTab.replace('_', ' ')}".</p>
+          </div>
+        ) : (
+          <>
+            {/* Desktop / Tablet Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-300">
+                <thead className="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
+                  <tr>
+                    <th className="py-3.5 px-4">Campaign & Creator</th>
+                    <th className="py-3.5 px-4">Promoted Video</th>
+                    <th className="py-3.5 px-4">Budget & Spend</th>
+                    <th className="py-3.5 px-4">Reward/View</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {paginatedCampaigns.map((c) => {
+                    const spentPercent = Math.min(100, Math.round((c.spentBudget / (c.totalBudget || 1)) * 100));
+                    const isPending = c.status === 'PENDING_REVIEW';
+                    const isActive = c.status === 'ACTIVE';
+
+                    return (
+                      <tr
+                        key={c.id}
+                        onClick={() => setSelectedCampaign(c)}
+                        className="hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                      >
+                        {/* Title & Creator */}
+                        <td className="py-3.5 px-4">
+                          <p className="font-bold text-white group-hover:text-pink-300 transition-colors leading-snug">
+                            {c.title}
+                          </p>
+                          <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <User className="w-3 h-3 text-pink-400" />
+                            @{c.advertiser?.username || 'Creator'} ({c.advertiser?.email})
+                          </p>
+                        </td>
+
+                        {/* Video */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-2.5">
+                            {c.video?.thumbnailUrl ? (
+                              <img
+                                src={c.video.thumbnailUrl}
+                                alt={c.video.title}
+                                className="w-14 h-9 object-cover rounded-md flex-shrink-0 border border-slate-800"
+                              />
+                            ) : (
+                              <div className="w-14 h-9 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
+                                <Youtube className="w-4 h-4" />
+                              </div>
+                            )}
+                            <div className="min-w-0 max-w-[200px]">
+                              <p className="font-semibold text-slate-200 truncate text-[11px]">
+                                {c.video?.title || 'YouTube Video'}
+                              </p>
+                              <p className="text-[10px] text-slate-400 truncate">
+                                {c.video?.channel?.channelTitle || 'Channel'}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Budget */}
+                        <td className="py-3.5 px-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-[11px]">
+                              <span className="font-bold text-white">₦{c.totalBudget.toLocaleString()}</span>
+                              <span className="text-slate-400">({spentPercent}% spent)</span>
+                            </div>
+                            <div className="w-28 bg-slate-950 rounded-full h-1.5 overflow-hidden border border-slate-800">
+                              <div
+                                className="bg-gradient-to-r from-[#FF0091] to-[#360099] h-1.5 rounded-full"
+                                style={{ width: `${spentPercent}%` }}
+                              />
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Reward */}
+                        <td className="py-3.5 px-4 font-bold text-pink-300">
+                          ₦{c.rewardPerQualifiedView}
+                        </td>
+
+                        {/* Status */}
+                        <td className="py-3.5 px-4">
+                          <span
+                            className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
+                              isActive
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                : isPending
+                                ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30 animate-pulse'
+                                : c.status === 'REJECTED'
+                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                                : 'bg-slate-800 text-slate-400 border border-slate-700'
+                            }`}
+                          >
+                            {isActive
+                              ? 'Live on Feed'
+                              : isPending
+                              ? 'Pending Review'
+                              : c.status}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3.5 px-4 text-right">
+                          <div
+                            className="flex items-center justify-end gap-1.5"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {isPending && (
+                              <button
+                                onClick={() => openApproveModal(c)}
+                                className="px-2.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1 transition-all"
+                              >
+                                <Check className="w-3.5 h-3.5" /> Approve
+                              </button>
+                            )}
+
+                            {isActive && (
+                              <button
+                                onClick={() => openPauseModal(c)}
+                                className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 font-bold text-xs flex items-center gap-1 transition-all"
+                              >
+                                <Pause className="w-3.5 h-3.5" /> Pause
+                              </button>
+                            )}
+
+                            {c.status !== 'REJECTED' && (
+                              <button
+                                onClick={() => openRejectModal(c)}
+                                className="px-2.5 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 font-bold text-xs flex items-center gap-1 transition-all"
+                              >
+                                <X className="w-3.5 h-3.5" /> Reject
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Adaptive Cards View */}
+            <div className="md:hidden divide-y divide-slate-800/80">
+              {paginatedCampaigns.map((c) => {
+                const spentPercent = Math.min(100, Math.round((c.spentBudget / (c.totalBudget || 1)) * 100));
+                const isPending = c.status === 'PENDING_REVIEW';
+                const isActive = c.status === 'ACTIVE';
+
+                return (
+                  <div
+                    key={c.id}
+                    onClick={() => setSelectedCampaign(c)}
+                    className="p-4 space-y-3 active:bg-slate-800/40 transition-colors"
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-white text-sm leading-snug">{c.title}</p>
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
+                          <User className="w-3 h-3 text-pink-400" />
+                          @{c.advertiser?.username || 'Creator'}
+                        </p>
+                      </div>
+
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0 ${
+                          isActive
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                            : isPending
+                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                        }`}
+                      >
+                        {c.status}
+                      </span>
+                    </div>
+
+                    {/* Video Card */}
+                    <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center gap-2.5">
+                      {c.video?.thumbnailUrl ? (
+                        <img
+                          src={c.video.thumbnailUrl}
+                          alt={c.video.title}
+                          className="w-16 h-10 object-cover rounded-lg flex-shrink-0 border border-slate-800"
+                        />
+                      ) : (
+                        <div className="w-16 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
+                          <Youtube className="w-5 h-5" />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-white truncate">{c.video?.title || 'YouTube Video'}</p>
+                        <p className="text-[10px] text-slate-400 truncate">
+                          {c.video?.channel?.channelTitle || 'Channel'} • ₦{c.rewardPerQualifiedView}/view
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Budget Progress */}
+                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1.5 text-xs">
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-slate-400">Total Budget:</span>
+                        <span className="font-bold text-white">₦{c.totalBudget.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-[11px]">
+                        <span className="text-slate-400">Remaining:</span>
+                        <span className="font-bold text-emerald-400">₦{c.remainingBudget.toLocaleString()}</span>
+                      </div>
+                      <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800 mt-1">
+                        <div
+                          className="bg-gradient-to-r from-[#FF0091] to-[#360099] h-1.5 rounded-full"
+                          style={{ width: `${spentPercent}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div
+                      className="flex items-center gap-2 pt-1"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {isPending && (
+                        <button
+                          onClick={() => openApproveModal(c)}
+                          className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow transition-all flex items-center justify-center gap-1"
+                        >
+                          <Check className="w-3.5 h-3.5" /> Approve Feed
+                        </button>
+                      )}
+
+                      {isActive && (
+                        <button
+                          onClick={() => openPauseModal(c)}
+                          className="flex-1 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center justify-center gap-1"
+                        >
+                          <Pause className="w-3.5 h-3.5" /> Pause
+                        </button>
+                      )}
+
+                      {c.status !== 'REJECTED' && (
+                        <button
+                          onClick={() => openRejectModal(c)}
+                          className="flex-1 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center justify-center gap-1"
+                        >
+                          <X className="w-3.5 h-3.5" /> Reject
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={(newSize) => {
+                setPageSize(newSize);
+                setCurrentPage(1);
+              }}
+            />
+          </>
+        )}
+      </div>
+
+      {/* Slide-Over Detail Drawer */}
+      {selectedCampaign && (
+        <DetailDrawer
+          isOpen={Boolean(selectedCampaign)}
+          onClose={() => setSelectedCampaign(null)}
+          title={selectedCampaign.title}
+          subtitle={`By @${selectedCampaign.advertiser?.username || 'Creator'}`}
+          badge={
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                selectedCampaign.status === 'ACTIVE'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  : selectedCampaign.status === 'PENDING_REVIEW'
+                  ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                  : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+              }`}
+            >
+              {selectedCampaign.status}
+            </span>
+          }
+          icon={<Layers className="w-5 h-5 text-pink-500" />}
+          footerActions={
+            <>
+              {selectedCampaign.status !== 'ACTIVE' && (
+                <button
+                  type="button"
+                  onClick={() => openApproveModal(selectedCampaign)}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" /> Approve & Push Live
+                </button>
+              )}
+              {selectedCampaign.status === 'ACTIVE' && (
+                <button
+                  type="button"
+                  onClick={() => openPauseModal(selectedCampaign)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center justify-center gap-1.5"
+                >
+                  <Pause className="w-4 h-4" /> Pause Campaign
+                </button>
+              )}
+              {selectedCampaign.status !== 'REJECTED' && (
+                <button
+                  type="button"
+                  onClick={() => openRejectModal(selectedCampaign)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center justify-center gap-1.5"
+                >
+                  <X className="w-4 h-4" /> Reject Campaign
+                </button>
+              )}
+            </>
+          }
+        >
+          {/* Target Video Section */}
+          <DrawerSection title="Promoted YouTube Video">
+            {selectedCampaign.video?.thumbnailUrl && (
+              <div className="rounded-xl overflow-hidden border border-slate-800 mb-2">
+                <img
+                  src={selectedCampaign.video.thumbnailUrl}
+                  alt={selectedCampaign.video.title}
+                  className="w-full h-40 object-cover"
+                />
+              </div>
+            )}
+            <DrawerItem label="Video Title" value={selectedCampaign.video?.title || 'N/A'} />
+            <DrawerItem
+              label="Channel"
+              value={selectedCampaign.video?.channel?.channelTitle || 'N/A'}
+            />
+            <DrawerItem
+              label="Duration"
+              value={`${selectedCampaign.video?.durationSeconds || 0} seconds`}
+            />
+            {selectedCampaign.video?.youtubeVideoId && (
+              <div className="pt-2">
+                <a
+                  href={`https://www.youtube.com/watch?v=${selectedCampaign.video.youtubeVideoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-2 rounded-xl bg-red-600/10 hover:bg-red-600/20 border border-red-600/30 text-red-300 text-xs font-bold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Youtube className="w-4 h-4 text-red-500" /> Watch on YouTube <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            )}
+          </DrawerSection>
+
+          {/* Budget Section */}
+          <DrawerSection title="Budget & Pricing Breakdown">
+            <DrawerItem
+              label="Total Allocated Budget"
+              value={`₦${selectedCampaign.totalBudget.toLocaleString()}`}
+            />
+            <DrawerItem
+              label="Spent Budget"
+              value={`₦${selectedCampaign.spentBudget.toLocaleString()}`}
+            />
+            <DrawerItem
+              label="Remaining Available Budget"
+              value={`₦${selectedCampaign.remainingBudget.toLocaleString()}`}
+            />
+            <DrawerItem
+              label="Reward per Qualified View"
+              value={`₦${selectedCampaign.rewardPerQualifiedView}`}
+            />
+          </DrawerSection>
+
+          {/* Advertiser Section */}
+          <DrawerSection title="Advertiser / Creator Profile">
+            <DrawerItem
+              label="Creator Username"
+              value={`@${selectedCampaign.advertiser?.username}`}
+              copyable
+            />
+            <DrawerItem
+              label="Creator Email"
+              value={selectedCampaign.advertiser?.email || 'N/A'}
+              copyable
+            />
+            <DrawerItem label="Advertiser ID" value={selectedCampaign.advertiserId} copyable />
+          </DrawerSection>
+
+          {/* Review Notes if any */}
+          {selectedCampaign.reviewNote && (
+            <DrawerSection title="Moderation Note">
+              <p className="text-slate-300 leading-relaxed">{selectedCampaign.reviewNote}</p>
+            </DrawerSection>
+          )}
+        </DetailDrawer>
       )}
+
+      {/* Custom Admin Action Modal */}
+      <AdminActionModal
+        isOpen={actionModalConfig.isOpen}
+        onClose={() => setActionModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={handleConfirmAction}
+        title={actionModalConfig.title}
+        description={actionModalConfig.description}
+        variant={actionModalConfig.variant}
+        confirmText={actionModalConfig.confirmText}
+        isPrompt={actionModalConfig.isPrompt}
+        isTextArea={true}
+        inputRequired={actionModalConfig.action === 'REJECT'}
+        inputLabel={actionModalConfig.inputLabel}
+        inputPlaceholder={actionModalConfig.inputPlaceholder}
+        details={actionModalConfig.details}
+        loading={actionLoading}
+      />
     </div>
   );
 };
