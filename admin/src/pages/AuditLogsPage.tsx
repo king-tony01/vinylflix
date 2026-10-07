@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { apiRequest } from '../lib/api.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   FileText,
   RefreshCw,
@@ -183,42 +184,45 @@ export const AuditLogsPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Adaptive Cards View */}
-            <div className="md:hidden divide-y divide-slate-800/80">
-              {logs.map((log) => {
-                return (
-                  <div
-                    key={log.id}
-                    onClick={() => setSelectedLog(log)}
-                    className="p-4 space-y-2.5 active:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="font-bold text-white px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[10px]">
-                        {log.action}
-                      </span>
-                      <span className="text-[10px] font-mono text-slate-500">
-                        {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-
-                    <div className="bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-xs space-y-1.5">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Actor:</span>
-                        <span className="font-semibold text-purple-400">{log.actor?.username || 'SYSTEM'}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[11px] font-mono">
-                        <span className="text-slate-400">Target:</span>
-                        <span className="text-slate-300">{log.targetType}:{log.targetId ? log.targetId.substring(0, 8) + '...' : '-'}</span>
-                      </div>
-                      {log.reason && (
-                        <p className="text-[11px] text-slate-400 pt-1 border-t border-slate-900 leading-relaxed">
-                          {log.reason}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            {/* Mobile Table View (100% responsive, zero horizontal overflow) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {logs.map((log) => {
+                  return (
+                    <MobileTableRow
+                      key={log.id}
+                      onClick={() => setSelectedLog(log)}
+                      avatar={
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                      }
+                      title={log.action}
+                      subtitle={`${new Date(log.createdAt).toLocaleDateString()} ${new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
+                      badge={
+                        <span className="font-bold text-white px-2.5 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-[10px] flex-shrink-0">
+                          {log.targetType}
+                        </span>
+                      }
+                      dataGrid={
+                        <>
+                          <MobileDataCell label="Actor" value={log.actor?.username || 'SYSTEM'} highlight highlightColor="text-purple-300 font-bold" />
+                          <MobileDataCell label="Target Entity" value={`${log.targetType}:${log.targetId ? log.targetId.substring(0, 8) + '...' : '-'}`} copyable={Boolean(log.targetId)} />
+                          {log.reason && <MobileDataCell label="Audit Note" value={log.reason} />}
+                        </>
+                      }
+                      actions={
+                        <button
+                          onClick={() => setSelectedLog(log)}
+                          className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <Info className="w-3.5 h-3.5 text-purple-400" /> View Event Payload
+                        </button>
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination */}

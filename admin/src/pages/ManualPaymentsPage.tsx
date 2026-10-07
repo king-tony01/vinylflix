@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   CreditCard,
   CheckCircle2,
@@ -425,110 +426,92 @@ export const ManualPaymentsPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Adaptive Cards View (visible on < md) */}
-            <div className="md:hidden divide-y divide-slate-800/80">
-              {paginatedPayments.map((p) => {
-                let planName = 'Membership';
-                try {
-                  const meta = JSON.parse(p.metadataJson || '{}');
-                  if (meta.planName) planName = meta.planName;
-                } catch {}
+            {/* Mobile Table View (Visible on < md screens, 100% responsive, zero horizontal overflow) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {paginatedPayments.map((p) => {
+                  let planName = 'Membership';
+                  try {
+                    const meta = JSON.parse(p.metadataJson || '{}');
+                    if (meta.planName) planName = meta.planName;
+                  } catch {}
 
-                const isPending = p.status === 'PENDING_REVIEW';
-                const isSettled = p.status === 'SETTLED';
+                  const isPending = p.status === 'PENDING_REVIEW';
+                  const isSettled = p.status === 'SETTLED';
 
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedPayment(p)}
-                    className="p-4 space-y-3 active:bg-slate-800/40 transition-colors"
-                  >
-                    {/* User Header & Status */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-white text-sm flex items-center gap-1.5">
-                          <UserIcon className="w-3.5 h-3.5 text-[#FF0091] flex-shrink-0" />
-                          <span className="truncate">@{p.user?.username || 'Unknown'}</span>
-                        </p>
-                        <p className="text-[11px] text-slate-400 truncate">{p.user?.email}</p>
-                      </div>
-
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 ${
-                          isPending
-                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
-                            : isSettled
-                            ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
-                        }`}
-                      >
-                        {p.status}
-                      </span>
-                    </div>
-
-                    {/* Metadata Card Box */}
-                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2 text-xs">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Plan:</span>
-                        <span className="font-bold text-pink-300">{planName}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Transfer Amount:</span>
-                        <span className="font-bold text-white text-sm">₦{p.amount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[11px]">
-                        <span className="text-slate-400">Sender:</span>
-                        <span className="text-slate-200 font-medium truncate max-w-[160px]">
-                          {p.senderAccountName || 'N/A'} ({p.senderBankName || 'Bank'})
+                  return (
+                    <MobileTableRow
+                      key={p.id}
+                      onClick={() => setSelectedPayment(p)}
+                      avatar={
+                        <div className="w-8 h-8 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-[#FF0091]">
+                          <UserIcon className="w-4 h-4" />
+                        </div>
+                      }
+                      title={`@${p.user?.username || 'Unknown'}`}
+                      subtitle={p.user?.email}
+                      badge={
+                        <span
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            isPending
+                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                              : isSettled
+                              ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-rose-500/10 text-rose-300 border border-rose-500/30'
+                          }`}
+                        >
+                          {p.status}
                         </span>
-                      </div>
-                      <div className="flex justify-between items-center text-[10px] text-slate-500 pt-1 border-t border-slate-900">
-                        <span className="font-mono">{p.reference}</span>
-                        <span>{new Date(p.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-
-                    {/* Actions Row */}
-                    <div
-                      className="flex items-center gap-2 pt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {p.proofOfPaymentUrl && (
-                        <button
-                          onClick={() => setReceiptImageModal(p.proofOfPaymentUrl)}
-                          className="flex-1 py-2 rounded-xl bg-pink-500/10 border border-pink-500/20 text-pink-300 text-xs font-bold flex items-center justify-center gap-1.5"
-                        >
-                          <Eye className="w-3.5 h-3.5" /> Receipt
-                        </button>
-                      )}
-
-                      {isPending ? (
+                      }
+                      dataGrid={
                         <>
-                          <button
-                            onClick={() => openApproveModal(p)}
-                            className="flex-1 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-md shadow-emerald-500/20"
-                          >
-                            <Check className="w-3.5 h-3.5" /> Approve
-                          </button>
-                          <button
-                            onClick={() => openRejectModal(p)}
-                            className="flex-1 py-2 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center justify-center gap-1"
-                          >
-                            <X className="w-3.5 h-3.5" /> Reject
-                          </button>
+                          <MobileDataCell label="Plan / Purpose" value={planName} highlight highlightColor="text-pink-300" />
+                          <MobileDataCell label="Transfer Amount" value={`₦${p.amount.toLocaleString()}`} highlight highlightColor="text-white font-bold" />
+                          <MobileDataCell label="Sender" value={`${p.senderAccountName || 'N/A'} (${p.senderBankName || 'Bank'})`} />
+                          <MobileDataCell label="Reference" value={p.reference} copyable />
+                          <MobileDataCell label="Date" value={new Date(p.createdAt).toLocaleDateString()} />
                         </>
-                      ) : (
-                        <button
-                          onClick={() => setSelectedPayment(p)}
-                          className="w-full py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold flex items-center justify-center gap-1"
-                        >
-                          <Info className="w-3.5 h-3.5" /> View Details
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                      }
+                      actions={
+                        <div className="flex items-center gap-2">
+                          {p.proofOfPaymentUrl && (
+                            <button
+                              onClick={() => setReceiptImageModal(p.proofOfPaymentUrl)}
+                              className="flex-1 py-2.5 rounded-xl bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/25 text-pink-300 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Receipt
+                            </button>
+                          )}
+
+                          {isPending ? (
+                            <>
+                              <button
+                                onClick={() => openApproveModal(p)}
+                                className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-md shadow-emerald-500/20 transition-all"
+                              >
+                                <Check className="w-3.5 h-3.5" /> Approve
+                              </button>
+                              <button
+                                onClick={() => openRejectModal(p)}
+                                className="flex-1 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center justify-center gap-1 transition-all"
+                              >
+                                <X className="w-3.5 h-3.5" /> Reject
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => setSelectedPayment(p)}
+                              className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                            >
+                              <Info className="w-3.5 h-3.5 text-pink-400" /> View Full Details
+                            </button>
+                          )}
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination Controls */}

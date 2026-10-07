@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   Film,
   Plus,
@@ -577,41 +578,42 @@ export const VideoManagementPage: React.FC = () => {
               </table>
             </div>
 
-            {/* 2. MOBILE ADAPTIVE CARDS (< md screens, 100% viewport width, zero horizontal scroll) */}
-            <div className="block md:hidden divide-y divide-slate-800/80">
-              {videos.map((video) => {
-                const isPublic = video.availabilityStatus === 'PUBLIC';
+            {/* 2. MOBILE TABLE VIEW (< md screens, 100% viewport width, zero horizontal scroll) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {videos.map((video) => {
+                  const isPublic = video.availabilityStatus === 'PUBLIC';
+                  const activeCampaign = video.campaigns?.find((c) => c.status === 'ACTIVE');
 
-                return (
-                  <div
-                    key={video.id}
-                    onClick={() => setSelectedVideo(video)}
-                    className="p-3.5 hover:bg-slate-800/40 transition-colors cursor-pointer space-y-3"
-                  >
-                    {/* Top Row: Thumbnail + Title + Type Badge */}
-                    <div className="flex items-start gap-3">
-                      <div className="relative w-20 h-14 rounded-xl bg-black overflow-hidden flex-shrink-0 border border-slate-800">
-                        {video.thumbnailUrl ? (
-                          <img
-                            src={video.thumbnailUrl}
-                            alt={video.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-slate-950 text-slate-600">
-                            <Film className="w-5 h-5" />
+                  return (
+                    <MobileTableRow
+                      key={video.id}
+                      onClick={() => setSelectedVideo(video)}
+                      avatar={
+                        <div className="relative w-16 h-11 rounded-lg bg-black overflow-hidden flex-shrink-0 border border-slate-800">
+                          {video.thumbnailUrl ? (
+                            <img
+                              src={video.thumbnailUrl}
+                              alt={video.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-slate-950 text-slate-600">
+                              <Film className="w-4 h-4" />
+                            </div>
+                          )}
+                          <div className="absolute bottom-0.5 right-0.5 bg-black/85 px-1 rounded text-[7px] font-mono text-white">
+                            {formatDuration(video.durationSeconds)}
                           </div>
-                        )}
-                        <div className="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[8px] font-mono text-white">
-                          {formatDuration(video.durationSeconds)}
                         </div>
-                      </div>
-
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center justify-between gap-1">
+                      }
+                      title={video.title}
+                      subtitle={video.channel?.channelTitle || 'Platform Curated'}
+                      badge={
+                        <div className="flex flex-col items-end gap-1">
                           {video.isCurated ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                              <Sparkles className="w-2.5 h-2.5" /> Free Stream
+                              <Sparkles className="w-2.5 h-2.5" /> Free
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold bg-pink-500/10 text-pink-400 border border-pink-500/20">
@@ -626,68 +628,64 @@ export const VideoManagementPage: React.FC = () => {
                                 : 'bg-slate-800 text-slate-400 border-slate-700'
                             }`}
                           >
-                            <span
-                              className={`w-1.5 h-1.5 rounded-full ${
-                                isPublic ? 'bg-emerald-400' : 'bg-slate-500'
-                              }`}
-                            />
+                            <span className={`w-1.5 h-1.5 rounded-full ${isPublic ? 'bg-emerald-400' : 'bg-slate-500'}`} />
                             {isPublic ? 'Live' : 'Hidden'}
                           </span>
                         </div>
+                      }
+                      dataGrid={
+                        <>
+                          <MobileDataCell label="YouTube Video ID" value={video.youtubeVideoId} copyable />
+                          <MobileDataCell label="Watch Sessions" value={`${video.watchCount.toLocaleString()} views`} highlight highlightColor="text-white font-bold" />
+                          {activeCampaign && (
+                            <MobileDataCell label="View Reward" value={`₦${activeCampaign.rewardPerQualifiedView}/view`} highlight highlightColor="text-pink-300" />
+                          )}
+                        </>
+                      }
+                      actions={
+                        <div className="flex items-center justify-between gap-1.5">
+                          <button
+                            onClick={() => handleToggleVisibility(video)}
+                            disabled={actionLoadingId === video.id}
+                            className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-colors flex items-center justify-center gap-1.5 ${
+                              isPublic
+                                ? 'bg-slate-900 border-slate-800 text-slate-300 hover:text-amber-400'
+                                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            }`}
+                          >
+                            {isPublic ? <EyeOff className="w-3.5 h-3.5 text-amber-400" /> : <Eye className="w-3.5 h-3.5 text-emerald-400" />}
+                            {isPublic ? 'Hide Feed' : 'Publish Live'}
+                          </button>
 
-                        <h4 className="font-bold text-white text-xs line-clamp-2 leading-snug">
-                          {video.title}
-                        </h4>
-                        <p className="text-[11px] text-slate-400 truncate">
-                          {video.channel?.channelTitle || 'Platform Curated'}
-                        </p>
-                      </div>
-                    </div>
+                          <button
+                            onClick={() => handleOpenEditModal(video)}
+                            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-pink-400 transition-colors"
+                            title="Edit Video"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
 
-                    {/* Bottom Row: Views & Quick Actions */}
-                    <div
-                      className="flex items-center justify-between pt-1 border-t border-slate-800/40 text-xs text-slate-400"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span className="font-mono text-[11px] text-slate-300">
-                        {video.watchCount.toLocaleString()} views
-                      </span>
+                          <button
+                            onClick={() => setDeleteModalVideo(video)}
+                            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-rose-400 transition-colors"
+                            title="Remove Video"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
 
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleToggleVisibility(video)}
-                          disabled={actionLoadingId === video.id}
-                          className="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 text-[11px] font-semibold flex items-center gap-1"
-                        >
-                          {isPublic ? <EyeOff className="w-3 h-3 text-amber-400" /> : <Eye className="w-3 h-3 text-emerald-400" />}
-                          {isPublic ? 'Hide' : 'Show'}
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenEditModal(video)}
-                          className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-
-                        <button
-                          onClick={() => setDeleteModalVideo(video)}
-                          className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-slate-400 hover:text-rose-400"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-
-                        <button
-                          onClick={() => setSelectedVideo(video)}
-                          className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 text-pink-400"
-                        >
-                          <ChevronRight className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+                          <button
+                            onClick={() => setSelectedVideo(video)}
+                            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-pink-400 hover:text-white transition-colors"
+                            title="Inspect Details"
+                          >
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination Controls */}

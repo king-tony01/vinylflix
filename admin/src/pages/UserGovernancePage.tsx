@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   Users,
   Search,
@@ -362,80 +363,69 @@ export const UserGovernancePage: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Adaptive Cards View */}
-            <div className="md:hidden divide-y divide-slate-800/80">
-              {users.map((u) => {
-                const isSuspended = u.status === 'SUSPENDED';
-                const riskScore = u.riskScore?.score || 0;
+            {/* Mobile Table View (100% responsive, zero horizontal overflow) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {users.map((u) => {
+                  const isSuspended = u.status === 'SUSPENDED';
+                  const riskScore = u.riskScore?.score || 0;
 
-                return (
-                  <div
-                    key={u.id}
-                    onClick={() => setSelectedUser(u)}
-                    className="p-4 space-y-3 active:bg-slate-800/40 transition-colors"
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-bold text-white text-sm truncate">{u.username}</p>
-                          <span className="font-semibold px-2 py-0.2 rounded-full bg-slate-800 border border-slate-700 text-slate-300 text-[10px]">
-                            {u.role}
-                          </span>
+                  return (
+                    <MobileTableRow
+                      key={u.id}
+                      onClick={() => setSelectedUser(u)}
+                      avatar={
+                        <div className="w-8 h-8 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 font-bold text-xs">
+                          {u.username?.[0]?.toUpperCase() || 'U'}
                         </div>
-                        <p className="text-[11px] text-slate-400 truncate">{u.email}</p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
-                          Referral Code: <span className="font-mono text-purple-400">{u.referralCode}</span>
-                        </p>
-                      </div>
-
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                          u.status === 'ACTIVE'
-                            ? 'bg-emerald-500/10 text-emerald-400'
-                            : 'bg-rose-500/10 text-rose-400'
-                        }`}
-                      >
-                        {u.status}
-                      </span>
-                    </div>
-
-                    {/* Metadata Box */}
-                    <div className="grid grid-cols-2 gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800/80 text-xs">
-                      <div>
-                        <span className="text-[10px] text-slate-400">Available:</span>
-                        <p className="font-bold text-emerald-400">₦{(u.wallet?.availableBalance || 0).toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400">Risk Score:</span>
-                        <p className="font-bold text-slate-300">{riskScore}/100</p>
-                      </div>
-                    </div>
-
-                    {/* Action Button */}
-                    <div
-                      className="pt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {isSuspended ? (
-                        <button
-                          onClick={() => openStatusChangeModal(u, 'ACTIVE')}
-                          className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5"
+                      }
+                      title={`@${u.username}`}
+                      subtitle={`${u.email} • Code: ${u.referralCode}`}
+                      badge={
+                        <span
+                          className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full flex-shrink-0 ${
+                            u.status === 'ACTIVE'
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                          }`}
                         >
-                          <Unlock className="w-3.5 h-3.5" /> Restore Account Access
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => openStatusChangeModal(u, 'SUSPENDED')}
-                          className="w-full py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center justify-center gap-1.5"
-                        >
-                          <Lock className="w-3.5 h-3.5" /> Suspend Account
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                          {u.status}
+                        </span>
+                      }
+                      dataGrid={
+                        <>
+                          <MobileDataCell label="Assigned Role" value={u.role} highlight highlightColor="text-purple-300" />
+                          <MobileDataCell label="Available Balance" value={`₦${(u.wallet?.availableBalance || 0).toLocaleString()}`} highlight highlightColor="text-emerald-400 font-bold" />
+                          <MobileDataCell label="Locked Balance" value={`₦${(u.wallet?.lockedBalance || 0).toLocaleString()}`} />
+                          <MobileDataCell
+                            label="Risk Score"
+                            value={`${riskScore}/100`}
+                            highlight
+                            highlightColor={riskScore >= 50 ? 'text-rose-400 font-bold' : 'text-slate-300'}
+                          />
+                        </>
+                      }
+                      actions={
+                        isSuspended ? (
+                          <button
+                            onClick={() => openStatusChangeModal(u, 'ACTIVE')}
+                            className="w-full py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <Unlock className="w-3.5 h-3.5" /> Restore Account Access
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openStatusChangeModal(u, 'SUSPENDED')}
+                            className="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <Lock className="w-3.5 h-3.5" /> Suspend Account
+                          </button>
+                        )
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination Controls */}

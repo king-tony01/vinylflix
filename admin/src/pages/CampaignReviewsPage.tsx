@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   Layers,
   RefreshCw,
@@ -479,116 +480,88 @@ export const CampaignReviewsPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Adaptive Cards View */}
-            <div className="md:hidden divide-y divide-slate-800/80">
-              {paginatedCampaigns.map((c) => {
-                const spentPercent = Math.min(100, Math.round((c.spentBudget / (c.totalBudget || 1)) * 100));
-                const isPending = c.status === 'PENDING_REVIEW';
-                const isActive = c.status === 'ACTIVE';
+            {/* Mobile Table View (100% responsive, zero horizontal overflow) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {paginatedCampaigns.map((c) => {
+                  const spentPercent = Math.min(100, Math.round((c.spentBudget / (c.totalBudget || 1)) * 100));
+                  const isPending = c.status === 'PENDING_REVIEW';
+                  const isActive = c.status === 'ACTIVE';
 
-                return (
-                  <div
-                    key={c.id}
-                    onClick={() => setSelectedCampaign(c)}
-                    className="p-4 space-y-3 active:bg-slate-800/40 transition-colors"
-                  >
-                    {/* Header */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-white text-sm leading-snug">{c.title}</p>
-                        <p className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
-                          <User className="w-3 h-3 text-pink-400" />
-                          @{c.advertiser?.username || 'Creator'}
-                        </p>
-                      </div>
+                  return (
+                    <MobileTableRow
+                      key={c.id}
+                      onClick={() => setSelectedCampaign(c)}
+                      avatar={
+                        c.video?.thumbnailUrl ? (
+                          <img
+                            src={c.video.thumbnailUrl}
+                            alt={c.video.title}
+                            className="w-12 h-9 object-cover rounded-lg border border-slate-800"
+                          />
+                        ) : (
+                          <div className="w-12 h-9 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400">
+                            <Layers className="w-4 h-4" />
+                          </div>
+                        )
+                      }
+                      title={c.title}
+                      subtitle={`@${c.advertiser?.username || 'Creator'}`}
+                      badge={
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0 ${
+                            isActive
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              : isPending
+                              ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
+                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                          }`}
+                        >
+                          {c.status}
+                        </span>
+                      }
+                      dataGrid={
+                        <>
+                          <MobileDataCell label="Total Budget" value={`₦${c.totalBudget.toLocaleString()}`} highlight highlightColor="text-white font-bold" />
+                          <MobileDataCell label="Remaining" value={`₦${c.remainingBudget.toLocaleString()}`} highlight highlightColor="text-emerald-400 font-bold" />
+                          <MobileDataCell label="Reward/View" value={`₦${c.rewardPerQualifiedView}`} highlight highlightColor="text-pink-300" />
+                          <MobileDataCell label="Spent" value={`${spentPercent}% (₦${c.spentBudget.toLocaleString()})`} />
+                        </>
+                      }
+                      actions={
+                        <div className="flex items-center gap-2">
+                          {isPending && (
+                            <button
+                              onClick={() => openApproveModal(c)}
+                              className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1 transition-all"
+                            >
+                              <Check className="w-3.5 h-3.5" /> Approve Feed
+                            </button>
+                          )}
 
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0 ${
-                          isActive
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                            : isPending
-                            ? 'bg-amber-500/10 text-amber-300 border border-amber-500/30'
-                            : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                        }`}
-                      >
-                        {c.status}
-                      </span>
-                    </div>
+                          {isActive && (
+                            <button
+                              onClick={() => openPauseModal(c)}
+                              className="flex-1 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center justify-center gap-1 transition-all"
+                            >
+                              <Pause className="w-3.5 h-3.5" /> Pause
+                            </button>
+                          )}
 
-                    {/* Video Card */}
-                    <div className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80 flex items-center gap-2.5">
-                      {c.video?.thumbnailUrl ? (
-                        <img
-                          src={c.video.thumbnailUrl}
-                          alt={c.video.title}
-                          className="w-16 h-10 object-cover rounded-lg flex-shrink-0 border border-slate-800"
-                        />
-                      ) : (
-                        <div className="w-16 h-10 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 flex-shrink-0">
-                          <Youtube className="w-5 h-5" />
+                          {c.status !== 'REJECTED' && (
+                            <button
+                              onClick={() => openRejectModal(c)}
+                              className="flex-1 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center justify-center gap-1 transition-all"
+                            >
+                              <X className="w-3.5 h-3.5" /> Reject
+                            </button>
+                          )}
                         </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-white truncate">{c.video?.title || 'YouTube Video'}</p>
-                        <p className="text-[10px] text-slate-400 truncate">
-                          {c.video?.channel?.channelTitle || 'Channel'} • ₦{c.rewardPerQualifiedView}/view
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Budget Progress */}
-                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-1.5 text-xs">
-                      <div className="flex justify-between items-center text-[11px]">
-                        <span className="text-slate-400">Total Budget:</span>
-                        <span className="font-bold text-white">₦{c.totalBudget.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[11px]">
-                        <span className="text-slate-400">Remaining:</span>
-                        <span className="font-bold text-emerald-400">₦{c.remainingBudget.toLocaleString()}</span>
-                      </div>
-                      <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden border border-slate-800 mt-1">
-                        <div
-                          className="bg-gradient-to-r from-[#FF0091] to-[#360099] h-1.5 rounded-full"
-                          style={{ width: `${spentPercent}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div
-                      className="flex items-center gap-2 pt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {isPending && (
-                        <button
-                          onClick={() => openApproveModal(c)}
-                          className="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow transition-all flex items-center justify-center gap-1"
-                        >
-                          <Check className="w-3.5 h-3.5" /> Approve Feed
-                        </button>
-                      )}
-
-                      {isActive && (
-                        <button
-                          onClick={() => openPauseModal(c)}
-                          className="flex-1 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-xs flex items-center justify-center gap-1"
-                        >
-                          <Pause className="w-3.5 h-3.5" /> Pause
-                        </button>
-                      )}
-
-                      {c.status !== 'REJECTED' && (
-                        <button
-                          onClick={() => openRejectModal(c)}
-                          className="flex-1 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 font-bold text-xs flex items-center justify-center gap-1"
-                        >
-                          <X className="w-3.5 h-3.5" /> Reject
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination */}

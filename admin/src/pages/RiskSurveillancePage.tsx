@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   ShieldAlert,
   AlertTriangle,
@@ -348,82 +349,101 @@ export const RiskSurveillancePage: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Adaptive Cards View */}
-            <div className="md:hidden divide-y divide-slate-800/80">
-              {paginatedUsers.map((u) => {
-                const score = u.riskScore?.score || 0;
-                let flags: string[] = [];
-                try {
-                  flags = JSON.parse(u.riskScore?.flagsJson || '[]');
-                } catch {}
-                const level =
-                  u.riskScore?.riskLevel ||
-                  (score >= 80 ? 'CRITICAL' : score >= 50 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW');
-                const isSuspended = u.status === 'SUSPENDED';
+            {/* Mobile Table View (100% responsive, zero horizontal overflow) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {paginatedUsers.map((u) => {
+                  const score = u.riskScore?.score || 0;
+                  let flags: string[] = [];
+                  try {
+                    flags = JSON.parse(u.riskScore?.flagsJson || '[]');
+                  } catch {}
+                  const level =
+                    u.riskScore?.riskLevel ||
+                    (score >= 80 ? 'CRITICAL' : score >= 50 ? 'HIGH' : score >= 25 ? 'MEDIUM' : 'LOW');
+                  const isSuspended = u.status === 'SUSPENDED';
 
-                return (
-                  <div
-                    key={u.id}
-                    onClick={() => setSelectedUser(u)}
-                    className="p-4 space-y-2.5 active:bg-slate-800/40 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-white text-sm truncate">{u.username}</p>
-                        <p className="text-[11px] text-slate-400 truncate">{u.email}</p>
-                      </div>
-
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded border flex-shrink-0 ${
-                          level === 'CRITICAL' || level === 'HIGH'
-                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                            : level === 'MEDIUM'
-                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                        }`}
-                      >
-                        {level} ({score}/100)
-                      </span>
-                    </div>
-
-                    {flags.length > 0 ? (
-                      <div className="flex flex-wrap gap-1 pt-1">
-                        {flags.map((f, idx) => (
-                          <span
-                            key={idx}
-                            className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/20"
+                  return (
+                    <MobileTableRow
+                      key={u.id}
+                      onClick={() => setSelectedUser(u)}
+                      avatar={
+                        <div
+                          className={`w-8 h-8 rounded-xl border flex items-center justify-center font-bold text-xs ${
+                            score >= 50
+                              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                              : score >= 25
+                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          }`}
+                        >
+                          <ShieldAlert className="w-4 h-4" />
+                        </div>
+                      }
+                      title={`@${u.username}`}
+                      subtitle={u.email}
+                      badge={
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border flex-shrink-0 ${
+                            level === 'CRITICAL' || level === 'HIGH'
+                              ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                              : level === 'MEDIUM'
+                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          }`}
+                        >
+                          {level} ({score}/100)
+                        </span>
+                      }
+                      dataGrid={
+                        <>
+                          <MobileDataCell
+                            label="Risk Telemetry Score"
+                            value={`${score}/100`}
+                            highlight
+                            highlightColor={score >= 50 ? 'text-rose-400 font-bold' : score >= 25 ? 'text-amber-400 font-bold' : 'text-emerald-400 font-bold'}
+                          />
+                          <MobileDataCell label="Account Status" value={u.status} highlight highlightColor={u.status === 'ACTIVE' ? 'text-emerald-400' : 'text-rose-400'} />
+                          <div className="pt-1">
+                            <span className="text-slate-400 text-[11px] font-medium block mb-1">Triggered Anomalies:</span>
+                            {flags.length > 0 ? (
+                              <div className="flex flex-wrap gap-1">
+                                {flags.map((f, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/20"
+                                  >
+                                    {f}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-slate-500">No active anomalies detected</span>
+                            )}
+                          </div>
+                        </>
+                      }
+                      actions={
+                        isSuspended ? (
+                          <button
+                            onClick={() => openStatusChangeModal(u, 'ACTIVE')}
+                            className="w-full py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
                           >
-                            {f}
-                          </span>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-[11px] text-slate-500">No active anomalies detected</p>
-                    )}
-
-                    <div
-                      className="pt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {isSuspended ? (
-                        <button
-                          onClick={() => openStatusChangeModal(u, 'ACTIVE')}
-                          className="w-full py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center justify-center gap-1.5"
-                        >
-                          <Unlock className="w-3.5 h-3.5" /> Restore Account Access
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => openStatusChangeModal(u, 'SUSPENDED')}
-                          className="w-full py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center justify-center gap-1.5"
-                        >
-                          <Lock className="w-3.5 h-3.5" /> Suspend Account
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                            <Unlock className="w-3.5 h-3.5" /> Restore Account Access
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => openStatusChangeModal(u, 'SUSPENDED')}
+                            className="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                          >
+                            <Lock className="w-3.5 h-3.5" /> Suspend High-Risk Account
+                          </button>
+                        )
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination */}

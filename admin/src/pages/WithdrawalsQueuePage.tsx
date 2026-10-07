@@ -3,6 +3,7 @@ import { apiRequest } from '../lib/api.js';
 import { AdminActionModal } from '../components/AdminActionModal.js';
 import { DetailDrawer, DrawerSection, DrawerItem } from '../components/DetailDrawer.js';
 import { Pagination } from '../components/Pagination.js';
+import { MobileTable, MobileTableRow, MobileDataCell } from '../components/MobileTable.js';
 import {
   DollarSign,
   CheckCircle2,
@@ -372,86 +373,70 @@ export const WithdrawalsQueuePage: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Adaptive Cards View */}
-            <div className="md:hidden divide-y divide-slate-800/80">
-              {paginatedWithdrawals.map((w) => {
-                let bankInfo: any = {};
-                try {
-                  bankInfo = JSON.parse(w.accountDetailsJson || '{}');
-                } catch {}
-                const riskScore = w.user?.riskScore?.score || 0;
-                const isHighRisk = riskScore >= 50;
+            {/* Mobile Table View (100% responsive, zero horizontal overflow) */}
+            <div className="md:hidden">
+              <MobileTable>
+                {paginatedWithdrawals.map((w) => {
+                  let bankInfo: any = {};
+                  try {
+                    bankInfo = JSON.parse(w.accountDetailsJson || '{}');
+                  } catch {}
+                  const riskScore = w.user?.riskScore?.score || 0;
+                  const isHighRisk = riskScore >= 50;
 
-                return (
-                  <div
-                    key={w.id}
-                    onClick={() => setSelectedWithdrawal(w)}
-                    className="p-4 space-y-3 active:bg-slate-800/40 transition-colors"
-                  >
-                    {/* User Header & Risk */}
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="font-bold text-white text-sm flex items-center gap-1.5">
-                          <UserIcon className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-                          <span className="truncate">@{w.user?.username || 'User'}</span>
-                        </p>
-                        <p className="text-[11px] text-slate-400 truncate">{w.user?.email}</p>
-                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">
-                          {new Date(w.createdAt).toLocaleDateString()} {new Date(w.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 flex-shrink-0 ${
-                          isHighRisk
-                            ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
-                            : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                        }`}
-                      >
-                        {isHighRisk && <ShieldAlert className="w-3 h-3" />}
-                        Risk: {riskScore}/100
-                      </span>
-                    </div>
-
-                    {/* Metadata Box */}
-                    <div className="bg-slate-950 p-3 rounded-xl border border-slate-800/80 space-y-2 text-xs">
-                      <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Net Payout:</span>
-                        <span className="font-bold text-emerald-400 text-sm">₦{w.netAmount.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-[11px] text-slate-400">
-                        <span>Gross (Fee):</span>
-                        <span>₦{w.amount.toLocaleString()} (₦{w.fee})</span>
-                      </div>
-                      <div className="pt-1.5 border-t border-slate-900 flex justify-between items-center text-[11px]">
-                        <span className="text-slate-400 flex items-center gap-1">
-                          <Landmark className="w-3 h-3 text-slate-400" /> {bankInfo.bankName || 'Bank'}
+                  return (
+                    <MobileTableRow
+                      key={w.id}
+                      onClick={() => setSelectedWithdrawal(w)}
+                      avatar={
+                        <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                          <UserIcon className="w-4 h-4" />
+                        </div>
+                      }
+                      title={`@${w.user?.username || 'User'}`}
+                      subtitle={w.user?.email}
+                      badge={
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded border inline-flex items-center gap-1 flex-shrink-0 ${
+                            isHighRisk
+                              ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                              : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                          }`}
+                        >
+                          {isHighRisk && <ShieldAlert className="w-3 h-3" />}
+                          Risk: {riskScore}/100
                         </span>
-                        <span className="font-mono text-slate-300">{bankInfo.accountNumber}</span>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div
-                      className="grid grid-cols-2 gap-2 pt-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        onClick={() => openApproveModal(w)}
-                        className="py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow transition-all flex items-center justify-center gap-1"
-                      >
-                        <Check className="w-3.5 h-3.5" /> Approve
-                      </button>
-                      <button
-                        onClick={() => openRejectModal(w)}
-                        className="py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 font-bold text-xs transition-all flex items-center justify-center gap-1"
-                      >
-                        <X className="w-3.5 h-3.5" /> Reject
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                      }
+                      dataGrid={
+                        <>
+                          <MobileDataCell label="Net Payout" value={`₦${w.netAmount.toLocaleString()}`} highlight highlightColor="text-emerald-400 font-bold" />
+                          <MobileDataCell label="Gross & Fee" value={`₦${w.amount.toLocaleString()} (Fee: ₦${w.fee})`} />
+                          <MobileDataCell label="Bank Name" value={bankInfo.bankName || 'Bank'} />
+                          <MobileDataCell label="Account No" value={bankInfo.accountNumber || 'N/A'} copyable />
+                          <MobileDataCell label="Account Name" value={bankInfo.accountName || 'N/A'} />
+                          <MobileDataCell label="Requested" value={new Date(w.createdAt).toLocaleDateString()} />
+                        </>
+                      }
+                      actions={
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            onClick={() => openApproveModal(w)}
+                            className="py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center justify-center gap-1 transition-all"
+                          >
+                            <Check className="w-3.5 h-3.5" /> Approve
+                          </button>
+                          <button
+                            onClick={() => openRejectModal(w)}
+                            className="py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 text-rose-400 font-bold text-xs flex items-center justify-center gap-1 transition-all"
+                          >
+                            <X className="w-3.5 h-3.5" /> Reject
+                          </button>
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </MobileTable>
             </div>
 
             {/* Pagination Controls */}
