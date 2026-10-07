@@ -384,8 +384,8 @@ export const CampaignReviewsPage: React.FC = () => {
 
       {/* Reject Reason Modal */}
       {rejectModalCampaign && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <XCircle className="w-5 h-5 text-rose-500" />
               Reject Campaign Promotion

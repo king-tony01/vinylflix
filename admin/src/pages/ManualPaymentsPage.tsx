@@ -325,12 +325,12 @@ export const ManualPaymentsPage: React.FC = () => {
 
       {/* Full Receipt Modal */}
       {selectedReceiptPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-in fade-in">
+          <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[92dvh] overflow-y-auto my-auto">
             {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div>
-                <h3 className="text-lg font-black text-white flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
                   <Landmark className="w-5 h-5 text-[#FF0091]" /> Payment Proof Receipt
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
@@ -339,14 +339,14 @@ export const ManualPaymentsPage: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedReceiptPayment(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Sender Metadata Box */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-slate-950 border border-slate-800 text-xs">
               <div>
                 <span className="text-slate-500 text-[10px] uppercase font-bold">User</span>
                 <p className="font-bold text-white mt-0.5">@{selectedReceiptPayment.user?.username}</p>
@@ -362,7 +362,7 @@ export const ManualPaymentsPage: React.FC = () => {
             </div>
 
             {/* Image Preview */}
-            <div className="max-h-[60vh] overflow-auto rounded-2xl border border-slate-800 bg-slate-950/80 p-2 flex items-center justify-center">
+            <div className="max-h-[50vh] sm:max-h-[60vh] overflow-auto rounded-xl sm:rounded-2xl border border-slate-800 bg-slate-950/80 p-2 flex items-center justify-center">
               {selectedReceiptPayment.proofOfPaymentUrl?.startsWith('data:image') ||
               selectedReceiptPayment.proofOfPaymentUrl?.startsWith('http') ? (
                 <img
@@ -388,16 +388,16 @@ export const ManualPaymentsPage: React.FC = () => {
 
             {/* Modal Actions */}
             {selectedReceiptPayment.status === 'PENDING_REVIEW' && (
-              <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-800">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-2 border-t border-slate-800">
                 <button
                   onClick={() => handleReview(selectedReceiptPayment, 'REJECT')}
-                  className="px-5 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center gap-1.5 transition-all"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all"
                 >
                   <X className="w-4 h-4" /> Reject Payment
                 </button>
                 <button
                   onClick={() => handleReview(selectedReceiptPayment, 'APPROVE')}
-                  className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-lg shadow-emerald-500/30 flex items-center gap-1.5 transition-all"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-1.5 transition-all"
                 >
                   <Check className="w-4 h-4" /> Approve & Activate Plan
                 </button>
