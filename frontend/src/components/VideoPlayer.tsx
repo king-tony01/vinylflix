@@ -69,7 +69,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // Heartbeat loop
   useEffect(() => {
-    if (isPlaying && sessionToken && !isCompleted) {
+    if (isPlaying && sessionToken && !isCompleted && campaign) {
       heartbeatIntervalRef.current = setInterval(async () => {
         setWatchSeconds((prev) => {
           const next = prev + 1;

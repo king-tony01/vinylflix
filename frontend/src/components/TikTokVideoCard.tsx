@@ -137,7 +137,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
 
   // 2. Heartbeat interval (Every 5 seconds of active playback)
   useEffect(() => {
-    if (!isActive || !sessionId || !sessionToken || rewardAwarded) {
+    if (!isActive || !sessionId || !sessionToken || rewardAwarded || !campaignId) {
       if (heartbeatIntervalRef.current) clearInterval(heartbeatIntervalRef.current);
       return;
     }
@@ -152,7 +152,7 @@ export const TikTokVideoCard: React.FC<TikTokVideoCardProps> = ({
             sessionId,
             sessionToken,
             currentPositionSeconds: currentPositionRef.current,
-            isPlaying: isPlayingRef.current,
+            playbackState: isPlayingRef.current ? 'PLAYING' : 'PAUSED',
           }),
         });
 

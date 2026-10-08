@@ -90,6 +90,8 @@ export const RegisterPage: React.FC = () => {
                 placeholder="johndoe"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
+                pattern="^[a-zA-Z0-9_]+$"
+                title="Username can only contain letters, numbers, and underscores"
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-[#FF0091] transition-colors"
                 required
               />
