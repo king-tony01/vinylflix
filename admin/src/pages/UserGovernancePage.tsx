@@ -291,9 +291,20 @@ export const UserGovernancePage: React.FC = () => {
                       >
                         {/* User */}
                         <td className="py-3.5 px-4">
-                          <p className="font-bold text-white group-hover:text-purple-300 transition-colors">
-                            {u.username}
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <p className="font-bold text-white group-hover:text-purple-300 transition-colors">
+                              {u.username}
+                            </p>
+                            {(u.isEmailVerified ?? u.emailVerified) ? (
+                              <span title="Email Verified">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                              </span>
+                            ) : (
+                              <span title="Email Unverified">
+                                <AlertCircle className="w-3.5 h-3.5 text-amber-400/70 flex-shrink-0" />
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[11px] text-slate-400">
                             {u.email} • Code: <span className="font-mono text-purple-400">{u.referralCode}</span>
                           </p>
@@ -388,7 +399,16 @@ export const UserGovernancePage: React.FC = () => {
                           {u.username?.[0]?.toUpperCase() || 'U'}
                         </div>
                       }
-                      title={`@${u.username}`}
+                      title={
+                        <span className="flex items-center gap-1.5 font-bold">
+                          @{u.username}
+                          {(u.isEmailVerified ?? u.emailVerified) ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          ) : (
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-400/70" />
+                          )}
+                        </span>
+                      }
                       subtitle={`${u.email} • Code: ${u.referralCode}`}
                       badge={
                         <span
@@ -508,7 +528,22 @@ export const UserGovernancePage: React.FC = () => {
             <DrawerItem label="Assigned Role" value={selectedUser.role} />
             <DrawerItem
               label="Email Verified"
-              value={selectedUser.emailVerified ? 'Verified' : 'Unverified'}
+              value={
+                (selectedUser.isEmailVerified ?? selectedUser.emailVerified) ? (
+                  <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Verified
+                    {selectedUser.emailVerifiedAt && (
+                      <span className="text-[11px] text-slate-400 font-normal ml-1">
+                        ({new Date(selectedUser.emailVerifiedAt).toLocaleDateString()})
+                      </span>
+                    )}
+                  </span>
+                ) : (
+                  <span className="text-amber-400 font-semibold flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> Unverified
+                  </span>
+                )
+              }
             />
             {selectedUser.membership && (
               <DrawerItem
