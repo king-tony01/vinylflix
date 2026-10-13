@@ -30,8 +30,8 @@ export const WalletPage: React.FC = () => {
   const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
 
   // Bank form & real-time resolution
-  const [selectedBankCode, setSelectedBankCode] = useState<string>('999992');
-  const [bankName, setBankName] = useState<string>('OPay Digital Services (Paycom)');
+  const [selectedBankCode, setSelectedBankCode] = useState<string>('');
+  const [bankName, setBankName] = useState<string>('');
   const [accountNumber, setAccountNumber] = useState<string>('');
   const [accountName, setAccountName] = useState<string>('');
   const [resolvingAccount, setResolvingAccount] = useState<boolean>(false);
@@ -102,6 +102,11 @@ export const WalletPage: React.FC = () => {
 
     if (isNaN(amountNum) || amountNum < minWithdrawalAmount) {
       toast.error(`Minimum withdrawal amount is ₦${minWithdrawalAmount.toLocaleString()}`);
+      return;
+    }
+
+    if (!bankName || !selectedBankCode) {
+      toast.error('Please select your destination bank');
       return;
     }
 
@@ -458,6 +463,7 @@ export const WalletPage: React.FC = () => {
                 </label>
                 <BankSelect
                   value={bankName || selectedBankCode}
+                  placeholder="Select destination bank..."
                   onChange={(name, code) => {
                     setBankName(name);
                     if (code) setSelectedBankCode(code);

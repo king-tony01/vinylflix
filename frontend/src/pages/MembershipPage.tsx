@@ -42,7 +42,7 @@ export const MembershipPage: React.FC = () => {
   const [selectedPlanForTransfer, setSelectedPlanForTransfer] = useState<any | null>(null);
   const [copied, setCopied] = useState<boolean>(false);
   const [senderAccountName, setSenderAccountName] = useState<string>('');
-  const [senderBankName, setSenderBankName] = useState<string>('OPay Digital Services Limited (Paycom)');
+  const [senderBankName, setSenderBankName] = useState<string>('');
   const [customBankName, setCustomBankName] = useState<string>('');
   const [proofFileBase64, setProofFileBase64] = useState<string>('');
   const [proofFileName, setProofFileName] = useState<string>('');
@@ -92,7 +92,7 @@ export const MembershipPage: React.FC = () => {
     }
     setSelectedPlanForTransfer(plan);
     setSenderAccountName('');
-    setSenderBankName('OPay');
+    setSenderBankName('');
     setCustomBankName('');
     setProofFileBase64('');
     setProofFileName('');
@@ -399,6 +399,7 @@ export const MembershipPage: React.FC = () => {
                   <BankSelect
                     value={senderBankName}
                     onChange={setSenderBankName}
+                    placeholder="Select your sending bank..."
                   />
                 </div>
 
