@@ -37,8 +37,6 @@ export const WalletPage: React.FC = () => {
   const [resolvingAccount, setResolvingAccount] = useState<boolean>(false);
   const [resolvedName, setResolvedName] = useState<string | null>(null);
   const minWithdrawalAmount = walletData?.withdrawalRules?.minWithdrawalAmount || 2000;
-  const isFirstWithdrawal = walletData?.withdrawalRules?.isFirstWithdrawal ?? true;
-  const userTier = walletData?.withdrawalRules?.userTier || 'FREE_STARTER';
 
   const [withdrawAmount, setWithdrawAmount] = useState<string>('2000');
   const [withdrawLoading, setWithdrawLoading] = useState<boolean>(false);
@@ -291,7 +289,7 @@ export const WalletPage: React.FC = () => {
       </div>
 
       {/* Lifetime Stats Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
           <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Total Earned</p>
           <p className="text-xl font-bold text-pink-400 mt-1">₦{totalEarned.toLocaleString()}</p>
@@ -305,18 +303,6 @@ export const WalletPage: React.FC = () => {
           <p className="text-sm font-bold text-white mt-1.5 flex items-center gap-1.5">
             <Crown className="w-4 h-4 text-[#FF0091]" />
             <span>{user?.activeMembership?.plan?.name || 'Free Starter'}</span>
-          </p>
-        </div>
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4">
-          <p className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Payout Threshold</p>
-          <p className="text-sm font-bold text-slate-300 mt-1.5">
-            {isFirstWithdrawal
-              ? userTier === 'PREMIUM'
-                ? '₦25,000 (1st Payout)'
-                : '₦10,000 (1st Payout)'
-              : userTier === 'BASIC'
-              ? 'Min ₦5,000'
-              : 'Min ₦2,000'}
           </p>
         </div>
       </div>
