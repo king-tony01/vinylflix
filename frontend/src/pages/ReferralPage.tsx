@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { apiRequest } from '../lib/api.js';
 import { useAuth } from '../context/AuthContext.js';
 import { useToast } from '../context/ToastContext.js';
@@ -10,6 +11,9 @@ import {
   UserCheck,
   Clock,
   Share2,
+  Crown,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 
 export const ReferralPage: React.FC = () => {
@@ -35,6 +39,23 @@ export const ReferralPage: React.FC = () => {
   const referralCode = data?.referralCode || user?.referralCode || 'REFCODE';
   const fullReferralLink = `${window.location.origin}/register?ref=${referralCode}`;
 
+  // Check if user is an upgraded / paid / creator / non-free member
+  const isNonFreeUser = Boolean(
+    user?.role === 'PAID_MEMBER' ||
+    user?.role === 'CREATOR' ||
+    user?.role === 'ADMIN' ||
+    user?.role === 'FINANCE_RISK_ADMIN' ||
+    (user?.activeMembership &&
+      user.activeMembership.tier !== 'FREE_STARTER' &&
+      user.activeMembership.tier !== 'FREE' &&
+      user.activeMembership.plan?.tier !== 'FREE_STARTER' &&
+      user.activeMembership.plan?.tier !== 'FREE') ||
+    (data?.stats?.userTier &&
+      data.stats.userTier !== 'FREE_STARTER' &&
+      data.stats.userTier !== 'FREE') ||
+    data?.stats?.isCreator
+  );
+
   const copyToClipboard = () => {
     navigator.clipboard.writeText(fullReferralLink);
     setCopied(true);
@@ -53,6 +74,46 @@ export const ReferralPage: React.FC = () => {
           Invite new members to Vinylflix. Server-verified qualified referrals unlock your conditional membership bonus.
         </p>
       </div>
+
+      {/* Free User Upgrade Banner (do not show if user is upgraded / non-free) */}
+      {!isNonFreeUser && (
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pink-500/15 via-purple-600/15 to-indigo-600/15 border border-pink-500/30 p-5 sm:p-6 shadow-xl backdrop-blur-xl">
+          <div className="absolute -top-12 -right-12 w-48 h-48 bg-gradient-to-br from-[#FF0091]/20 to-[#7928CA]/20 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#FF0091] via-[#7928CA] to-[#360099] flex items-center justify-center flex-shrink-0 shadow-lg shadow-[#FF0091]/30">
+                <Crown className="w-6 h-6 text-white" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-pink-500/20 text-pink-300 border border-pink-500/30 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-[#FF0091]" />
+                    Upgrade Required
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-400">
+                    Free Starter Account
+                  </span>
+                </div>
+                <h3 className="text-base sm:text-lg font-black text-white tracking-tight">
+                  Want to Earn Cash From Your Referrals?
+                </h3>
+                <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                  You are currently on a free account. Free users can invite friends to build a network, but <strong className="text-white font-semibold">referral cash commissions and milestone payouts</strong> are only unlocked for upgraded members. Upgrade today to start turning your referrals into real withdrawable cash!
+                </p>
+              </div>
+            </div>
+
+            <Link
+              to="/memberships"
+              className="w-full md:w-auto flex-shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-lg shadow-[#FF0091]/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span>Upgrade to Earn</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {loading && (
         <div className="text-center py-2 text-xs text-slate-500 flex items-center justify-center gap-2">
