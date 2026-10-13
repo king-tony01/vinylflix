@@ -91,7 +91,7 @@ export const MembershipPage: React.FC = () => {
       return;
     }
     setSelectedPlanForTransfer(plan);
-    setSenderAccountName(user?.profile?.fullName || user?.username || '');
+    setSenderAccountName('');
     setSenderBankName('OPay');
     setCustomBankName('');
     setProofFileBase64('');
@@ -384,7 +384,7 @@ export const MembershipPage: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Okolie Anthony"
+                  placeholder="e.g. John Doe"
                   value={senderAccountName}
                   onChange={(e) => setSenderAccountName(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-[#FF0091] transition-colors"
