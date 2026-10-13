@@ -16,9 +16,9 @@ import {
   PlaySquare,
   Users,
   Crown,
-  Sparkles,
   CheckCircle2,
   Building2,
+  History,
 } from 'lucide-react';
 
 export const WalletPage: React.FC = () => {
@@ -333,15 +333,15 @@ export const WalletPage: React.FC = () => {
         />
       )}
 
-      {/* Recent Immutable Ledger Transactions Table */}
+      {/* Recent Transactions Table */}
       <div className="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="p-5 border-b border-slate-800 flex items-center justify-between">
           <div>
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#FF0091]" /> Immutable Ledger Records
+              <History className="w-4 h-4 text-[#FF0091]" /> Transaction History
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Cryptographically verified, double-entry financial ledger entries.
+              Track your earnings, rewards, and withdrawal records in real-time.
             </p>
           </div>
           <button
@@ -356,7 +356,7 @@ export const WalletPage: React.FC = () => {
 
         <div className="divide-y divide-slate-800/60">
           {loading && transactions.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500">Loading ledger records...</div>
+            <div className="p-8 text-center text-xs text-slate-500">Loading transaction history...</div>
           ) : transactions.length === 0 ? (
             <div className="p-12 text-center text-slate-500 space-y-1">
               <p className="text-xs">No transactions recorded yet.</p>
