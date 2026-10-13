@@ -17,12 +17,20 @@ export class AdminController {
   public static async listUsers(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 30;
-      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+      const offset = req.query.offset
+        ? parseInt(req.query.offset as string, 10)
+        : req.query.page
+        ? Math.max(0, (parseInt(req.query.page as string, 10) - 1) * limit)
+        : 0;
       const search = req.query.search as string | undefined;
       const role = req.query.role as string | undefined;
       const status = req.query.status as string | undefined;
+      const isEmailVerified =
+        req.query.isEmailVerified !== undefined && req.query.isEmailVerified !== ''
+          ? req.query.isEmailVerified === 'true'
+          : undefined;
 
-      const data = await AdminService.listUsers({ search, role, status, limit, offset });
+      const data = await AdminService.listUsers({ search, role, status, isEmailVerified, limit, offset });
       res.json({ success: true, data });
     } catch (error) {
       next(error);
@@ -62,7 +70,11 @@ export class AdminController {
   public static async getAuditLogs(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
-      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+      const offset = req.query.offset
+        ? parseInt(req.query.offset as string, 10)
+        : req.query.page
+        ? Math.max(0, (parseInt(req.query.page as string, 10) - 1) * limit)
+        : 0;
       const targetType = req.query.targetType as string | undefined;
       const targetId = req.query.targetId as string | undefined;
 

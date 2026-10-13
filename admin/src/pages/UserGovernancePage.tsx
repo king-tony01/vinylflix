@@ -30,6 +30,7 @@ export const UserGovernancePage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [roleFilter, setRoleFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [verificationFilter, setVerificationFilter] = useState<string>('');
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -65,11 +66,14 @@ export const UserGovernancePage: React.FC = () => {
 
   const fetchUsers = async () => {
     setLoading(true);
+    const offset = (currentPage - 1) * pageSize;
     const query = new URLSearchParams();
     if (search) query.append('search', search);
     if (roleFilter) query.append('role', roleFilter);
     if (statusFilter) query.append('status', statusFilter);
+    if (verificationFilter) query.append('isEmailVerified', verificationFilter);
     query.append('page', String(currentPage));
+    query.append('offset', String(offset));
     query.append('limit', String(pageSize));
 
     const res = await apiRequest(`/admin/users?${query.toString()}`);
@@ -82,7 +86,7 @@ export const UserGovernancePage: React.FC = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [search, roleFilter, statusFilter, currentPage, pageSize]);
+  }, [search, roleFilter, statusFilter, verificationFilter, currentPage, pageSize]);
 
   const openStatusChangeModal = (user: any, newStatus: 'ACTIVE' | 'SUSPENDED' | 'RESTRICTED') => {
     const isSuspension = newStatus === 'SUSPENDED';
@@ -215,15 +219,17 @@ export const UserGovernancePage: React.FC = () => {
               placeholder="All Roles"
               options={[
                 { value: '', label: 'All Roles' },
-                { value: 'USER', label: 'Free User (USER)' },
+                { value: 'FREE_USER', label: 'Free User' },
                 { value: 'PAID_MEMBER', label: 'Paid Member' },
-                { value: 'CREATOR', label: 'Creator / Advertiser' },
+                { value: 'CREATOR', label: 'Creator' },
+                { value: 'ADVERTISER', label: 'Advertiser' },
                 { value: 'ADMIN', label: 'Administrator' },
+                { value: 'FINANCE_RISK_ADMIN', label: 'Risk Admin' },
               ]}
             />
           </div>
 
-          <div className="w-full sm:w-40">
+          <div className="w-full sm:w-36">
             <CustomSelect
               value={statusFilter}
               onChange={(val) => {
@@ -237,6 +243,23 @@ export const UserGovernancePage: React.FC = () => {
                 { value: 'ACTIVE', label: 'ACTIVE' },
                 { value: 'SUSPENDED', label: 'SUSPENDED' },
                 { value: 'RESTRICTED', label: 'RESTRICTED' },
+              ]}
+            />
+          </div>
+
+          <div className="w-full sm:w-40">
+            <CustomSelect
+              value={verificationFilter}
+              onChange={(val) => {
+                setVerificationFilter(String(val));
+                setCurrentPage(1);
+              }}
+              size="sm"
+              placeholder="All Verifications"
+              options={[
+                { value: '', label: 'All Verifications' },
+                { value: 'true', label: 'Verified Email' },
+                { value: 'false', label: 'Unverified Email' },
               ]}
             />
           </div>

@@ -63,7 +63,14 @@ export class AdminService {
     };
   }
 
-  public static async listUsers(query: { search?: string; role?: string; status?: string; limit?: number; offset?: number }) {
+  public static async listUsers(query: {
+    search?: string;
+    role?: string;
+    status?: string;
+    isEmailVerified?: boolean;
+    limit?: number;
+    offset?: number;
+  }) {
     const where: any = {};
     if (query.search) {
       where.OR = [
@@ -72,8 +79,24 @@ export class AdminService {
         { referralCode: { contains: query.search } },
       ];
     }
-    if (query.role) where.role = query.role;
-    if (query.status) where.status = query.status;
+    if (query.role) {
+      const normalizedRole = query.role.trim().toUpperCase();
+      if (normalizedRole === 'USER' || normalizedRole === 'FREE_USER' || normalizedRole === 'FREE') {
+        where.role = { in: ['FREE_USER', 'USER'] };
+      } else if (normalizedRole === 'CREATOR') {
+        where.role = { in: ['CREATOR', 'ADVERTISER'] };
+      } else if (normalizedRole === 'ADMIN') {
+        where.role = { in: ['ADMIN', 'FINANCE_RISK_ADMIN'] };
+      } else {
+        where.role = normalizedRole;
+      }
+    }
+    if (query.status) {
+      where.status = query.status.trim().toUpperCase();
+    }
+    if (query.isEmailVerified !== undefined) {
+      where.isEmailVerified = query.isEmailVerified;
+    }
 
     const [users, total] = await Promise.all([
       prisma.user.findMany({
