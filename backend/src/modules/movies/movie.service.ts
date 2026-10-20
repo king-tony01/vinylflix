@@ -297,10 +297,9 @@ export class MovieService {
     const s = season ?? 1;
     const ep = episode ?? 1;
 
-    // Multi-server MovieBox streaming providers
     return [
       {
-        serverName: 'Server 1: VidLink Pro (1080p Fast)',
+        serverName: 'VidLink Fast Stream',
         quality: '1080p Full HD',
         url: isTv
           ? `https://vidlink.pro/tv/${tmdbId}/${s}/${ep}?autoplay=true`
@@ -308,15 +307,15 @@ export class MovieService {
         playerType: 'embed',
       },
       {
-        serverName: 'Server 2: AutoEmbed Cloud (Adaptive)',
-        quality: 'Auto (Adaptive)',
+        serverName: 'VidSrc Direct Stream',
+        quality: '1080p HD',
         url: isTv
-          ? `https://player.autoembed.cc/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://player.autoembed.cc/embed/movie/${tmdbId}`,
+          ? `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${s}&episode=${ep}`
+          : `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}`,
         playerType: 'embed',
       },
       {
-        serverName: 'Server 3: SuperEmbed Global (Mirror)',
+        serverName: 'SuperEmbed Multi CDN',
         quality: '1080p Mirror',
         url: isTv
           ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${s}&e=${ep}`
@@ -324,32 +323,8 @@ export class MovieService {
         playerType: 'embed',
       },
       {
-        serverName: 'Server 4: VidSrc HD (Direct)',
-        quality: 'HD Stream',
-        url: isTv
-          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
-        playerType: 'embed',
-      },
-      {
-        serverName: 'Server 5: Embed.su VIP',
-        quality: '1080p Cloud',
-        url: isTv
-          ? `https://embed.su/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://embed.su/embed/movie/${tmdbId}`,
-        playerType: 'embed',
-      },
-      {
-        serverName: 'Server 6: SmashyStream',
-        quality: '720p / 1080p',
-        url: isTv
-          ? `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${s}&episode=${ep}`
-          : `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}`,
-        playerType: 'embed',
-      },
-      {
-        serverName: 'Server 7: 2Embed Engine',
-        quality: '720p Mirror',
+        serverName: '2Embed Engine',
+        quality: 'Adaptive Mirror',
         url: isTv
           ? `https://www.2embed.cc/embedtv/${tmdbId}&s=${s}&e=${ep}`
           : `https://www.2embed.cc/embed/${tmdbId}`,

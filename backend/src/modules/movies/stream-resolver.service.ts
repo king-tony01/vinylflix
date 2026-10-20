@@ -32,6 +32,7 @@ export class StreamResolverService {
 
     // 1. Direct multi-source HLS streams with backend proxy to eliminate 403s and ads
     // Generate clean proxied stream URLs
+    // Verified high-speed streaming sources
     const directSources: Array<{
       name: string;
       quality: string;
@@ -39,20 +40,20 @@ export class StreamResolverService {
       referer?: string;
     }> = [
       {
-        name: 'AutoEmbed Direct Cloud',
-        quality: '1080p Auto',
-        url: isTv
-          ? `https://player.autoembed.cc/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://player.autoembed.cc/embed/movie/${tmdbId}`,
-        referer: 'https://player.autoembed.cc/',
-      },
-      {
         name: 'VidLink Fast Stream',
         quality: '1080p HD',
         url: isTv
-          ? `https://vidlink.pro/tv/${tmdbId}/${s}/${ep}`
-          : `https://vidlink.pro/movie/${tmdbId}`,
+          ? `https://vidlink.pro/tv/${tmdbId}/${s}/${ep}?autoplay=true`
+          : `https://vidlink.pro/movie/${tmdbId}?autoplay=true`,
         referer: 'https://vidlink.pro/',
+      },
+      {
+        name: 'VidSrc Direct Stream',
+        quality: '1080p HD',
+        url: isTv
+          ? `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${s}&episode=${ep}`
+          : `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}`,
+        referer: 'https://vidsrc.sh/',
       },
       {
         name: 'SuperEmbed Multi CDN',
@@ -63,16 +64,15 @@ export class StreamResolverService {
         referer: 'https://multiembed.mov/',
       },
       {
-        name: 'VidSrc Primary',
-        quality: 'Adaptive HD',
+        name: '2Embed Engine',
+        quality: 'Adaptive Mirror',
         url: isTv
-          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
-        referer: 'https://vidsrc.cc/',
+          ? `https://www.2embed.cc/embedtv/${tmdbId}&s=${s}&e=${ep}`
+          : `https://www.2embed.cc/embed/${tmdbId}`,
+        referer: 'https://www.2embed.cc/',
       },
     ];
 
-    // For direct playback without ads, add embed fallback with clean URLs
     for (const src of directSources) {
       streams.push({
         serverName: src.name,
@@ -85,34 +85,6 @@ export class StreamResolverService {
         },
       });
     }
-
-    // Add additional backup providers
-    streams.push(
-      {
-        serverName: 'Embed.su VIP Cloud',
-        quality: '1080p Cloud',
-        url: isTv
-          ? `https://embed.su/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://embed.su/embed/movie/${tmdbId}`,
-        playerType: 'embed',
-      },
-      {
-        serverName: 'SmashyStream Global',
-        quality: '720p / 1080p',
-        url: isTv
-          ? `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}&season=${s}&episode=${ep}`
-          : `https://embed.smashystream.com/playere.php?tmdb=${tmdbId}`,
-        playerType: 'embed',
-      },
-      {
-        serverName: '2Embed Engine',
-        quality: 'Adaptive Mirror',
-        url: isTv
-          ? `https://www.2embed.cc/embedtv/${tmdbId}&s=${s}&e=${ep}`
-          : `https://www.2embed.cc/embed/${tmdbId}`,
-        playerType: 'embed',
-      }
-    );
 
     return streams;
   }
