@@ -18,6 +18,7 @@ import watchSessionRoutes from './modules/watch-sessions/watch-session.routes.js
 import paymentRoutes from './modules/payments/payment.routes.js';
 import withdrawalRoutes from './modules/withdrawals/withdrawal.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
+import movieRoutes from './modules/movies/movie.routes.js';
 
 import { errorHandler } from './middleware/error.middleware.js';
 import { NotFoundError } from './utils/errors.js';
@@ -85,6 +86,7 @@ export function createApp() {
   app.use('/api/v1/payments', paymentRoutes);
   app.use('/api/v1/withdrawals', withdrawalRoutes);
   app.use('/api/v1/admin', adminRoutes);
+  app.use('/api/v1/movies', movieRoutes);
 
   // 1. Serve Admin SPA build under /admin
   const adminDistPath = path.resolve(__dirname, '../../admin/dist');
