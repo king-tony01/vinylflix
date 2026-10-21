@@ -62,11 +62,7 @@ export class StreamResolverService {
                 url: qualities[q].url,
                 playerType: 'direct',
                 isDirectHls: false,
-                headers: {
-                  'User-Agent': this.userAgent,
-                  Referer: 'https://filmboom.top/',
-                  Origin: 'https://filmboom.top',
-                },
+                headers: {}, // Do NOT send filmboom referer: prevents 429 hotlink block on hakunaymatata
               });
             }
           }
