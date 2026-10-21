@@ -40,36 +40,36 @@ export class StreamResolverService {
       referer?: string;
     }> = [
       {
-        name: 'VidLink Fast Stream',
-        quality: '1080p HD',
+        name: 'Server 1 (Auto)',
+        quality: '1080p Full HD',
         url: isTv
           ? `https://vidlink.pro/tv/${tmdbId}/${s}/${ep}?autoplay=true`
           : `https://vidlink.pro/movie/${tmdbId}?autoplay=true`,
         referer: 'https://vidlink.pro/',
       },
       {
-        name: 'VidSrc Direct Stream',
+        name: 'Server 2 (HD)',
         quality: '1080p HD',
         url: isTv
-          ? `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${s}&episode=${ep}`
-          : `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}`,
-        referer: 'https://vidsrc.sh/',
+          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${s}/${ep}`
+          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
+        referer: 'https://vidsrc.cc/',
       },
       {
-        name: 'SuperEmbed Multi CDN',
+        name: 'Server 3 (HD)',
         quality: '1080p Mirror',
         url: isTv
-          ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${s}&e=${ep}`
-          : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
-        referer: 'https://multiembed.mov/',
+          ? `https://autoembed.cc/embed/player.php?id=${tmdbId}&s=${s}&e=${ep}`
+          : `https://autoembed.cc/embed/player.php?id=${tmdbId}`,
+        referer: 'https://autoembed.cc/',
       },
       {
-        name: '2Embed Engine',
+        name: 'Server 4 (Backup)',
         quality: 'Adaptive Mirror',
         url: isTv
-          ? `https://www.2embed.cc/embedtv/${tmdbId}&s=${s}&e=${ep}`
-          : `https://www.2embed.cc/embed/${tmdbId}`,
-        referer: 'https://www.2embed.cc/',
+          ? `https://player.smashy.stream/tv/${tmdbId}?s=${s}&e=${ep}`
+          : `https://player.smashy.stream/movie/${tmdbId}`,
+        referer: 'https://player.smashy.stream/',
       },
     ];
 

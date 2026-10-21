@@ -299,7 +299,7 @@ export class MovieService {
 
     return [
       {
-        serverName: 'VidLink Fast Stream',
+        serverName: 'Server 1 (Auto)',
         quality: '1080p Full HD',
         url: isTv
           ? `https://vidlink.pro/tv/${tmdbId}/${s}/${ep}?autoplay=true`
@@ -307,27 +307,27 @@ export class MovieService {
         playerType: 'embed',
       },
       {
-        serverName: 'VidSrc Direct Stream',
+        serverName: 'Server 2 (HD)',
         quality: '1080p HD',
         url: isTv
-          ? `https://vidsrc.sh/embed/tv?tmdb=${tmdbId}&season=${s}&episode=${ep}`
-          : `https://vidsrc.sh/embed/movie?tmdb=${tmdbId}`,
+          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${s}/${ep}`
+          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
         playerType: 'embed',
       },
       {
-        serverName: 'SuperEmbed Multi CDN',
+        serverName: 'Server 3 (HD)',
         quality: '1080p Mirror',
         url: isTv
-          ? `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${s}&e=${ep}`
-          : `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
+          ? `https://autoembed.cc/embed/player.php?id=${tmdbId}&s=${s}&e=${ep}`
+          : `https://autoembed.cc/embed/player.php?id=${tmdbId}`,
         playerType: 'embed',
       },
       {
-        serverName: '2Embed Engine',
+        serverName: 'Server 4 (Backup)',
         quality: 'Adaptive Mirror',
         url: isTv
-          ? `https://www.2embed.cc/embedtv/${tmdbId}&s=${s}&e=${ep}`
-          : `https://www.2embed.cc/embed/${tmdbId}`,
+          ? `https://player.smashy.stream/tv/${tmdbId}?s=${s}&e=${ep}`
+          : `https://player.smashy.stream/movie/${tmdbId}`,
         playerType: 'embed',
       },
     ];
