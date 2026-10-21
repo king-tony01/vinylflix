@@ -7,7 +7,8 @@ export class MovieController {
     try {
       const type = (req.query.type as 'all' | 'movie' | 'tv') || 'all';
       const timeWindow = (req.query.time_window as 'day' | 'week') || 'week';
-      const data = await MovieService.getTrending(type, timeWindow);
+      const genre = req.query.genre as string | undefined;
+      const data = await MovieService.getTrending(type, timeWindow, genre);
       res.json({ success: true, data });
     } catch (error) {
       next(error);
@@ -18,7 +19,8 @@ export class MovieController {
     try {
       const type = (req.query.type as 'movie' | 'tv') || 'movie';
       const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
-      const data = await MovieService.getPopular(type, page);
+      const genre = req.query.genre as string | undefined;
+      const data = await MovieService.getPopular(type, page, genre);
       res.json({ success: true, data });
     } catch (error) {
       next(error);

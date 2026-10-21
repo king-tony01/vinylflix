@@ -42,14 +42,74 @@ export class MovieService {
     return process.env.TMDB_API_KEY || process.env.TMDB_KEY;
   }
 
+  public static readonly genreMap: Record<number, string> = {
+    28: 'Action',
+    12: 'Adventure',
+    16: 'Animation',
+    35: 'Comedy',
+    80: 'Crime',
+    99: 'Documentary',
+    18: 'Drama',
+    10751: 'Family',
+    14: 'Fantasy',
+    36: 'History',
+    27: 'Horror',
+    10402: 'Music',
+    9648: 'Mystery',
+    10749: 'Romance',
+    878: 'Sci-Fi',
+    10770: 'TV Movie',
+    53: 'Thriller',
+    10752: 'War',
+    37: 'Western',
+    // TV Series specific
+    10759: 'Action',
+    10762: 'Animation',
+    10763: 'Documentary',
+    10764: 'Reality',
+    10765: 'Sci-Fi',
+    10766: 'Drama',
+    10767: 'Talk',
+    10768: 'War',
+  };
+
+  public static readonly genreNameToId: Record<string, number> = {
+    action: 28,
+    adventure: 12,
+    animation: 16,
+    comedy: 35,
+    crime: 80,
+    documentary: 99,
+    drama: 18,
+    family: 10751,
+    fantasy: 14,
+    history: 36,
+    horror: 27,
+    music: 10402,
+    mystery: 9648,
+    romance: 10749,
+    'sci-fi': 878,
+    scifi: 878,
+    sciencefiction: 878,
+    thriller: 53,
+    war: 10752,
+    western: 37,
+  };
+
   private static formatTmdbItem(item: any, forceIsSeries?: boolean): MovieItem {
     const isTv = forceIsSeries !== undefined ? forceIsSeries : (item.media_type === 'tv' || !!item.first_air_date);
     const title = item.title || item.name || 'Untitled';
     const releaseDate = item.release_date || item.first_air_date || '';
     const year = releaseDate && releaseDate.length >= 4 ? releaseDate.substring(0, 4) : '';
-    const genres = Array.isArray(item.genres)
-      ? item.genres.map((g: any) => (typeof g === 'object' && g.name ? g.name : String(g)))
-      : [];
+
+    let genres: string[] = [];
+    if (Array.isArray(item.genres) && item.genres.length > 0) {
+      genres = item.genres.map((g: any) => (typeof g === 'object' && g.name ? g.name : String(g)));
+    } else if (Array.isArray(item.genre_ids) && item.genre_ids.length > 0) {
+      genres = item.genre_ids
+        .map((id: number) => this.genreMap[id])
+        .filter((name: string | undefined): name is string => typeof name === 'string' && name.length > 0);
+    }
 
     return {
       id: String(item.id),
@@ -66,22 +126,53 @@ export class MovieService {
     };
   }
 
-  public static async getTrending(type: 'all' | 'movie' | 'tv' = 'all', timeWindow: 'day' | 'week' = 'week'): Promise<MovieItem[]> {
-    const cacheKey = `trending_${type}_${timeWindow}`;
+  public static async getTrending(
+    type: 'all' | 'movie' | 'tv' = 'all',
+    timeWindow: 'day' | 'week' = 'week',
+    genre?: string
+  ): Promise<MovieItem[]> {
+    const cleanGenre = genre && genre !== 'All' ? genre.trim() : undefined;
+    const cacheKey = `trending_${type}_${timeWindow}_${cleanGenre || 'all'}`;
     const cached = getCached<MovieItem[]>(cacheKey);
     if (cached) return cached;
 
     const key = this.apiKey;
     if (key) {
       try {
+        if (cleanGenre) {
+          const genreId = this.genreNameToId[cleanGenre.toLowerCase().replace(/[^a-z0-9]/g, '')];
+          if (genreId) {
+            const movieUrl = `https://api.themoviedb.org/3/discover/movie?api_key=${key}&with_genres=${genreId}&sort_by=popularity.desc&page=1`;
+            const tvUrl = `https://api.themoviedb.org/3/discover/tv?api_key=${key}&with_genres=${genreId}&sort_by=popularity.desc&page=1`;
+            const [mRes, tRes] = await Promise.all([fetch(movieUrl), fetch(tvUrl)]);
+            const mJson = mRes.ok ? ((await mRes.json()) as any) : { results: [] };
+            const tJson = tRes.ok ? ((await tRes.json()) as any) : { results: [] };
+            const mItems = Array.isArray(mJson.results) ? mJson.results.map((r: any) => this.formatTmdbItem(r, false)) : [];
+            const tItems = Array.isArray(tJson.results) ? tJson.results.map((r: any) => this.formatTmdbItem(r, true)) : [];
+            const interleaved: MovieItem[] = [];
+            const max = Math.max(mItems.length, tItems.length);
+            for (let i = 0; i < max; i++) {
+              if (i < mItems.length) interleaved.push(mItems[i]);
+              if (i < tItems.length) interleaved.push(tItems[i]);
+            }
+            if (interleaved.length > 0) {
+              setCache(cacheKey, interleaved, 1800);
+              return interleaved;
+            }
+          }
+        }
+
         const url = `https://api.themoviedb.org/3/trending/${type}/${timeWindow}?api_key=${key}`;
         const res = await fetch(url);
         if (res.ok) {
           const json = (await res.json()) as any;
           if (Array.isArray(json.results)) {
             const items = json.results.map((r: any) => this.formatTmdbItem(r, type === 'tv' ? true : type === 'movie' ? false : undefined));
-            setCache(cacheKey, items, 1800); // 30 mins
-            return items;
+            const filtered = cleanGenre
+              ? items.filter((m: MovieItem) => m.genres.some((g: string) => g.toLowerCase().includes(cleanGenre.toLowerCase())))
+              : items;
+            setCache(cacheKey, filtered, 1800);
+            return filtered;
           }
         }
       } catch (err) {
@@ -89,18 +180,27 @@ export class MovieService {
       }
     }
 
-    return this.getCuratedFallbackCatalog();
+    const fallback = this.getCuratedFallbackCatalog().filter((m) => {
+      const matchGenre = !cleanGenre || m.genres.some((g) => g.toLowerCase().includes(cleanGenre.toLowerCase()));
+      const matchType = type === 'all' || (type === 'tv' ? m.isSeries : !m.isSeries);
+      return matchGenre && matchType;
+    });
+    return fallback.length > 0 ? fallback : this.getCuratedFallbackCatalog();
   }
 
-  public static async getPopular(type: 'movie' | 'tv' = 'movie', page = 1): Promise<MovieItem[]> {
-    const cacheKey = `popular_${type}_${page}`;
+  public static async getPopular(type: 'movie' | 'tv' = 'movie', page = 1, genre?: string): Promise<MovieItem[]> {
+    const cleanGenre = genre && genre !== 'All' ? genre.trim() : undefined;
+    const cacheKey = `popular_${type}_${page}_${cleanGenre || 'all'}`;
     const cached = getCached<MovieItem[]>(cacheKey);
     if (cached) return cached;
 
     const key = this.apiKey;
     if (key) {
       try {
-        const url = `https://api.themoviedb.org/3/${type}/popular?api_key=${key}&page=${page}`;
+        const genreId = cleanGenre ? this.genreNameToId[cleanGenre.toLowerCase().replace(/[^a-z0-9]/g, '')] : undefined;
+        const endpoint = genreId ? `discover/${type}` : `${type}/popular`;
+        const genreParam = genreId ? `&with_genres=${genreId}&sort_by=popularity.desc` : '';
+        const url = `https://api.themoviedb.org/3/${endpoint}?api_key=${key}&page=${page}${genreParam}`;
         const res = await fetch(url);
         if (res.ok) {
           const json = (await res.json()) as any;
@@ -115,7 +215,12 @@ export class MovieService {
       }
     }
 
-    return this.getCuratedFallbackCatalog();
+    const fallback = this.getCuratedFallbackCatalog().filter((m) => {
+      const matchType = type === 'tv' ? m.isSeries : !m.isSeries;
+      const matchGenre = !cleanGenre || m.genres.some((g) => g.toLowerCase().includes(cleanGenre.toLowerCase()));
+      return matchType && matchGenre;
+    });
+    return fallback.length > 0 ? fallback : this.getCuratedFallbackCatalog();
   }
 
   public static async search(query: string, page = 1): Promise<MovieItem[]> {
