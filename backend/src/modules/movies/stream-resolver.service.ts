@@ -30,9 +30,128 @@ export class StreamResolverService {
 
     const streams: ResolvedStream[] = [];
 
-    // 1. Direct multi-source HLS streams with backend proxy to eliminate 403s and ads
-    // Generate clean proxied stream URLs
-    // Verified high-speed streaming sources
+    // 1. Direct high-speed stream resolution (pure native ExoPlayer, zero ads)
+    try {
+      const encRes: any = await fetch(
+        `https://enc-dec.app/api/enc-vidlink?text=${encodeURIComponent(tmdbId)}`,
+        { signal: AbortSignal.timeout(6000) }
+      ).then((r) => r.json());
+
+      if (encRes && encRes.status === 200 && encRes.result) {
+        const encrypted = encRes.result;
+        const subPath = isTv ? `tv/${encrypted}/${s}/${ep}` : `movie/${encrypted}`;
+
+        const vidRes: any = await fetch(`https://vidlink.pro/api/b/${subPath}`, {
+          headers: {
+            'User-Agent': this.userAgent,
+            Origin: 'https://vidlink.pro',
+            Referer: 'https://vidlink.pro/',
+          },
+          signal: AbortSignal.timeout(8000),
+        }).then((r) => r.json());
+
+        if (vidRes && vidRes.stream && vidRes.stream.qualities) {
+          const qualities = vidRes.stream.qualities;
+          const order = ['1080', '720', '480', '360'];
+          for (const q of order) {
+            if (qualities[q] && qualities[q].url) {
+              const label = q === '1080' ? '1080p Full HD' : `${q}p`;
+              streams.push({
+                serverName: `Server ${streams.length + 1} (${label})`,
+                quality: label,
+                url: qualities[q].url,
+                playerType: 'direct',
+                isDirectHls: false,
+                headers: {
+                  'User-Agent': this.userAgent,
+                  Referer: 'https://filmboom.top/',
+                  Origin: 'https://filmboom.top',
+                },
+              });
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn(`[StreamResolver] Vidlink extraction notice: ${err.message}`);
+    }
+
+    // 2. Fallback direct HLS extraction via Videasy if Vidlink returned no direct streams
+    if (streams.length === 0) {
+      try {
+        const seedRes: any = await fetch(
+          `https://api.wecollege.net/seed?mediaId=${encodeURIComponent(tmdbId)}`,
+          {
+            headers: { 'User-Agent': this.userAgent, Referer: 'https://player.videasy.to/' },
+            signal: AbortSignal.timeout(5000),
+          }
+        ).then((r) => r.json());
+
+        if (seedRes && seedRes.seed) {
+          const seed = seedRes.seed;
+          const mediaType = isTv ? 'tv' : 'movie';
+          let url = `https://api.wecollege.net/miami/sources?mediaType=${mediaType}&tmdbId=${tmdbId}&enc=2&seed=${seed}`;
+          if (isTv) {
+            url += `&seasonId=${s}&episodeId=${ep}`;
+          }
+
+          const encData = await fetch(url, {
+            headers: {
+              'User-Agent': this.userAgent,
+              Origin: 'https://player.videasy.to',
+              Referer: 'https://player.videasy.to/',
+            },
+            signal: AbortSignal.timeout(7000),
+          }).then((r) => r.text());
+
+          if (encData && encData.length > 50) {
+            const decRes: any = await fetch('https://enc-dec.app/api/dec-videasy', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: encData, id: String(tmdbId), seed }),
+              signal: AbortSignal.timeout(6000),
+            }).then((r) => r.json());
+
+            if (decRes && decRes.status === 200 && decRes.result) {
+              const res = decRes.result;
+              if (Array.isArray(res.sources) && res.sources.length > 0) {
+                for (const src of res.sources) {
+                  streams.push({
+                    serverName: `Server ${streams.length + 1} (${src.quality})`,
+                    quality: src.quality,
+                    url: src.url,
+                    playerType: 'direct',
+                    isDirectHls: true,
+                    headers: {
+                      'User-Agent': this.userAgent,
+                      Referer: 'https://player.videasy.to/',
+                      Origin: 'https://player.videasy.to',
+                    },
+                  });
+                }
+              } else if (res.playlist) {
+                streams.push({
+                  serverName: `Server ${streams.length + 1} (Adaptive HD)`,
+                  quality: 'Adaptive HD',
+                  url: res.playlist,
+                  playerType: 'direct',
+                  isDirectHls: true,
+                  headers: {
+                    'User-Agent': this.userAgent,
+                    Referer: 'https://player.videasy.to/',
+                    Origin: 'https://player.videasy.to',
+                  },
+                });
+              }
+            }
+          }
+        }
+      } catch (err: any) {
+        console.warn(`[StreamResolver] Videasy extraction notice: ${err.message}`);
+      }
+    }
+
+    // 3. Fallback verified multi-mirror embed sources (VidLink, VidSrc.pm, VidSrc.to, 2embed)
     const directSources: Array<{
       name: string;
       quality: string;
@@ -40,36 +159,36 @@ export class StreamResolverService {
       referer?: string;
     }> = [
       {
-        name: 'Server 1 (Auto)',
-        quality: '1080p Full HD',
+        name: `Server ${streams.length + 1} (Mirror Auto)`,
+        quality: '1080p Mirror',
         url: isTv
           ? `https://vidlink.pro/tv/${tmdbId}/${s}/${ep}?autoplay=true`
           : `https://vidlink.pro/movie/${tmdbId}?autoplay=true`,
         referer: 'https://vidlink.pro/',
       },
       {
-        name: 'Server 2 (HD)',
+        name: `Server ${streams.length + 2} (Mirror HD)`,
         quality: '1080p HD',
         url: isTv
-          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
-        referer: 'https://vidsrc.cc/',
+          ? `https://vidsrc.pm/embed/tv/${tmdbId}/${s}/${ep}`
+          : `https://vidsrc.pm/embed/movie/${tmdbId}`,
+        referer: 'https://vidsrc.pm/',
       },
       {
-        name: 'Server 3 (HD)',
-        quality: '1080p Mirror',
+        name: `Server ${streams.length + 3} (Mirror Backup)`,
+        quality: '1080p Backup',
         url: isTv
-          ? `https://autoembed.cc/embed/player.php?id=${tmdbId}&s=${s}&e=${ep}`
-          : `https://autoembed.cc/embed/player.php?id=${tmdbId}`,
-        referer: 'https://autoembed.cc/',
+          ? `https://vidsrc.to/embed/tv/${tmdbId}/${s}/${ep}`
+          : `https://vidsrc.to/embed/movie/${tmdbId}`,
+        referer: 'https://vidsrc.to/',
       },
       {
-        name: 'Server 4 (Backup)',
-        quality: 'Adaptive Mirror',
+        name: `Server ${streams.length + 4} (Adaptive Backup)`,
+        quality: 'Adaptive Backup',
         url: isTv
-          ? `https://player.smashy.stream/tv/${tmdbId}?s=${s}&e=${ep}`
-          : `https://player.smashy.stream/movie/${tmdbId}`,
-        referer: 'https://player.smashy.stream/',
+          ? `https://2embed.skin/embedtv/${tmdbId}&s=${s}&e=${ep}`
+          : `https://2embed.skin/embed/${tmdbId}`,
+        referer: 'https://2embed.skin/',
       },
     ];
 

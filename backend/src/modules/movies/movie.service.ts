@@ -310,24 +310,24 @@ export class MovieService {
         serverName: 'Server 2 (HD)',
         quality: '1080p HD',
         url: isTv
-          ? `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${s}/${ep}`
-          : `https://vidsrc.cc/v2/embed/movie/${tmdbId}`,
+          ? `https://vidsrc.pm/embed/tv/${tmdbId}/${s}/${ep}`
+          : `https://vidsrc.pm/embed/movie/${tmdbId}`,
         playerType: 'embed',
       },
       {
         serverName: 'Server 3 (HD)',
         quality: '1080p Mirror',
         url: isTv
-          ? `https://autoembed.cc/embed/player.php?id=${tmdbId}&s=${s}&e=${ep}`
-          : `https://autoembed.cc/embed/player.php?id=${tmdbId}`,
+          ? `https://vidsrc.to/embed/tv/${tmdbId}/${s}/${ep}`
+          : `https://vidsrc.to/embed/movie/${tmdbId}`,
         playerType: 'embed',
       },
       {
         serverName: 'Server 4 (Backup)',
         quality: 'Adaptive Mirror',
         url: isTv
-          ? `https://player.smashy.stream/tv/${tmdbId}?s=${s}&e=${ep}`
-          : `https://player.smashy.stream/movie/${tmdbId}`,
+          ? `https://2embed.skin/embedtv/${tmdbId}&s=${s}&e=${ep}`
+          : `https://2embed.skin/embed/${tmdbId}`,
         playerType: 'embed',
       },
     ];
