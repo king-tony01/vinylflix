@@ -13,42 +13,58 @@ function initializeFirebaseAdmin() {
     return;
   }
 
-  // Single environment variable for file mount path (defaults to standard /app mount)
-  const configuredPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim() || '/app/firebase-service-account.json';
-  const resolvedPath = path.isAbsolute(configuredPath)
-    ? configuredPath
-    : path.resolve(process.cwd(), configuredPath);
+  // 1. Check for file mount (default /app/firebase-service-account.json or custom path)
+  const filePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim() || '/app/firebase-service-account.json';
+  const resolvedPath = path.isAbsolute(filePath)
+    ? filePath
+    : path.resolve(process.cwd(), filePath);
 
-  if (!fs.existsSync(resolvedPath)) {
-    if (process.env.NODE_ENV === 'test') {
-      logger.warn(
-        `[FIREBASE_ADMIN] Service account file not found at "${resolvedPath}". Skipping termination in test environment.`
-      );
+  if (fs.existsSync(resolvedPath)) {
+    try {
+      const fileContent = fs.readFileSync(resolvedPath, 'utf8');
+      const serviceAccount = JSON.parse(fileContent);
+      firebaseApp = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      logger.info(`[FIREBASE_ADMIN] Initialized from mounted file: ${resolvedPath}`);
+      return;
+    } catch (err) {
+      logger.error(`[FATAL] Failed to parse mounted service account file at "${resolvedPath}": ${err}`);
+      if (process.env.NODE_ENV !== 'test') process.exit(1);
       return;
     }
-
-    logger.error(
-      `[FATAL] Firebase service account file not found at "${resolvedPath}". ` +
-      `Please mount your Firebase service account JSON file or set FIREBASE_SERVICE_ACCOUNT_PATH. Terminating process.`
-    );
-    process.exit(1);
   }
 
-  try {
-    const fileContent = fs.readFileSync(resolvedPath, 'utf8');
-    const serviceAccount = JSON.parse(fileContent);
-
-    firebaseApp = initializeApp({
-      credential: cert(serviceAccount),
-    });
-
-    logger.info(`[FIREBASE_ADMIN] Successfully initialized Firebase Admin SDK from file: ${resolvedPath}`);
-  } catch (error) {
-    logger.error(`[FATAL] Failed to parse or initialize Firebase service account from "${resolvedPath}": ${error}`);
-    if (process.env.NODE_ENV !== 'test') {
-      process.exit(1);
+  // 2. Check for FIREBASE_SERVICE_ACCOUNT environment variable (Base64 string or JSON)
+  const rawEnv = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
+  if (rawEnv) {
+    try {
+      const jsonString = rawEnv.startsWith('{')
+        ? rawEnv
+        : Buffer.from(rawEnv, 'base64').toString('utf8');
+      const serviceAccount = JSON.parse(jsonString);
+      firebaseApp = initializeApp({
+        credential: cert(serviceAccount),
+      });
+      logger.info('[FIREBASE_ADMIN] Initialized from FIREBASE_SERVICE_ACCOUNT environment variable');
+      return;
+    } catch (err) {
+      logger.error(`[FATAL] Failed to parse FIREBASE_SERVICE_ACCOUNT: ${err}`);
+      if (process.env.NODE_ENV !== 'test') process.exit(1);
+      return;
     }
   }
+
+  // If neither file nor environment variable exists, terminate process
+  if (process.env.NODE_ENV === 'test') {
+    logger.warn('[FIREBASE_ADMIN] No credentials in test environment. Skipping termination for tests.');
+    return;
+  }
+
+  logger.error(
+    `[FATAL] Firebase credentials missing! Expected mounted file at "${resolvedPath}" or FIREBASE_SERVICE_ACCOUNT environment variable. Terminating process.`
+  );
+  process.exit(1);
 }
 
 // Initialize immediately on module load
