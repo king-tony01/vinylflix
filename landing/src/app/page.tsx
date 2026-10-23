@@ -60,7 +60,7 @@ const FEATURED_HEROES: MovieData[] = [
     category: 'nollywood',
     categoryLabel: 'Nollywood Original',
     poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=1920&q=85',
+    backdrop: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
     rating: 8.9,
     year: '2024',
     duration: '2h 14m',
@@ -79,7 +79,7 @@ const FEATURED_HEROES: MovieData[] = [
     category: 'blockbusters',
     categoryLabel: 'Global Blockbuster',
     poster: 'https://image.tmdb.org/t/p/w500/czembW0Rk1Ke7lCJGahbOhdCLZ.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/uhUO7vQQKvCTfQWubOt5MAKokbL.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/w1280/uhUO7vQQKvCTfQWubOt5MAKokbL.jpg',
     rating: 8.6,
     year: '2024',
     duration: '2h 46m',
@@ -97,7 +97,7 @@ const FEATURED_HEROES: MovieData[] = [
     category: 'nollywood',
     categoryLabel: 'Epic Yoruba Fantasy',
     poster: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1574267432553-4b4628081c31?auto=format&fit=crop&w=1920&q=85',
+    backdrop: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1920&q=85',
     rating: 8.8,
     year: '2024',
     duration: '6 Episodes',
@@ -117,7 +117,7 @@ const FEATURED_HEROES: MovieData[] = [
     category: 'blockbusters',
     categoryLabel: 'VIP Premiere',
     poster: 'https://image.tmdb.org/t/p/w500/jbwYaoYWZwxtPP76AZnfYKQjCEB.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/w1280/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
     rating: 7.9,
     year: '2024',
     duration: '2h 08m',
@@ -128,6 +128,120 @@ const FEATURED_HEROES: MovieData[] = [
       'A listless Wade Wilson toils away in civilian life with his days as Deadpool behind him. But when an existential threat looms over his reality, he reluctantly teams up with a cynical Wolverine.',
     cast: ['Ryan Reynolds', 'Hugh Jackman', 'Emma Corrin', 'Morena Baccarin'],
     isVipOnly: true,
+  },
+  {
+    id: 'hero-5',
+    title: 'Jagun Jagun (The Warrior)',
+    tagline: 'Honor, blood, and the ruthless conquest of power.',
+    category: 'nollywood',
+    categoryLabel: 'Nollywood Epic',
+    poster: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
+    backdrop: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&q=85',
+    rating: 8.7,
+    year: '2023',
+    duration: '2h 14m',
+    quality: '4K UHD',
+    audio: 'Dolby 5.1',
+    genres: ['Epic Action', 'War', 'Yoruba Drama'],
+    overview:
+      'A determined young warrior joins an elite military academy ruled by an unforgiving warlord, testing his resolve between loyalty, love, and justice.',
+    cast: ['Femi Adebayo', 'Lateef Adedimeji', 'Bimbo Ademoye'],
+    isOriginal: true,
+  },
+  {
+    id: 'hero-6',
+    title: 'Oppenheimer',
+    tagline: 'The world forever changes in the crucible of atomic fire.',
+    category: 'blockbusters',
+    categoryLabel: 'Academy Award Winner',
+    poster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/w1280/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg',
+    rating: 8.9,
+    year: '2023',
+    duration: '3h 00m',
+    quality: '4K UHD',
+    audio: 'Dolby Vision • Atmos',
+    genres: ['Biography', 'Historical Drama', 'Suspense'],
+    overview:
+      'The pulse-pounding story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb during the Manhattan Project.',
+    cast: ['Cillian Murphy', 'Emily Blunt', 'Matt Damon', 'Robert Downey Jr.'],
+    isVipOnly: true,
+  },
+  {
+    id: 'hero-7',
+    title: 'A Tribe Called Judah',
+    tagline: 'Five brothers. One impossible heist. Unbreakable family bond.',
+    category: 'nollywood',
+    categoryLabel: '₦1.4B Box Office Record',
+    poster: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
+    backdrop: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1920&q=85',
+    rating: 8.8,
+    year: '2024',
+    duration: '2h 14m',
+    quality: '4K UHD',
+    audio: 'Dolby 5.1',
+    genres: ['Comedy Drama', 'Crime', 'Family'],
+    overview:
+      'To save their ailing mother, five brothers from distinct ethnic origins plot an audacious heist on a luxury mall, encountering unexpected rivals.',
+    cast: ['Funke Akindele', 'Jide Kene Achufusi', 'Timini Egbuson', 'Tobi Makinde'],
+    isOriginal: true,
+  },
+  {
+    id: 'hero-8',
+    title: 'Spider-Man: Across the Spider-Verse',
+    tagline: 'It’s how you wear the mask that counts.',
+    category: 'blockbusters',
+    categoryLabel: 'VIP Animation Masterpiece',
+    poster: 'https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/w1280/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
+    rating: 8.7,
+    year: '2023',
+    duration: '2h 20m',
+    quality: '4K UHD',
+    audio: 'Dolby Atmos',
+    genres: ['Animation', 'Action', 'Sci-Fi'],
+    overview:
+      'Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence, but clashes on how to handle a catastrophic threat.',
+    cast: ['Shameik Moore', 'Hailee Steinfeld', 'Oscar Isaac', 'Daniel Kaluuya'],
+    isVipOnly: true,
+  },
+  {
+    id: 'hero-9',
+    title: 'Avatar: The Way of Water',
+    tagline: 'Return to Pandora. Family is our fortress.',
+    category: 'blockbusters',
+    categoryLabel: 'Visual Spectacle',
+    poster: 'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/w1280/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg',
+    rating: 7.8,
+    year: '2024',
+    duration: '3h 12m',
+    quality: '4K UHD',
+    audio: 'Dolby Vision • Atmos',
+    genres: ['Sci-Fi', 'Action', 'Adventure'],
+    overview:
+      'Jake Sully and Neytiri have formed a family and are doing everything to stay together. However, they must leave their home and explore the oceanic regions of Pandora when an ancient threat resurfaces.',
+    cast: ['Sam Worthington', 'Zoe Saldana', 'Sigourney Weaver', 'Stephen Lang'],
+    isVipOnly: true,
+  },
+  {
+    id: 'hero-10',
+    title: 'Shanty Town',
+    tagline: 'Power, ruthlessness, and rebellion in the Lagos underground.',
+    category: 'nollywood',
+    categoryLabel: 'Series Premiere',
+    poster: 'https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=600&q=80',
+    backdrop: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1920&q=85',
+    rating: 8.5,
+    year: '2024',
+    duration: '6 Episodes',
+    quality: '4K UHD',
+    audio: 'Dolby 5.1',
+    genres: ['Crime Drama', 'Thriller'],
+    overview:
+      'A group of courtesans attempts to escape the clutches of a notorious crime kingpin, but political corruption and blood ties make freedom a lethal battle.',
+    cast: ['Chidi Mokeme', 'Ini Edo', 'Richard Mofe-Damijo', 'Nse Ikpe-Etim'],
+    isSeries: true,
   },
 ];
 
@@ -452,22 +566,23 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 1. CINEMA HERO BILLBOARD (Clear, Crisp Full-Bleed Image)     */}
       {/* ============================================================ */}
-      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex items-end pb-20 md:pb-28 overflow-hidden">
+      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex items-end pb-16 md:pb-24 overflow-hidden">
         {/* Crystal-Clear Background Image - Let the visual do the magic */}
         <div className="absolute inset-0 z-0">
           <img
+            key={currentHero.id}
             src={currentHero.backdrop}
             alt={currentHero.title}
-            className="w-full h-full object-cover object-center filter brightness-90 contrast-[1.05] transition-opacity duration-1000"
+            className="w-full h-full object-cover object-center filter brightness-100 contrast-[1.02] transition-all duration-700 animate-in fade-in"
           />
-          {/* Subtle Vignettes specifically for text readability without darkening the whole picture */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0017] via-[#0a0017]/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0017]/90 via-[#0a0017]/50 to-transparent w-full lg:w-3/4" />
+          {/* Targeted readability gradients: soft fade on left where text sits, subtle base fade */}
+          <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#0a0017] via-[#0a0017]/60 to-transparent" />
+          <div className="absolute inset-y-0 left-0 w-full max-w-2xl bg-gradient-to-r from-[#0a0017]/95 via-[#0a0017]/50 to-transparent" />
         </div>
 
         {/* Hero Content - Clean Left Aligned Cinema Marquee (NO pills above title, NO owl carousel) */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-          <div className="max-w-3xl space-y-5 text-left">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
+          <div className="max-w-2xl lg:max-w-3xl space-y-5 text-left">
             {/* Title directly at the top - NO PILL BADGES ABOVE IT */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-2xl">
               {currentHero.title}
@@ -525,40 +640,45 @@ export default function LandingPage() {
                 <span>Movie Details & Trailer</span>
               </button>
             </div>
+          </div>
 
-            {/* Featured Releases Cards (Displayed below the label, with image and just title) */}
-            <div className="pt-6 space-y-3">
+          {/* Featured Releases Cards (Displayed below the heading as cards with image & just title) */}
+          <div className="pt-6 space-y-3 w-full">
+            <div className="flex items-center justify-between">
               <p className="text-xs font-black uppercase tracking-wider text-slate-300">
                 Featured Releases:
               </p>
-              <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-                {FEATURED_HEROES.map((h, i) => (
-                  <button
-                    key={h.id}
-                    onClick={() => setHeroIdx(i)}
-                    className={`group text-left shrink-0 w-32 sm:w-40 rounded-2xl p-1.5 transition-all duration-300 ${
-                      heroIdx === i
-                        ? 'bg-white/15 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-105'
-                        : 'bg-black/50 hover:bg-black/80 border border-white/15 hover:border-white/30'
+              <span className="text-[11px] text-pink-400/80 font-medium hidden sm:inline">
+                Click any title to switch hero showcase
+              </span>
+            </div>
+            <div className="flex items-center gap-3.5 overflow-x-auto no-scrollbar py-2 w-full scroll-smooth">
+              {FEATURED_HEROES.map((h, i) => (
+                <button
+                  key={h.id}
+                  onClick={() => setHeroIdx(i)}
+                  className={`group text-left shrink-0 w-40 sm:w-48 rounded-2xl p-1.5 transition-all duration-300 ${
+                    heroIdx === i
+                      ? 'bg-white/15 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-105'
+                      : 'bg-black/60 hover:bg-black/90 border border-white/15 hover:border-white/30'
+                  }`}
+                >
+                  <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-950">
+                    <img
+                      src={h.backdrop}
+                      alt={h.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <p
+                    className={`text-xs font-bold truncate mt-2 px-1 ${
+                      heroIdx === i ? 'text-pink-300' : 'text-slate-200 group-hover:text-white'
                     }`}
                   >
-                    <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900">
-                      <img
-                        src={h.backdrop}
-                        alt={h.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-                    <p
-                      className={`text-xs font-bold truncate mt-2 px-1 ${
-                        heroIdx === i ? 'text-pink-300' : 'text-slate-200 group-hover:text-white'
-                      }`}
-                    >
-                      {h.title}
-                    </p>
-                  </button>
-                ))}
-              </div>
+                    {h.title}
+                  </p>
+                </button>
+              ))}
             </div>
           </div>
         </div>
