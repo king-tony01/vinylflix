@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { VinylflixLogo } from '../components/VinylflixLogo';
 import {
   Play,
@@ -30,10 +29,8 @@ import {
   Layers,
   Award,
   Check,
-  ExternalLink,
 } from 'lucide-react';
 
-// Real cinematic movies data with authentic high-res TMDB artwork
 interface MovieData {
   id: string;
   title: string;
@@ -403,13 +400,12 @@ export default function LandingPage() {
   >('all');
   const [activeModalMovie, setActiveModalMovie] = useState<MovieData | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Rotate Hero Spotlight every 9 seconds
+  // Subtle Hero Backdrop switcher every 10 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setHeroIdx((prev) => (prev + 1) % FEATURED_HEROES.length);
-    }, 9000);
+    }, 10000);
     return () => clearInterval(timer);
   }, []);
 
@@ -454,146 +450,98 @@ export default function LandingPage() {
   return (
     <div className="space-y-28 md:space-y-36 overflow-hidden">
       {/* ============================================================ */}
-      {/* 1. CINEMA HERO BILLBOARD (Full-Bleed Dynamic Spotlight)      */}
+      {/* 1. CINEMA HERO BILLBOARD (Clear, Crisp Full-Bleed Image)     */}
       {/* ============================================================ */}
-      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Dynamic Background Backdrop */}
+      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex items-end pb-20 md:pb-28 overflow-hidden">
+        {/* Crystal-Clear Background Image - Let the visual do the magic */}
         <div className="absolute inset-0 z-0">
           <img
             src={currentHero.backdrop}
             alt={currentHero.title}
-            className="w-full h-full object-cover object-center filter brightness-[0.45] contrast-[1.1] transition-all duration-1000 scale-105"
+            className="w-full h-full object-cover object-center filter brightness-90 contrast-[1.05] transition-opacity duration-1000"
           />
-          {/* Cinema Gradients & Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0017] via-[#0a0017]/50 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0017] via-[#0a0017]/70 to-transparent" />
-          <div className="absolute inset-0 bg-radial-gradient from-transparent via-[#0a0017]/40 to-[#0a0017]" />
+          {/* Subtle Vignettes specifically for text readability without darkening the whole picture */}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0017] via-[#0a0017]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#0a0017]/90 via-[#0a0017]/50 to-transparent w-full lg:w-3/4" />
         </div>
 
-        {/* Ambient Vinyl Glow */}
-        <div className="absolute top-1/3 left-10 w-[550px] h-[550px] bg-gradient-to-tr from-[#FF0091]/25 via-[#7928CA]/20 to-[#360099]/30 blur-[130px] rounded-full pointer-events-none -z-0" />
+        {/* Hero Content - Clean Left Aligned Cinema Marquee (NO pills above title, NO owl carousel) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="max-w-3xl space-y-5 text-left">
+            {/* Title directly at the top - NO PILL BADGES ABOVE IT */}
+            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-2xl">
+              {currentHero.title}
+            </h1>
 
-        {/* Hero Content Container */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-28 pb-16">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            {/* Left Column: Hero Text & Actions */}
-            <div className="lg:col-span-7 space-y-6 text-left">
-              {/* Category Pill & Badges */}
-              <div className="flex flex-wrap items-center gap-2.5">
-                <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#FF0091] text-white shadow-lg shadow-[#FF0091]/40 flex items-center gap-1.5 animate-pulse">
-                  <Flame className="w-3.5 h-3.5 fill-current" /> {currentHero.categoryLabel}
-                </span>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/10 backdrop-blur-md text-slate-200 border border-white/20">
-                  {currentHero.quality}
-                </span>
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-900/60 backdrop-blur-md text-purple-200 border border-purple-500/30 flex items-center gap-1">
-                  <Volume2 className="w-3 h-3" /> {currentHero.audio}
-                </span>
-                <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
-                  <Star className="w-3 h-3 fill-current text-amber-400" /> {currentHero.rating} IMDb
-                </span>
-              </div>
+            {/* Tagline */}
+            <p className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-pink-200 via-pink-100 to-purple-200 bg-clip-text text-transparent italic drop-shadow-lg">
+              “{currentHero.tagline}”
+            </p>
 
-              {/* Movie Title */}
-              <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-2xl">
-                {currentHero.title}
-              </h1>
+            {/* Synopsis */}
+            <p className="text-sm sm:text-base text-slate-200 leading-relaxed drop-shadow-md line-clamp-3 max-w-2xl">
+              {currentHero.overview}
+            </p>
 
-              {/* Tagline */}
-              <p className="text-lg sm:text-xl font-bold bg-gradient-to-r from-pink-200 via-pink-100 to-purple-200 bg-clip-text text-transparent italic">
-                “{currentHero.tagline}”
-              </p>
-
-              {/* Synopsis */}
-              <p className="text-sm sm:text-base text-slate-300 max-w-2xl leading-relaxed drop-shadow line-clamp-3">
-                {currentHero.overview}
-              </p>
-
-              {/* Cast & Metadata row */}
-              <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-slate-300 border-l-2 border-[#FF0091] pl-3 py-0.5">
-                <div className="flex items-center gap-1 text-white font-semibold">
-                  <Clock className="w-3.5 h-3.5 text-pink-400" /> {currentHero.duration}
-                </div>
-                <span>•</span>
-                <div>{currentHero.year}</div>
-                <span>•</span>
-                <div className="text-pink-300 font-medium">
-                  Starring: {currentHero.cast.slice(0, 3).join(', ')}
-                </div>
-              </div>
-
-              {/* Primary Call to Actions */}
-              <div className="flex flex-wrap items-center gap-4 pt-4">
-                <a
-                  href="https://app.vinylflix.com/register"
-                  className="px-8 py-4 rounded-2xl text-base font-black text-white bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] shadow-xl shadow-[#FF0091]/35 hover:shadow-[#FF0091]/60 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group"
-                >
-                  <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" />
-                  <span>Start Streaming Free</span>
-                </a>
-                <button
-                  onClick={() => setActiveModalMovie(currentHero)}
-                  className="px-7 py-4 rounded-2xl text-base font-bold text-white bg-white/10 hover:bg-white/20 backdrop-blur-xl border border-white/25 hover:border-pink-500/50 transition-all flex items-center gap-2.5 active:scale-95"
-                >
-                  <Film className="w-5 h-5 text-pink-400" />
-                  <span>Movie Details & Trailer</span>
-                </button>
-              </div>
-
-              {/* Floating perk highlights */}
-              <div className="flex flex-wrap items-center gap-4 pt-2 text-xs text-slate-400">
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Instant Access
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> No Satellite Dish
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-300">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Cancel Anytime
-                </span>
-              </div>
+            {/* Keywords / Highlights / Specs - PLACED BELOW DESCRIPTION, BEFORE CTA BUTTONS */}
+            <div className="pt-2 flex flex-wrap items-center gap-3 text-xs">
+              <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-pink-300 font-bold border border-pink-500/30">
+                {currentHero.categoryLabel}
+              </span>
+              <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-white font-bold border border-white/20">
+                {currentHero.quality}
+              </span>
+              <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-purple-200 font-bold border border-purple-500/30 flex items-center gap-1.5">
+                <Volume2 className="w-3.5 h-3.5" /> {currentHero.audio}
+              </span>
+              <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-amber-300 font-black border border-amber-500/30 flex items-center gap-1">
+                <Star className="w-3.5 h-3.5 fill-current text-amber-400" /> {currentHero.rating} IMDb
+              </span>
+              <span className="text-slate-300 font-medium">
+                <Clock className="w-3.5 h-3.5 inline mr-1 text-pink-400" />
+                {currentHero.duration} • {currentHero.year}
+              </span>
             </div>
 
-            {/* Right Column: Visual Poster Card & Spotlight Selector */}
-            <div className="lg:col-span-5 hidden lg:flex flex-col items-center justify-center relative">
-              {/* Glassmorphic Cinema Frame */}
-              <div className="relative group cursor-pointer" onClick={() => setActiveModalMovie(currentHero)}>
-                <div className="absolute -inset-1 bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] rounded-3xl blur-xl opacity-60 group-hover:opacity-90 transition duration-700 animate-pulse" />
-                <div className="relative w-80 h-[480px] rounded-3xl overflow-hidden border border-white/20 bg-[#0e001f] shadow-2xl">
-                  <img
-                    src={currentHero.poster}
-                    alt={currentHero.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  {/* Subtle vinyl badge overlay */}
-                  <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-[#FF0091]/50 text-[10px] font-black uppercase text-pink-300 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#FF0091]" /> Vinyl OTT
-                  </div>
-                  {/* Bottom hover bar */}
-                  <div className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/95 via-black/70 to-transparent">
-                    <p className="text-xs font-bold text-pink-400 uppercase tracking-wider">Now Playing</p>
-                    <p className="text-base font-black text-white">{currentHero.title}</p>
-                    <div className="mt-2 flex items-center justify-between text-xs text-slate-300">
-                      <span>{currentHero.genres.slice(0, 2).join(' • ')}</span>
-                      <span className="font-bold text-emerald-400">Watch Now &rarr;</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* Cast highlight line */}
+            <p className="text-xs text-slate-300 pt-1">
+              <span className="text-white font-semibold">Starring:</span> {currentHero.cast.join(', ')}
+            </p>
 
-              {/* Spotlight Switcher Dots */}
-              <div className="flex items-center gap-2 mt-6">
+            {/* Primary Call to Actions */}
+            <div className="flex flex-wrap items-center gap-4 pt-4">
+              <a
+                href="https://app.vinylflix.com/register"
+                className="px-8 py-4 rounded-2xl text-base font-black text-white bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] shadow-2xl shadow-[#FF0091]/40 hover:shadow-[#FF0091]/60 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group"
+              >
+                <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" />
+                <span>Start Streaming Free</span>
+              </a>
+              <button
+                onClick={() => setActiveModalMovie(currentHero)}
+                className="px-7 py-4 rounded-2xl text-base font-bold text-white bg-black/50 hover:bg-black/70 backdrop-blur-xl border border-white/30 hover:border-pink-500/60 transition-all flex items-center gap-2.5 active:scale-95"
+              >
+                <Film className="w-5 h-5 text-pink-400" />
+                <span>Movie Details & Trailer</span>
+              </button>
+            </div>
+
+            {/* Subtle Hero Switcher Bar */}
+            <div className="pt-6 flex items-center gap-3">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Featured Releases:</span>
+              <div className="flex items-center gap-2">
                 {FEATURED_HEROES.map((h, i) => (
                   <button
                     key={h.id}
                     onClick={() => setHeroIdx(i)}
-                    aria-label={`Select ${h.title}`}
-                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                       heroIdx === i
-                        ? 'w-10 bg-gradient-to-r from-[#FF0091] to-[#7928CA]'
-                        : 'w-2.5 bg-white/30 hover:bg-white/60'
+                        ? 'bg-[#FF0091] text-white shadow-lg shadow-[#FF0091]/30'
+                        : 'bg-black/50 hover:bg-black/80 text-slate-300 border border-white/10'
                     }`}
-                  />
+                  >
+                    {h.title}
+                  </button>
                 ))}
               </div>
             </div>
@@ -604,16 +552,16 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 2. LIVE TRENDING CINEMA MARQUEE STRIP                         */}
       {/* ============================================================ */}
-      <section className="relative -mt-10 overflow-hidden py-4 border-y border-[#2a0054]/60 bg-[#080014]/80 backdrop-blur-md">
+      <section className="relative -mt-10 overflow-hidden py-4 border-y border-[#2a0054]/60 bg-[#080014]/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FF0091]">
-            <Flame className="w-4 h-4 fill-current animate-bounce" />
-            <span>Trending Across Vinylflix Today</span>
-          </div>
+          <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+            <Flame className="w-4 h-4 text-[#FF0091] fill-current" />
+            Trending Across Vinylflix Today
+          </h2>
           <span className="text-xs text-slate-400">1,200+ Titles Streaming in HD & 4K</span>
         </div>
 
-        {/* Horizontal Marquee */}
+        {/* Horizontal Scroll Strip */}
         <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-4 scroll-smooth">
           {CATALOG_MOVIES.map((movie) => (
             <div
@@ -650,28 +598,33 @@ export default function LandingPage() {
       {/* 3. INTERACTIVE CINEMA CATALOG BROWSER                         */}
       {/* ============================================================ */}
       <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FF0091]">
-              <Film className="w-4 h-4" /> Infinite Cinema Selection
-            </div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+          <div className="space-y-3">
+            {/* Title directly at the top - NO PILL BADGE ABOVE IT */}
             <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
               Explore What&apos;s Streaming
             </h2>
-            <p className="text-sm text-slate-400 max-w-xl">
+            <p className="text-sm text-slate-300 max-w-xl">
               From historic Nollywood sagas to record-breaking Hollywood releases, discover content tailored to your screen.
             </p>
+
+            {/* Highlights row placed below description, before category tabs */}
+            <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs font-semibold text-pink-400">
+              <span>✓ 4K Ultra HD & Dolby Atmos</span>
+              <span>✓ New Titles Added Weekly</span>
+              <span>✓ Full Mobile & Smart TV Sync</span>
+            </div>
           </div>
 
           {/* Category Tabs */}
           <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#120029] border border-[#2a0054]">
             {[
               { id: 'all', label: 'All Titles' },
-              { id: 'trending', label: '🔥 Trending' },
-              { id: 'nollywood', label: '🎬 Nollywood Hits' },
-              { id: 'blockbusters', label: '🍿 Blockbusters' },
-              { id: 'shorts', label: '⚡ Shorts & Reels' },
-              { id: 'vip', label: '👑 VIP Exclusives' },
+              { id: 'trending', label: 'Trending' },
+              { id: 'nollywood', label: 'Nollywood Hits' },
+              { id: 'blockbusters', label: 'Blockbusters' },
+              { id: 'shorts', label: 'Shorts & Reels' },
+              { id: 'vip', label: 'VIP Exclusives' },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -707,7 +660,7 @@ export default function LandingPage() {
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                   </div>
                 </div>
-                {/* Badges */}
+                {/* Badges on image */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                   <span className="px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-black text-amber-400 flex items-center gap-0.5">
                     <Star className="w-3 h-3 fill-current" /> {movie.rating}
@@ -749,7 +702,7 @@ export default function LandingPage() {
             <div>
               <h4 className="text-base font-bold text-white">Looking for a specific movie or series?</h4>
               <p className="text-xs text-slate-400">
-                Thousands of titles are added weekly. Launch the full Web App catalog to search by actor, genre, or director.
+                Thousands of titles are available. Launch the full Web App catalog to search by actor, genre, or director.
               </p>
             </div>
           </div>
@@ -763,19 +716,14 @@ export default function LandingPage() {
       </section>
 
       {/* ============================================================ */}
-      {/* 4. EVERY SCREEN, EVERYWHERE (Device Ecosystem & Mobile App)   */}
+      {/* 4. EVERY SCREEN, EVERYWHERE (Device Ecosystem)               */}
       {/* ============================================================ */}
       <section id="devices" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl bg-gradient-to-b from-[#14002e] to-[#0a0017] border border-[#2a0054] p-8 sm:p-14 relative overflow-hidden">
-          {/* Ambient light glow */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-[#FF0091]/20 via-[#7928CA]/10 to-transparent blur-[120px] pointer-events-none" />
-
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
             {/* Left Column: Device Information */}
-            <div className="lg:col-span-6 space-y-6 text-left">
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-[#FF0091]">
-                <Smartphone className="w-4 h-4" /> Multi-Platform Experience
-              </div>
+            <div className="lg:col-span-6 space-y-5 text-left">
+              {/* Title directly at top - NO PILL BADGE ABOVE IT */}
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
                 Stream on Any Screen, At Home or On The Move
               </h2>
@@ -783,7 +731,7 @@ export default function LandingPage() {
                 Enjoy a continuous, high-fidelity cinema experience. Start watching on your Smart TV in the living room, continue seamlessly on your Android or iPhone during your commute, or binge on your laptop.
               </p>
 
-              {/* Supported device bullet grid */}
+              {/* Highlights below text, before CTA buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="p-4 rounded-2xl bg-[#0a0017]/80 border border-[#2a0054] flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-[#FF0091]">
@@ -791,7 +739,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-white">Mobile Apps</h5>
-                    <p className="text-xs text-slate-400">Android & iOS with offline downloads</p>
+                    <p className="text-xs text-slate-400">Android & iOS with offline mode</p>
                   </div>
                 </div>
 
@@ -801,7 +749,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-white">Smart TV & Cast</h5>
-                    <p className="text-xs text-slate-400">Android TV, Apple TV & Chromecast</p>
+                    <p className="text-xs text-slate-400">Android TV, Apple TV & Cast</p>
                   </div>
                 </div>
 
@@ -811,7 +759,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <h5 className="text-sm font-bold text-white">Web Browser</h5>
-                    <p className="text-xs text-slate-400">Zero install needed on PC & Mac</p>
+                    <p className="text-xs text-slate-400">Instant streaming on PC & Mac</p>
                   </div>
                 </div>
 
@@ -845,17 +793,13 @@ export default function LandingPage() {
 
             {/* Right Column: Visual Device Mockup */}
             <div className="lg:col-span-6 flex items-center justify-center relative">
-              {/* Back TV screen mockup */}
               <div className="relative w-full max-w-lg aspect-video rounded-2xl border-4 border-[#2a0054] bg-slate-950 shadow-2xl overflow-hidden hidden sm:block">
                 <img
                   src="https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg"
                   alt="Smart TV Streaming Mockup"
-                  className="w-full h-full object-cover filter brightness-75"
+                  className="w-full h-full object-cover filter brightness-90"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex flex-col justify-end p-6">
-                  <span className="px-2.5 py-0.5 w-max rounded-md bg-[#FF0091] text-[10px] font-black text-white mb-1">
-                    4K LIVING ROOM OTT
-                  </span>
                   <h4 className="text-lg font-black text-white">Cinema Grade Ultra HD Playback</h4>
                   <p className="text-xs text-slate-300">Dolby Atmos Surround • Zero Commercials</p>
                 </div>
@@ -877,7 +821,6 @@ export default function LandingPage() {
                     <div>
                       <p className="text-xs font-bold text-white">Deadpool & Wolverine</p>
                       <p className="text-[10px] text-slate-300">Downloading for offline...</p>
-                      {/* Mini progress bar */}
                       <div className="w-full h-1 bg-white/20 rounded-full mt-2 overflow-hidden">
                         <div className="w-3/4 h-full bg-[#FF0091]" />
                       </div>
@@ -891,19 +834,25 @@ export default function LandingPage() {
       </section>
 
       {/* ============================================================ */}
-      {/* 5. VIP OTT MEMBERSHIP PLANS (Pure Cinema Value)               */}
+      {/* 5. VIP OTT MEMBERSHIP PLANS                                  */}
       {/* ============================================================ */}
       <section id="vip" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-black uppercase tracking-widest text-amber-400">
-            <Crown className="w-3.5 h-3.5 fill-current" /> VIP OTT Pass
-          </div>
+        <div className="text-center max-w-3xl mx-auto space-y-3 mb-12">
+          {/* Title directly at top - NO PILL BADGE ABOVE IT */}
           <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
             Unlock Pure Cinema Without Interruption
           </h2>
-          <p className="text-sm sm:text-base text-slate-400">
+          <p className="text-sm sm:text-base text-slate-300">
             Enjoy unlimited cinema streaming, 4K resolution, offline downloads, and zero advertisements.
           </p>
+
+          {/* Highlights placed below description, before pricing cards */}
+          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-semibold text-amber-300 pt-2">
+            <span>✓ 100% Ad-Free Cinema</span>
+            <span>✓ 4K Ultra HD & Dolby Atmos</span>
+            <span>✓ Multi-Screen Playback</span>
+            <span>✓ Cancel Anytime</span>
+          </div>
         </div>
 
         {/* Pricing Cards Grid */}
@@ -951,11 +900,6 @@ export default function LandingPage() {
 
           {/* Plan 2: Basic VIP (Most Popular) */}
           <div className="p-8 rounded-3xl bg-gradient-to-b from-[#1c0040] to-[#120029] border-2 border-[#FF0091] relative flex flex-col justify-between space-y-6 shadow-2xl shadow-[#FF0091]/20 scale-105 z-10">
-            {/* Most popular badge */}
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-[#FF0091]/50">
-              Most Popular
-            </div>
-
             <div className="space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-pink-500/20 flex items-center justify-center text-[#FF0091]">
                 <Crown className="w-6 h-6 fill-current" />
@@ -975,13 +919,13 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-[#FF0091]" /> Full High Definition (1080p HD)
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-[#FF0091]" /> Stream on 2 devices simultaneously
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-[#FF0091]" /> Offline Downloads on Mobile
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-[#FF0091]" /> Full Nollywood & Global Catalog
                 </div>
               </div>
@@ -1016,10 +960,10 @@ export default function LandingPage() {
                 <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-amber-400" /> Dolby Atmos 5.1 Surround Sound
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-amber-400" /> Stream on 4 devices simultaneously
                 </div>
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 font-semibold text-white">
                   <Check className="w-4 h-4 text-amber-400" /> Unlimited Offline Mobile Downloads
                 </div>
                 <div className="flex items-center gap-2.5 font-semibold text-amber-300">
@@ -1044,10 +988,8 @@ export default function LandingPage() {
       <section id="rewards" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="rounded-3xl bg-gradient-to-r from-[#0d001f] via-[#150033] to-[#0d001f] border border-[#2a0054] p-8 sm:p-14 relative overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            <div className="lg:col-span-7 space-y-5 text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-black uppercase tracking-widest text-emerald-400">
-                <Share2 className="w-3.5 h-3.5" /> Affiliate & Partner Rewards
-              </div>
+            <div className="lg:col-span-7 space-y-4 text-left">
+              {/* Title directly at top - NO PILL BADGE ABOVE IT */}
               <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                 Share African Cinema. Earn Verified Partner Commissions.
               </h2>
@@ -1055,6 +997,7 @@ export default function LandingPage() {
                 Become a Vinylflix community ambassador. Invite your friends, family, and followers using your personal referral link. When they upgrade to a verified VIP pass, you earn real cash rewards withdrawable straight to your bank account.
               </p>
 
+              {/* Highlights below text, before CTA button */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                 <div className="p-4 rounded-2xl bg-[#0a0017] border border-[#2a0054] space-y-1">
                   <span className="text-2xl font-black text-emerald-400">₦10,000</span>
@@ -1073,7 +1016,7 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-3">
                 <a
                   href="https://app.vinylflix.com/referrals"
                   className="px-7 py-3.5 rounded-2xl bg-emerald-500 text-slate-950 font-black text-sm hover:bg-emerald-400 transition-all inline-flex items-center gap-2 shadow-lg shadow-emerald-500/20"
@@ -1085,7 +1028,7 @@ export default function LandingPage() {
 
             {/* Right: Referral Flow Card */}
             <div className="lg:col-span-5 p-6 rounded-3xl bg-[#080014] border border-[#2a0054] space-y-4">
-              <h4 className="text-sm font-black uppercase tracking-wider text-white">How the Partner Program Works</h4>
+              <h4 className="text-sm font-black uppercase tracking-wider text-white">How Partner Rewards Work</h4>
               <div className="space-y-3 text-xs">
                 <div className="p-3 rounded-xl bg-[#120029] border border-[#2a0054] flex items-start gap-3">
                   <div className="w-6 h-6 rounded-full bg-pink-500/20 text-[#FF0091] font-black flex items-center justify-center shrink-0">
@@ -1111,7 +1054,7 @@ export default function LandingPage() {
                   </div>
                   <div>
                     <span className="font-bold text-white">Withdraw Your Earnings</span>
-                    <p className="text-slate-400">Transfer your verified rewards directly to your bank account.</p>
+                    <p className="text-slate-400">Transfer verified commissions straight to your bank account.</p>
                   </div>
                 </div>
               </div>
@@ -1124,15 +1067,13 @@ export default function LandingPage() {
       {/* 7. CREATOR & FILMMAKER STUDIO                                */}
       {/* ============================================================ */}
       <section id="creators" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-gradient-to-b from-[#14002e] to-[#0a0017] border border-[#2a0054] p-8 sm:p-14 space-y-12">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-xs font-black uppercase tracking-widest text-[#FF0091]">
-              <Layers className="w-3.5 h-3.5" /> For Filmmakers & Content Creators
-            </div>
+        <div className="rounded-3xl bg-gradient-to-b from-[#14002e] to-[#0a0017] border border-[#2a0054] p-8 sm:p-14 space-y-10">
+          <div className="text-center max-w-3xl mx-auto space-y-3">
+            {/* Title directly at top - NO PILL BADGE ABOVE IT */}
             <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
               Distribute Your Film to an Active Cinema Audience
             </h2>
-            <p className="text-sm sm:text-base text-slate-400">
+            <p className="text-sm sm:text-base text-slate-300">
               Vinylflix gives visionary directors, indie production houses, and digital creators the distribution muscle to reach thousands of passionate viewers worldwide.
             </p>
           </div>
@@ -1184,10 +1125,8 @@ export default function LandingPage() {
       {/* 8. FREQUENTLY ASKED QUESTIONS (Accordion)                    */}
       {/* ============================================================ */}
       <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-4 mb-14">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-xs font-black uppercase tracking-widest text-[#FF0091]">
-            Help & Answers
-          </div>
+        <div className="text-center space-y-3 mb-12">
+          {/* Title directly at top - NO PILL BADGE ABOVE IT */}
           <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
             Frequently Asked Questions
           </h2>
@@ -1226,20 +1165,22 @@ export default function LandingPage() {
       {/* ============================================================ */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
         <div className="rounded-3xl bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] p-8 sm:p-16 text-center text-white relative overflow-hidden shadow-2xl shadow-[#FF0091]/30">
-          {/* Ambient circles */}
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-black/20 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="max-w-3xl mx-auto space-y-6 relative z-10">
-            <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-black uppercase tracking-widest text-white">
-              <Sparkles className="w-3.5 h-3.5" /> Start Watching Today
-            </div>
+          <div className="max-w-3xl mx-auto space-y-5 relative z-10">
+            {/* Title directly at top - NO PILL BADGE ABOVE IT */}
             <h2 className="text-3xl sm:text-6xl font-black tracking-tight leading-tight">
               Ready for the Ultimate African Cinema Experience?
             </h2>
             <p className="text-base sm:text-xl text-pink-100 font-normal max-w-2xl mx-auto">
               Join thousands of film enthusiasts streaming Nollywood blockbusters and global releases on Vinylflix.
             </p>
+
+            {/* Highlights row below text, before CTA buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs font-bold text-pink-200 pt-2">
+              <span>✓ Instant Access on Web & Mobile</span>
+              <span>✓ 4K Ultra HD & Dolby Atmos</span>
+              <span>✓ Cancel Anytime</span>
+            </div>
+
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href="https://app.vinylflix.com/register"
@@ -1259,7 +1200,7 @@ export default function LandingPage() {
       </section>
 
       {/* ============================================================ */}
-      {/* 10. MOVIE DETAILS MODAL (Interactive Preview)               */}
+      {/* 10. MOVIE DETAILS MODAL                                      */}
       {/* ============================================================ */}
       {activeModalMovie && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-xl animate-in fade-in duration-200">
@@ -1272,7 +1213,7 @@ export default function LandingPage() {
               <img
                 src={activeModalMovie.backdrop}
                 alt={activeModalMovie.title}
-                className="w-full h-full object-cover filter brightness-[0.7]"
+                className="w-full h-full object-cover filter brightness-[0.75]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0e001f] via-transparent to-black/40" />
               <button
@@ -1283,12 +1224,10 @@ export default function LandingPage() {
               </button>
               <div className="absolute bottom-4 left-6 right-6 flex items-end justify-between">
                 <div>
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-[#FF0091] text-white">
-                    {activeModalMovie.categoryLabel}
-                  </span>
                   <h3 className="text-2xl sm:text-4xl font-black text-white mt-2 drop-shadow-md">
                     {activeModalMovie.title}
                   </h3>
+                  <p className="text-xs text-pink-300 italic">{activeModalMovie.tagline}</p>
                 </div>
               </div>
             </div>
