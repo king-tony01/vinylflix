@@ -43,6 +43,8 @@ services:
       YOUTUBE_REDIRECT_URI: ${YOUTUBE_REDIRECT_URI:-http://localhost:10000/api/v1/youtube/oauth/callback}
       FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
       FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-/app/firebase-service-account.json}
+    volumes:
+      - ${FIREBASE_HOST_PATH:-/data/vinylflix/firebase-service-account.json}:/app/firebase-service-account.json:ro
     depends_on:
       postgres:
         condition: service_healthy

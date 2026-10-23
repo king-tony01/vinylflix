@@ -21,13 +21,18 @@ function initializeFirebaseAdmin() {
 
   if (fs.existsSync(resolvedPath)) {
     try {
-      const fileContent = fs.readFileSync(resolvedPath, 'utf8');
-      const serviceAccount = JSON.parse(fileContent);
-      firebaseApp = initializeApp({
-        credential: cert(serviceAccount),
-      });
-      logger.info(`[FIREBASE_ADMIN] Initialized from mounted file: ${resolvedPath}`);
-      return;
+      const stat = fs.statSync(resolvedPath);
+      if (!stat.isFile()) {
+        logger.warn(`[FIREBASE_ADMIN] Path "${resolvedPath}" is a directory, not a file.`);
+      } else {
+        const fileContent = fs.readFileSync(resolvedPath, 'utf8');
+        const serviceAccount = JSON.parse(fileContent);
+        firebaseApp = initializeApp({
+          credential: cert(serviceAccount),
+        });
+        logger.info(`[FIREBASE_ADMIN] Initialized from mounted file: ${resolvedPath}`);
+        return;
+      }
     } catch (err) {
       logger.error(`[FATAL] Failed to parse mounted service account file at "${resolvedPath}": ${err}`);
       if (process.env.NODE_ENV !== 'test') process.exit(1);
