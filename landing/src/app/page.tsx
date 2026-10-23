@@ -566,7 +566,7 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 1. CINEMA HERO BILLBOARD (Clear, Crisp Full-Bleed Image)     */}
       {/* ============================================================ */}
-      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex items-end pb-16 md:pb-24 overflow-hidden">
+      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex flex-col justify-end items-center pb-16 md:pb-24 overflow-hidden">
         {/* Crystal-Clear Background Image - Let the visual do the magic */}
         <div className="absolute inset-0 z-0">
           <img
@@ -575,14 +575,15 @@ export default function LandingPage() {
             alt={currentHero.title}
             className="w-full h-full object-cover object-center filter brightness-100 contrast-[1.02] transition-all duration-700 animate-in fade-in"
           />
-          {/* Targeted readability gradients: soft fade on left where text sits, subtle base fade */}
-          <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-[#0a0017] via-[#0a0017]/60 to-transparent" />
-          <div className="absolute inset-y-0 left-0 w-full max-w-2xl bg-gradient-to-r from-[#0a0017]/95 via-[#0a0017]/50 to-transparent" />
+          {/* Subtle balanced overlays for center text readability while keeping artwork vibrant */}
+          <div className="absolute inset-0 bg-black/40" />
+          <div className="absolute inset-x-0 bottom-0 h-96 bg-gradient-to-t from-[#0a0017] via-[#0a0017]/80 to-transparent" />
+          <div className="absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-[#0a0017]/80 to-transparent" />
         </div>
 
-        {/* Hero Content - Clean Left Aligned Cinema Marquee (NO pills above title, NO owl carousel) */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-8">
-          <div className="max-w-2xl lg:max-w-3xl space-y-5 text-left">
+        {/* Hero Content - Centered Cinema Marquee (NO pills above title, NO owl carousel) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full space-y-10 flex flex-col items-center text-center">
+          <div className="max-w-4xl space-y-5 text-center flex flex-col items-center">
             {/* Title directly at the top - NO PILL BADGES ABOVE IT */}
             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.05] drop-shadow-2xl">
               {currentHero.title}
@@ -594,12 +595,12 @@ export default function LandingPage() {
             </p>
 
             {/* Synopsis */}
-            <p className="text-sm sm:text-base text-slate-200 leading-relaxed drop-shadow-md line-clamp-3 max-w-2xl">
+            <p className="text-sm sm:text-base text-slate-200 leading-relaxed drop-shadow-md line-clamp-3 max-w-2xl mx-auto">
               {currentHero.overview}
             </p>
 
             {/* Keywords / Highlights / Specs - PLACED BELOW DESCRIPTION, BEFORE CTA BUTTONS */}
-            <div className="pt-2 flex flex-wrap items-center gap-3 text-xs">
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3 text-xs">
               <span className="px-3 py-1 rounded-lg bg-black/60 backdrop-blur-md text-pink-300 font-bold border border-pink-500/30">
                 {currentHero.categoryLabel}
               </span>
@@ -624,7 +625,7 @@ export default function LandingPage() {
             </p>
 
             {/* Primary Call to Actions */}
-            <div className="flex flex-wrap items-center gap-4 pt-4">
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
               <a
                 href="https://app.vinylflix.com/register"
                 className="px-8 py-4 rounded-2xl text-base font-black text-white bg-gradient-to-r from-[#FF0091] via-[#7928CA] to-[#360099] shadow-2xl shadow-[#FF0091]/40 hover:shadow-[#FF0091]/60 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 group"
@@ -644,7 +645,7 @@ export default function LandingPage() {
 
           {/* Featured Releases Cards (Displayed below the heading as cards with image & just title) */}
           <div className="pt-6 space-y-3 w-full">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between px-1">
               <p className="text-xs font-black uppercase tracking-wider text-slate-300">
                 Featured Releases:
               </p>
