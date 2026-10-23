@@ -33,6 +33,7 @@ import {
 
 interface MovieData {
   id: string;
+  tmdbId?: string;
   title: string;
   tagline: string;
   category: 'trending' | 'nollywood' | 'blockbusters' | 'shorts' | 'vip';
@@ -52,34 +53,37 @@ interface MovieData {
   isVipOnly?: boolean;
 }
 
-const FEATURED_HEROES: MovieData[] = [
+// Baseline authentic TMDB catalog items (100% TMDB images & IDs, zero Unsplash)
+const TMDB_HEROES_FALLBACK: MovieData[] = [
   {
-    id: 'hero-1',
+    id: '1172009',
+    tmdbId: '1172009',
     title: 'The Black Book',
     tagline: 'When justice is corrupt, vengeance becomes the only law.',
     category: 'nollywood',
     categoryLabel: 'Nollywood Original',
-    poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
+    poster: 'https://image.tmdb.org/t/p/w500/kn28W24slBLyGr8ZIZnxNE5YZrY.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/9WxqnP9c29wXd03sALSpxpTx8fk.jpg',
     rating: 8.9,
-    year: '2024',
+    year: '2023',
     duration: '2h 14m',
     quality: '4K UHD',
     audio: 'Dolby Atmos 5.1',
-    genres: ['Action', 'Crime Thriller', 'Nollywood Drama'],
+    genres: ['Action', 'Mystery', 'Thriller'],
     overview:
       'After his son is framed for a high-profile kidnapping, a bereaved deacon takes matters into his own hands and fights a corrupt police gang to clear his family name.',
     cast: ['Richard Mofe-Damijo', 'Ade Laoye', 'Sam Dede', 'Shaffy Bello'],
     isOriginal: true,
   },
   {
-    id: 'hero-2',
+    id: '693134',
+    tmdbId: '693134',
     title: 'Dune: Part Two',
     tagline: 'Long live the fighters. The saga of Arrakis reaches its zenith.',
     category: 'blockbusters',
     categoryLabel: 'Global Blockbuster',
     poster: 'https://image.tmdb.org/t/p/w500/czembW0Rk1Ke7lCJGahbOhdCLZ.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/w1280/uhUO7vQQKvCTfQWubOt5MAKokbL.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/uhUO7vQQKvCTfQWubOt5MAKokbL.jpg',
     rating: 8.6,
     year: '2024',
     duration: '2h 46m',
@@ -91,33 +95,34 @@ const FEATURED_HEROES: MovieData[] = [
     cast: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson', 'Javier Bardem'],
   },
   {
-    id: 'hero-3',
-    title: 'Aníkúlápó: Rise of the Spectre',
+    id: '1023994',
+    tmdbId: '1023994',
+    title: 'Aníkúlápó',
     tagline: 'Death is not the end. The ancient mystical empire awakens.',
     category: 'nollywood',
     categoryLabel: 'Epic Yoruba Fantasy',
-    poster: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=1920&q=85',
+    poster: 'https://image.tmdb.org/t/p/w500/xb30hkUpBm23stnVgDJGYGsC0R0.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/gCojEROJs4JUVCCMA4fDFGc8OFc.jpg',
     rating: 8.8,
-    year: '2024',
-    duration: '6 Episodes',
+    year: '2022',
+    duration: '2h 22m',
     quality: '4K UHD',
     audio: 'Dolby 5.1',
     genres: ['Fantasy', 'Folklore', 'Period Drama'],
     overview:
-      'In a race against time to avert a catastrophic doom, Saro returns to the realm of Oyo with an impossible task that tests the limits of love, fate, and mortality.',
-    cast: ['Kunle Remi', 'Bimbo Ademoye', 'Sola Sobowale', 'Lateef Adedimeji'],
-    isSeries: true,
+      'After an affair with a queen leads to his demise, an eager traveler encounters a mythical bird with the power to give him another chance at life.',
+    cast: ['Kunle Remi', 'Bimbo Ademoye', 'Sola Sobowale', 'Hakeem Kae-Kazim'],
     isOriginal: true,
   },
   {
-    id: 'hero-4',
+    id: '533535',
+    tmdbId: '533535',
     title: 'Deadpool & Wolverine',
     tagline: 'Maximum effort meets adamantium claws in the ultimate cinema clash.',
     category: 'blockbusters',
     categoryLabel: 'VIP Premiere',
     poster: 'https://image.tmdb.org/t/p/w500/jbwYaoYWZwxtPP76AZnfYKQjCEB.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/w1280/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
     rating: 7.9,
     year: '2024',
     duration: '2h 08m',
@@ -130,32 +135,34 @@ const FEATURED_HEROES: MovieData[] = [
     isVipOnly: true,
   },
   {
-    id: 'hero-5',
+    id: '1163045',
+    tmdbId: '1163045',
     title: 'Jagun Jagun (The Warrior)',
     tagline: 'Honor, blood, and the ruthless conquest of power.',
     category: 'nollywood',
     categoryLabel: 'Nollywood Epic',
-    poster: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1920&q=85',
+    poster: 'https://image.tmdb.org/t/p/w500/uPZtE5DSo9VIX2N3NPtmTayhgP8.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/4Yon9Qmg3U4onL0OywXAHSkFTUG.jpg',
     rating: 8.7,
     year: '2023',
     duration: '2h 14m',
     quality: '4K UHD',
     audio: 'Dolby 5.1',
-    genres: ['Epic Action', 'War', 'Yoruba Drama'],
+    genres: ['Action', 'War', 'Yoruba Drama'],
     overview:
       'A determined young warrior joins an elite military academy ruled by an unforgiving warlord, testing his resolve between loyalty, love, and justice.',
     cast: ['Femi Adebayo', 'Lateef Adedimeji', 'Bimbo Ademoye'],
     isOriginal: true,
   },
   {
-    id: 'hero-6',
+    id: '872585',
+    tmdbId: '872585',
     title: 'Oppenheimer',
     tagline: 'The world forever changes in the crucible of atomic fire.',
     category: 'blockbusters',
     categoryLabel: 'Academy Award Winner',
     poster: 'https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/w1280/nb3xI8XI3w4pMVZ38VijbsyBqP4.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/rMvPXy8PUjj1o8o1pzgQbdNCsvj.jpg',
     rating: 8.9,
     year: '2023',
     duration: '3h 00m',
@@ -168,32 +175,34 @@ const FEATURED_HEROES: MovieData[] = [
     isVipOnly: true,
   },
   {
-    id: 'hero-7',
+    id: '1206988',
+    tmdbId: '1206988',
     title: 'A Tribe Called Judah',
     tagline: 'Five brothers. One impossible heist. Unbreakable family bond.',
     category: 'nollywood',
     categoryLabel: '₦1.4B Box Office Record',
-    poster: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1920&q=85',
+    poster: 'https://image.tmdb.org/t/p/w500/9aMG2ftIFqFAN69FdjovKJY0hsd.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/jX7Mb37fa7JhB9c3acL1evERNwW.jpg',
     rating: 8.8,
-    year: '2024',
+    year: '2023',
     duration: '2h 14m',
     quality: '4K UHD',
     audio: 'Dolby 5.1',
-    genres: ['Comedy Drama', 'Crime', 'Family'],
+    genres: ['Comedy', 'Crime', 'Family'],
     overview:
       'To save their ailing mother, five brothers from distinct ethnic origins plot an audacious heist on a luxury mall, encountering unexpected rivals.',
     cast: ['Funke Akindele', 'Jide Kene Achufusi', 'Timini Egbuson', 'Tobi Makinde'],
     isOriginal: true,
   },
   {
-    id: 'hero-8',
+    id: '569094',
+    tmdbId: '569094',
     title: 'Spider-Man: Across the Spider-Verse',
     tagline: 'It’s how you wear the mask that counts.',
     category: 'blockbusters',
     categoryLabel: 'VIP Animation Masterpiece',
     poster: 'https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/w1280/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/4HodYYKEIsGOdinkGi2Ucz6X9i0.jpg',
     rating: 8.7,
     year: '2023',
     duration: '2h 20m',
@@ -206,15 +215,16 @@ const FEATURED_HEROES: MovieData[] = [
     isVipOnly: true,
   },
   {
-    id: 'hero-9',
+    id: '76600',
+    tmdbId: '76600',
     title: 'Avatar: The Way of Water',
     tagline: 'Return to Pandora. Family is our fortress.',
     category: 'blockbusters',
     categoryLabel: 'Visual Spectacle',
     poster: 'https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/w1280/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/14QbnygCuTO0vl7CAFmPf1fgZfV.jpg',
     rating: 7.8,
-    year: '2024',
+    year: '2022',
     duration: '3h 12m',
     quality: '4K UHD',
     audio: 'Dolby Vision • Atmos',
@@ -225,15 +235,16 @@ const FEATURED_HEROES: MovieData[] = [
     isVipOnly: true,
   },
   {
-    id: 'hero-10',
+    id: '217460',
+    tmdbId: '217460',
     title: 'Shanty Town',
     tagline: 'Power, ruthlessness, and rebellion in the Lagos underground.',
     category: 'nollywood',
     categoryLabel: 'Series Premiere',
-    poster: 'https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1920&q=85',
+    poster: 'https://image.tmdb.org/t/p/w500/a7jRDMea7ADCtPphb9nOMp2dkgK.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/6qDujYplO8CFrjtgUdqDesidxV.jpg',
     rating: 8.5,
-    year: '2024',
+    year: '2023',
     duration: '6 Episodes',
     quality: '4K UHD',
     audio: 'Dolby 5.1',
@@ -245,63 +256,67 @@ const FEATURED_HEROES: MovieData[] = [
   },
 ];
 
-const CATALOG_MOVIES: MovieData[] = [
-  // Trending
+const TMDB_CATALOG_FALLBACK: MovieData[] = [
+  ...TMDB_HEROES_FALLBACK,
   {
-    id: 'cat-1',
-    title: 'The Black Book',
-    tagline: 'A retired hitman turned deacon seeks justice.',
-    category: 'trending',
-    categoryLabel: 'Nollywood Original',
-    poster: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=1920&q=85',
+    id: '131584',
+    tmdbId: '131584',
+    title: 'King of Boys: The Return of the King',
+    tagline: 'Laburu returns to conquer the underworld and political throne.',
+    category: 'nollywood',
+    categoryLabel: 'Crime Saga',
+    poster: 'https://image.tmdb.org/t/p/w500/vWI6qVGOklBCfdcskDdVcm2JXA6.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/i5Y17SwkjwGrTXASnWusx5okITO.jpg',
     rating: 8.9,
-    year: '2024',
-    duration: '2h 14m',
+    year: '2021',
+    duration: '7 Episodes',
     quality: '4K UHD',
     audio: 'Dolby Atmos',
-    genres: ['Action', 'Thriller'],
-    overview: 'A bereaved father fights against an entrenched corrupt syndicate to clear his late son.',
-    cast: ['Richard Mofe-Damijo', 'Ade Laoye', 'Sam Dede'],
+    genres: ['Crime', 'Drama'],
+    overview: 'Alhaja Eniola Salami returns from exile to contest for the highest seat of power in Lagos State.',
+    cast: ['Sola Sobowale', 'Toni Tones', 'Richard Mofe-Damijo'],
+    isSeries: true,
     isOriginal: true,
   },
   {
-    id: 'cat-2',
-    title: 'Deadpool & Wolverine',
-    tagline: 'The ultimate cinematic team-up.',
-    category: 'trending',
-    categoryLabel: 'VIP Premiere',
-    poster: 'https://image.tmdb.org/t/p/w500/jbwYaoYWZwxtPP76AZnfYKQjCEB.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
-    rating: 7.9,
-    year: '2024',
-    duration: '2h 08m',
-    quality: '4K UHD',
-    audio: 'Dolby Atmos',
-    genres: ['Action', 'Comedy'],
-    overview: 'Deadpool enlists a hardened Wolverine to rescue his universe from total erasure.',
-    cast: ['Ryan Reynolds', 'Hugh Jackman', 'Emma Corrin'],
+    id: '144539',
+    tmdbId: '144539',
+    title: 'The Wedding Party',
+    tagline: 'The biggest Nigerian wedding of the decade.',
+    category: 'nollywood',
+    categoryLabel: 'Romantic Comedy',
+    poster: 'https://image.tmdb.org/t/p/w500/iGiycMjca66thVjb9kjQfnsHYdq.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/j5S7ZcxsiLPV4UlQKIHHNmBYiMb.jpg',
+    rating: 7.6,
+    year: '2016',
+    duration: '1h 50m',
+    quality: '1080p HD',
+    audio: 'Dolby 5.1',
+    genres: ['Comedy', 'Romance'],
+    overview: 'As a high-society Nigerian wedding approaches, chaotic family tensions and exes threaten to ruin the lavish celebration.',
+    cast: ['Banky W.', 'Adesua Etomi-Wellington', 'Sola Sobowale'],
   },
   {
-    id: 'cat-3',
-    title: 'Shanty Town',
-    tagline: 'Power, ruthlessness, and rebellion in the slums.',
-    category: 'trending',
-    categoryLabel: 'Series Premiere',
-    poster: 'https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1920&q=85',
-    rating: 8.5,
-    year: '2024',
-    duration: '6 Episodes',
+    id: '642803',
+    tmdbId: '642803',
+    title: 'Òlòtūré',
+    tagline: 'Undercover in the human trafficking underworld.',
+    category: 'nollywood',
+    categoryLabel: 'Gritty Crime Drama',
+    poster: 'https://image.tmdb.org/t/p/w500/28bglTF4bqQwyXWoS8pawIY5AOT.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/qlNTSlNn9ISIe48iEtrPxq9OFau.jpg',
+    rating: 8.1,
+    year: '2020',
+    duration: '1h 46m',
     quality: '4K UHD',
     audio: 'Dolby 5.1',
-    genres: ['Crime Drama', 'Thriller'],
-    overview: 'A group of courtesans attempts to escape the clutches of a notorious crime kingpin.',
-    cast: ['Chidi Mokeme', 'Ini Edo', 'Richard Mofe-Damijo', 'Nse Ikpe-Etim'],
-    isSeries: true,
+    genres: ['Crime', 'Drama'],
+    overview: 'A young naive Nigerian journalist goes undercover as a prostitute to expose the dark world of human trafficking.',
+    cast: ['Sharon Ooja', 'Omoni Oboli', 'Blossom Chukwujekwu'],
   },
   {
-    id: 'cat-4',
+    id: '1022789',
+    tmdbId: '1022789',
     title: 'Inside Out 2',
     tagline: 'Make room for new emotions.',
     category: 'trending',
@@ -317,84 +332,9 @@ const CATALOG_MOVIES: MovieData[] = [
     overview: 'Riley enters teenage years and encounters brand new emotions led by Anxiety.',
     cast: ['Amy Poehler', 'Maya Hawke', 'Kensington Tallman'],
   },
-
-  // Nollywood & African
   {
-    id: 'cat-5',
-    title: 'Jagun Jagun (The Warrior)',
-    tagline: 'Honor, blood, and the ruthless conquest of power.',
-    category: 'nollywood',
-    categoryLabel: 'Nollywood Epic',
-    poster: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1920&q=85',
-    rating: 8.7,
-    year: '2023',
-    duration: '2h 14m',
-    quality: '4K UHD',
-    audio: 'Dolby 5.1',
-    genres: ['Epic Action', 'War', 'Yoruba Drama'],
-    overview: 'A determined young warrior joins an elite military academy ruled by an unforgiving warlord.',
-    cast: ['Femi Adebayo', 'Lateef Adedimeji', 'Bimbo Ademoye'],
-    isOriginal: true,
-  },
-  {
-    id: 'cat-6',
-    title: 'Blood Sisters',
-    tagline: 'A bound secret sealed in blood and loyalty.',
-    category: 'nollywood',
-    categoryLabel: 'Thriller Series',
-    poster: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=1920&q=85',
-    rating: 8.4,
-    year: '2024',
-    duration: '4 Episodes',
-    quality: '1080p HD',
-    audio: 'Dolby 5.1',
-    genres: ['Mystery', 'Crime', 'Drama'],
-    overview: 'Two best friends become fugitives on the run after an accidental killing at an engagement party.',
-    cast: ['Ini Dima-Okojie', 'Nancy Isime', 'Deyemi Okanlawon'],
-    isSeries: true,
-  },
-  {
-    id: 'cat-7',
-    title: 'King of Boys: The Return',
-    tagline: 'Laburu returns to conquer the underworld and political throne.',
-    category: 'nollywood',
-    categoryLabel: 'Crime Saga',
-    poster: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1920&q=85',
-    rating: 8.9,
-    year: '2023',
-    duration: '7 Episodes',
-    quality: '4K UHD',
-    audio: 'Dolby Atmos',
-    genres: ['Crime', 'Political Drama'],
-    overview: 'Alhaja Eniola Salami returns from exile to contest for the highest seat of power.',
-    cast: ['Sola Sobowale', 'Toni Tones', 'Richard Mofe-Damijo'],
-    isSeries: true,
-    isOriginal: true,
-  },
-
-  // Blockbusters
-  {
-    id: 'cat-8',
-    title: 'Dune: Part Two',
-    tagline: 'The epic destiny of Paul Atreides.',
-    category: 'blockbusters',
-    categoryLabel: 'Cinematic Epic',
-    poster: 'https://image.tmdb.org/t/p/w500/czembW0Rk1Ke7lCJGahbOhdCLZ.jpg',
-    backdrop: 'https://image.tmdb.org/t/p/original/uhUO7vQQKvCTfQWubOt5MAKokbL.jpg',
-    rating: 8.6,
-    year: '2024',
-    duration: '2h 46m',
-    quality: '4K UHD',
-    audio: 'Dolby Atmos',
-    genres: ['Sci-Fi', 'Adventure'],
-    overview: 'The prophecy unfolds as Paul Atreides unites the desert forces against imperial tyranny.',
-    cast: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson'],
-  },
-  {
-    id: 'cat-9',
+    id: '945961',
+    tmdbId: '945961',
     title: 'Alien: Romulus',
     tagline: 'In space, terror returns to its roots.',
     category: 'blockbusters',
@@ -411,7 +351,8 @@ const CATALOG_MOVIES: MovieData[] = [
     cast: ['Cailee Spaeny', 'David Jonsson', 'Archie Renaux'],
   },
   {
-    id: 'cat-10',
+    id: '93405',
+    tmdbId: '93405',
     title: 'Squid Game (Season 2)',
     tagline: 'The deadly game restarts with higher stakes.',
     category: 'blockbusters',
@@ -424,52 +365,13 @@ const CATALOG_MOVIES: MovieData[] = [
     quality: '4K UHD',
     audio: 'Dolby Atmos',
     genres: ['Suspense', 'Survival Drama'],
-    overview: 'Gi-hun abandons his flight to America to seek out the organizers behind the cruel survival games.',
+    overview: 'Gi-hun returns to seek out the organizers behind the cruel survival games and put an end to the madness.',
     cast: ['Lee Jung-jae', 'Lee Byung-hun', 'Wi Ha-jun'],
     isSeries: true,
   },
-
-  // High-Voltage Shorts & Reels
   {
-    id: 'cat-11',
-    title: 'Vinyl Nights: Lagos Underground',
-    tagline: 'Music, neon lights, and midnight velocity.',
-    category: 'shorts',
-    categoryLabel: 'Viral Cinema Reel',
-    poster: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1920&q=85',
-    rating: 9.3,
-    year: '2024',
-    duration: '8m Short',
-    quality: '4K UHD',
-    audio: 'Spatial Stereo',
-    genres: ['Music Cinema', 'Short Film'],
-    overview: 'A breathtaking sonic voyage exploring the nocturnal pulse and vinyl DJs of Lagos Island.',
-    cast: ['DJ Spinall', 'Seyi Vibez', 'Tiwa Savage'],
-    isOriginal: true,
-  },
-  {
-    id: 'cat-12',
-    title: 'The Cyber Heist',
-    tagline: '60 seconds to breach the mainframe.',
-    category: 'shorts',
-    categoryLabel: 'Sci-Fi Short',
-    poster: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1920&q=85',
-    rating: 8.9,
-    year: '2024',
-    duration: '12m Short',
-    quality: '4K UHD',
-    audio: 'Dolby 5.1',
-    genres: ['Cyberpunk', 'High-Octane Thriller'],
-    overview: 'A rogue hacker infiltrates an autonomous bank vault in futuristic Victoria Island.',
-    cast: ['Femi Jacobs', 'Tobi Bakre'],
-    isOriginal: true,
-  },
-
-  // VIP Exclusive
-  {
-    id: 'cat-13',
+    id: '94997',
+    tmdbId: '94997',
     title: 'House of the Dragon (Season 2)',
     tagline: 'All must choose: Green or Black.',
     category: 'vip',
@@ -488,47 +390,146 @@ const CATALOG_MOVIES: MovieData[] = [
     isVipOnly: true,
   },
   {
-    id: 'cat-14',
-    title: 'Gladiator II',
-    tagline: 'What we do in life echoes in eternity.',
-    category: 'vip',
-    categoryLabel: 'VIP Early Drop',
-    poster: 'https://images.unsplash.com/photo-1533928298208-27ff66555d8d?auto=format&fit=crop&w=600&q=80',
-    backdrop: 'https://images.unsplash.com/photo-1533928298208-27ff66555d8d?auto=format&fit=crop&w=1920&q=85',
-    rating: 8.4,
+    id: '573435',
+    tmdbId: '573435',
+    title: 'Bad Boys: Ride or Die',
+    tagline: 'Miami’s finest are on the run.',
+    category: 'trending',
+    categoryLabel: 'Action Blockbuster',
+    poster: 'https://image.tmdb.org/t/p/w500/nP6RliHjxsz4irTKsxe8FRhKZYl.jpg',
+    backdrop: 'https://image.tmdb.org/t/p/original/ga4OLm4qLxO1lrkcrbvvgf593qM.jpg',
+    rating: 7.5,
     year: '2024',
-    duration: '2h 28m',
+    duration: '1h 55m',
     quality: '4K UHD',
-    audio: 'Dolby Vision • Atmos',
-    genres: ['Historical Epic', 'Action'],
-    overview: 'Decades after Maximus, Lucius enters the Colosseum to restore honor and glory to Rome.',
-    cast: ['Paul Mescal', 'Pedro Pascal', 'Denzel Washington'],
-    isVipOnly: true,
+    audio: 'Dolby 5.1',
+    genres: ['Action', 'Comedy', 'Crime'],
+    overview: 'When their former captain is framed, Miami detectives Mike Lowrey and Marcus Burnett must go on the run to clear his name.',
+    cast: ['Will Smith', 'Martin Lawrence', 'Vanessa Hudgens'],
   },
 ];
 
 export default function LandingPage() {
+  const [heroes, setHeroes] = useState<MovieData[]>(TMDB_HEROES_FALLBACK);
+  const [catalog, setCatalog] = useState<MovieData[]>(TMDB_CATALOG_FALLBACK);
   const [heroIdx, setHeroIdx] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<
     'all' | 'trending' | 'nollywood' | 'blockbusters' | 'shorts' | 'vip'
   >('all');
   const [activeModalMovie, setActiveModalMovie] = useState<MovieData | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Dynamic live TMDB loader from Vinylflix live cinema API
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchTmdb() {
+      try {
+        setIsLoading(true);
+        const [trendingRes, popularRes] = await Promise.allSettled([
+          fetch('https://app.vinylflix.com/api/v1/movies/trending').then((r) => r.json()),
+          fetch('https://app.vinylflix.com/api/v1/movies/popular').then((r) => r.json()),
+        ]);
+
+        const dynamicHeroes: MovieData[] = [];
+        const dynamicCatalog: MovieData[] = [];
+
+        if (trendingRes.status === 'fulfilled' && trendingRes.value?.success && Array.isArray(trendingRes.value?.data)) {
+          trendingRes.value.data.forEach((item: any) => {
+            if (item.backdropPath && item.posterPath) {
+              const movie: MovieData = {
+                id: String(item.id || item.tmdbId),
+                tmdbId: String(item.id || item.tmdbId),
+                title: item.title,
+                tagline: item.overview ? item.overview.slice(0, 90) + '...' : 'Streaming now on Vinylflix',
+                category: 'trending',
+                categoryLabel: item.isSeries ? 'Trending Series' : 'Trending Cinema',
+                poster: `https://image.tmdb.org/t/p/w500${item.posterPath}`,
+                backdrop: `https://image.tmdb.org/t/p/original${item.backdropPath}`,
+                rating: item.rating ? Number(item.rating.toFixed(1)) : 8.0,
+                year: item.releaseYear || '2024',
+                duration: item.isSeries ? 'Series' : 'Feature Film',
+                quality: '4K UHD',
+                audio: 'Dolby Atmos',
+                genres: item.genres && item.genres.length > 0 ? item.genres : ['Action', 'Cinema'],
+                overview: item.overview || 'Available for streaming in ultra high definition on Vinylflix.',
+                cast: ['Starring acclaimed cinema cast'],
+                isSeries: item.isSeries,
+              };
+              dynamicCatalog.push(movie);
+              if (dynamicHeroes.length < 10) {
+                dynamicHeroes.push(movie);
+              }
+            }
+          });
+        }
+
+        if (popularRes.status === 'fulfilled' && popularRes.value?.success && Array.isArray(popularRes.value?.data)) {
+          popularRes.value.data.forEach((item: any) => {
+            if (item.backdropPath && item.posterPath) {
+              const movie: MovieData = {
+                id: String(item.id || item.tmdbId),
+                tmdbId: String(item.id || item.tmdbId),
+                title: item.title,
+                tagline: item.overview ? item.overview.slice(0, 90) + '...' : 'Streaming now on Vinylflix',
+                category: 'blockbusters',
+                categoryLabel: 'Global Blockbuster',
+                poster: `https://image.tmdb.org/t/p/w500${item.posterPath}`,
+                backdrop: `https://image.tmdb.org/t/p/original${item.backdropPath}`,
+                rating: item.rating ? Number(item.rating.toFixed(1)) : 8.2,
+                year: item.releaseYear || '2024',
+                duration: item.isSeries ? 'Series' : 'Feature Film',
+                quality: '4K UHD',
+                audio: 'Dolby Vision • Atmos',
+                genres: item.genres && item.genres.length > 0 ? item.genres : ['Action', 'Thriller'],
+                overview: item.overview || 'Available for streaming in ultra high definition on Vinylflix.',
+                cast: ['Starring acclaimed cinema cast'],
+                isSeries: item.isSeries,
+                isVipOnly: true,
+              };
+              dynamicCatalog.push(movie);
+            }
+          });
+        }
+
+        if (isMounted) {
+          if (dynamicHeroes.length >= 5) {
+            setHeroes(dynamicHeroes);
+          }
+          if (dynamicCatalog.length >= 10) {
+            // Keep authentic Nollywood TMDB titles so that Nollywood tab is fully covered
+            const nollywoodTmdb = TMDB_CATALOG_FALLBACK.filter((m) => m.category === 'nollywood');
+            setCatalog([...dynamicCatalog, ...nollywoodTmdb]);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching live TMDB catalog:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    fetchTmdb();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Subtle Hero Backdrop switcher every 10 seconds
   useEffect(() => {
+    if (heroes.length === 0) return;
     const timer = setInterval(() => {
-      setHeroIdx((prev) => (prev + 1) % FEATURED_HEROES.length);
+      setHeroIdx((prev) => (prev + 1) % heroes.length);
     }, 10000);
     return () => clearInterval(timer);
-  }, []);
+  }, [heroes.length]);
 
-  const currentHero = FEATURED_HEROES[heroIdx];
+  const currentHero = heroes[heroIdx] || heroes[0] || TMDB_HEROES_FALLBACK[0];
 
   const filteredMovies =
     selectedCategory === 'all'
-      ? CATALOG_MOVIES
-      : CATALOG_MOVIES.filter((m) => m.category === selectedCategory);
+      ? catalog
+      : catalog.filter((m) => m.category === selectedCategory);
 
   const faqs = [
     {
@@ -566,7 +567,7 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 1. CINEMA HERO BILLBOARD (Clear, Crisp Full-Bleed Image)     */}
       {/* ============================================================ */}
-      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex flex-col justify-center items-center pb-16 md:pb-24 overflow-hidden">
+      <section className="relative min-h-[92vh] md:min-h-screen flex flex-col justify-center items-center pb-16 md:pb-24 overflow-hidden">
         {/* Crystal-Clear Background Image - Let the visual do the magic */}
         <div className="absolute inset-0 z-0">
           <img
@@ -649,22 +650,18 @@ export default function LandingPage() {
               <p className="text-xs font-black uppercase tracking-wider text-slate-300">
                 Featured Releases:
               </p>
-              <span className="text-[11px] text-pink-400/80 font-medium hidden sm:inline">
-                Click any title to switch hero showcase
-              </span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 sm:gap-2.5 w-full">
-              {FEATURED_HEROES.map((h, i) => (
+              {heroes.map((h, i) => (
                 <button
                   key={h.id}
                   onClick={() => setHeroIdx(i)}
-                  className={`group text-center w-full rounded-xl p-1 transition-all duration-300 flex flex-col ${
-                    heroIdx === i
-                      ? 'bg-white/20 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-[1.04]'
-                      : 'bg-black/60 hover:bg-black/90 border border-white/15 hover:border-white/30'
-                  }`}
+                  className={`group text-center w-full rounded p-1 transition-all duration-300 flex flex-col ${heroIdx === i
+                    ? 'bg-white/20 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-[1.04]'
+                    : 'bg-black/70 hover:bg-black/90 border border-white/15 hover:border-white/30'
+                    }`}
                 >
-                  <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-950">
+                  <div className="relative aspect-[16/10] w-full rounded overflow-hidden bg-slate-950">
                     <img
                       src={h.backdrop}
                       alt={h.title}
@@ -672,9 +669,8 @@ export default function LandingPage() {
                     />
                   </div>
                   <p
-                    className={`text-[10px] sm:text-[11px] font-bold truncate mt-1.5 px-0.5 text-center ${
-                      heroIdx === i ? 'text-pink-300 font-extrabold' : 'text-slate-200 group-hover:text-white'
-                    }`}
+                    className={`text-[10px] sm:text-[11px] font-bold truncate mt-1.5 px-0.5 text-center ${heroIdx === i ? 'text-pink-300 font-extrabold' : 'text-slate-200 group-hover:text-white'
+                      }`}
                   >
                     {h.title}
                   </p>
@@ -688,7 +684,7 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 2. LIVE TRENDING CINEMA MARQUEE STRIP                         */}
       {/* ============================================================ */}
-      <section className="relative -mt-10 overflow-hidden py-4 border-y border-[#2a0054]/60 bg-[#080014]/90 backdrop-blur-md">
+      <section className="relative overflow-hidden py-4 border-y border-[#2a0054]/60 bg-[#080014]/90 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 mb-3 flex items-center justify-between">
           <h2 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
             <Flame className="w-4 h-4 text-[#FF0091] fill-current" />
@@ -699,7 +695,7 @@ export default function LandingPage() {
 
         {/* Horizontal Scroll Strip */}
         <div className="flex gap-4 overflow-x-auto no-scrollbar py-2 px-4 scroll-smooth">
-          {CATALOG_MOVIES.map((movie) => (
+          {catalog.slice(0, 15).map((movie) => (
             <div
               key={movie.id}
               onClick={() => setActiveModalMovie(movie)}
@@ -766,8 +762,8 @@ export default function LandingPage() {
                 key={tab.id}
                 onClick={() => setSelectedCategory(tab.id as any)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedCategory === tab.id
-                    ? 'bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-white shadow-md'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-white shadow-md'
+                  : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 {tab.label}

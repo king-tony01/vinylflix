@@ -36,9 +36,6 @@ export const Navbar: React.FC = () => {
             <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-pink-100 to-[#FF0091] bg-clip-text text-transparent select-none">
               Vinylflix
             </span>
-            <span className="text-[9px] uppercase tracking-widest font-black text-pink-400 -mt-1 opacity-80">
-              VIP OTT Cinema
-            </span>
           </div>
         </Link>
 

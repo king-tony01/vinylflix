@@ -6,7 +6,6 @@ const nextConfig = {
       'img.youtube.com',
       'i.ytimg.com',
       'image.tmdb.org',
-      'images.unsplash.com',
     ],
   },
 };
