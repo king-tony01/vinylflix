@@ -566,7 +566,7 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 1. CINEMA HERO BILLBOARD (Clear, Crisp Full-Bleed Image)     */}
       {/* ============================================================ */}
-      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex flex-col justify-end items-center pb-16 md:pb-24 overflow-hidden">
+      <section className="relative -mt-20 min-h-[92vh] md:min-h-screen flex flex-col justify-center items-center pb-16 md:pb-24 overflow-hidden">
         {/* Crystal-Clear Background Image - Let the visual do the magic */}
         <div className="absolute inset-0 z-0">
           <img
@@ -643,7 +643,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Featured Releases Cards (Displayed below the heading as cards with image & just title) */}
+          {/* Featured Releases Cards (Displayed below the heading as cards with image & just title, spanning freely without scrolling) */}
           <div className="pt-6 space-y-3 w-full">
             <div className="flex items-center justify-between px-1">
               <p className="text-xs font-black uppercase tracking-wider text-slate-300">
@@ -653,18 +653,18 @@ export default function LandingPage() {
                 Click any title to switch hero showcase
               </span>
             </div>
-            <div className="flex items-center gap-3.5 overflow-x-auto no-scrollbar py-2 w-full scroll-smooth">
+            <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 sm:gap-2.5 w-full">
               {FEATURED_HEROES.map((h, i) => (
                 <button
                   key={h.id}
                   onClick={() => setHeroIdx(i)}
-                  className={`group text-left shrink-0 w-40 sm:w-48 rounded-2xl p-1.5 transition-all duration-300 ${
+                  className={`group text-center w-full rounded-xl p-1 transition-all duration-300 flex flex-col ${
                     heroIdx === i
-                      ? 'bg-white/15 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-105'
+                      ? 'bg-white/20 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-[1.04]'
                       : 'bg-black/60 hover:bg-black/90 border border-white/15 hover:border-white/30'
                   }`}
                 >
-                  <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-950">
+                  <div className="relative aspect-[16/10] w-full rounded-lg overflow-hidden bg-slate-950">
                     <img
                       src={h.backdrop}
                       alt={h.title}
@@ -672,8 +672,8 @@ export default function LandingPage() {
                     />
                   </div>
                   <p
-                    className={`text-xs font-bold truncate mt-2 px-1 ${
-                      heroIdx === i ? 'text-pink-300' : 'text-slate-200 group-hover:text-white'
+                    className={`text-[10px] sm:text-[11px] font-bold truncate mt-1.5 px-0.5 text-center ${
+                      heroIdx === i ? 'text-pink-300 font-extrabold' : 'text-slate-200 group-hover:text-white'
                     }`}
                   >
                     {h.title}
@@ -765,11 +765,10 @@ export default function LandingPage() {
               <button
                 key={tab.id}
                 onClick={() => setSelectedCategory(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                  selectedCategory === tab.id
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedCategory === tab.id
                     ? 'bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-white shadow-md'
                     : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -1281,9 +1280,8 @@ export default function LandingPage() {
               >
                 <span>{faq.q}</span>
                 <ChevronDown
-                  className={`w-5 h-5 text-pink-400 shrink-0 transition-transform duration-300 ${
-                    openFaq === index ? 'rotate-180' : ''
-                  }`}
+                  className={`w-5 h-5 text-pink-400 shrink-0 transition-transform duration-300 ${openFaq === index ? 'rotate-180' : ''
+                    }`}
                 />
               </button>
               {openFaq === index && (
