@@ -526,21 +526,36 @@ export default function LandingPage() {
               </button>
             </div>
 
-            {/* Subtle Hero Switcher Bar */}
-            <div className="pt-6 flex items-center gap-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Featured Releases:</span>
-              <div className="flex items-center gap-2">
+            {/* Featured Releases Cards (Displayed below the label, with image and just title) */}
+            <div className="pt-6 space-y-3">
+              <p className="text-xs font-black uppercase tracking-wider text-slate-300">
+                Featured Releases:
+              </p>
+              <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
                 {FEATURED_HEROES.map((h, i) => (
                   <button
                     key={h.id}
                     onClick={() => setHeroIdx(i)}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                    className={`group text-left shrink-0 w-32 sm:w-40 rounded-2xl p-1.5 transition-all duration-300 ${
                       heroIdx === i
-                        ? 'bg-[#FF0091] text-white shadow-lg shadow-[#FF0091]/30'
-                        : 'bg-black/50 hover:bg-black/80 text-slate-300 border border-white/10'
+                        ? 'bg-white/15 border-2 border-[#FF0091] shadow-xl shadow-[#FF0091]/30 scale-105'
+                        : 'bg-black/50 hover:bg-black/80 border border-white/15 hover:border-white/30'
                     }`}
                   >
-                    {h.title}
+                    <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-slate-900">
+                      <img
+                        src={h.backdrop}
+                        alt={h.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    <p
+                      className={`text-xs font-bold truncate mt-2 px-1 ${
+                        heroIdx === i ? 'text-pink-300' : 'text-slate-200 group-hover:text-white'
+                      }`}
+                    >
+                      {h.title}
+                    </p>
                   </button>
                 ))}
               </div>
