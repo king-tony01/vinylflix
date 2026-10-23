@@ -42,6 +42,8 @@ model User {
   riskScore     RiskScore?
   auditLogs     AuditLog[]    @relation("ActorRel")
   notifications Notification[]
+  notificationPreference NotificationPreference?
+  deviceTokens  DeviceToken[]
 
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -438,4 +440,35 @@ model Notification {
 
   @@index([userId])
   @@index([isRead])
+}
+
+model NotificationPreference {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pushEnabled     Boolean  @default(true)
+  newReleases     Boolean  @default(true)
+  trendingReels   Boolean  @default(false)
+  walletAlerts    Boolean  @default(true)
+  emailReceipts   Boolean  @default(true)
+  loginAlerts     Boolean  @default(true)
+  marketingEmails Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model DeviceToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  platform  String   @default("android") // android, ios, web
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([token])
 }

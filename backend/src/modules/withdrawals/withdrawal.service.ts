@@ -3,6 +3,7 @@ import { ConfigService } from '../config/config.service.js';
 import { LedgerService } from '../ledger/ledger.service.js';
 import { RiskService } from '../risk/risk.service.js';
 import { AuditService } from '../audit/audit.service.js';
+import { NotificationService } from '../notifications/notification.service.js';
 import { generateIdempotencyKey } from '../../utils/crypto.js';
 import { AppError, NotFoundError } from '../../utils/errors.js';
 import { requestWithdrawalSchema } from './withdrawal.dto.js';
@@ -141,7 +142,7 @@ export class WithdrawalService {
     const fee = (data.amount * rules.platformFeePercent) / 100;
     const netAmount = data.amount - fee;
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Create Withdrawal Record
       const withdrawal = await tx.withdrawal.create({
         data: {
@@ -188,6 +189,17 @@ export class WithdrawalService {
 
       return { withdrawal, isDuplicate: false };
     });
+
+    // Notify user of withdrawal request (filtered by user's walletAlerts preference)
+    await NotificationService.sendNotification({
+      userId,
+      title: 'Withdrawal Processing ⏳',
+      message: `Your withdrawal request of ₦${data.amount.toLocaleString()} has been received and is being processed.`,
+      type: 'WITHDRAWAL',
+      metadata: { withdrawalId: result.withdrawal.id, amount: data.amount },
+    });
+
+    return result;
   }
 
   public static async processWithdrawalReview(
@@ -246,6 +258,14 @@ export class WithdrawalService {
         reason: reviewNote,
       });
 
+      await NotificationService.sendNotification({
+        userId: withdrawal.userId,
+        title: 'Withdrawal Approved! 💸',
+        message: `Your withdrawal of ₦${withdrawal.netAmount.toLocaleString()} has been approved and sent to your bank account.`,
+        type: 'WITHDRAWAL',
+        metadata: { withdrawalId, amount: withdrawal.netAmount },
+      });
+
       return updated;
     } else {
       // REJECT: Refund funds back to AVAILABLE bucket via compensating entry
@@ -285,6 +305,14 @@ export class WithdrawalService {
         targetType: 'WITHDRAWAL',
         targetId: withdrawalId,
         reason: reviewNote,
+      });
+
+      await NotificationService.sendNotification({
+        userId: withdrawal.userId,
+        title: 'Withdrawal Update',
+        message: `Your withdrawal of ₦${withdrawal.amount.toLocaleString()} was declined and refunded. Reason: ${reviewNote || 'Admin review rejection'}`,
+        type: 'WITHDRAWAL',
+        metadata: { withdrawalId, amount: withdrawal.amount },
       });
 
       return updated;

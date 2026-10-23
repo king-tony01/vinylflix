@@ -1,6 +1,7 @@
 import { prisma } from '../../prisma/client.js';
 import { LedgerService } from '../ledger/ledger.service.js';
 import { AuditService } from '../audit/audit.service.js';
+import { NotificationService } from '../notifications/notification.service.js';
 import { logger } from '../../utils/logger.js';
 import { NotFoundError } from '../../utils/errors.js';
 
@@ -262,13 +263,12 @@ export class ReferralService {
             description: 'Referral commission bonus (₦1,000) for qualified member activation',
           });
 
-          await prisma.notification.create({
-            data: {
-              userId: referral.referrerId,
-              title: 'Referral Commission Earned! 🎉',
-              message: 'You earned ₦1,000 available balance from a qualified referral activation.',
-              type: 'REWARD',
-            },
+          await NotificationService.sendNotification({
+            userId: referral.referrerId,
+            title: 'Referral Commission Earned! 🎉',
+            message: 'You earned ₦1,000 available balance from a qualified referral activation.',
+            type: 'REWARD',
+            metadata: { referralId: referral.id, amount: 1000 },
           });
 
           logger.info(
@@ -357,13 +357,12 @@ export class ReferralService {
         );
 
         // Record in-app notification
-        await prisma.notification.create({
-          data: {
-            userId: referrerId,
-            title: 'Conditional Milestone Reward Unlocked! 🎉',
-            message: `Congratulations! You have satisfied your referral requirements (${qualifiedCount} qualified, ${premiumQualifiedCount} Premium). Your milestone bonus of ₦${reward.amount.toLocaleString()} is now available for withdrawal!`,
-            type: 'REWARD',
-          },
+        await NotificationService.sendNotification({
+          userId: referrerId,
+          title: 'Conditional Milestone Reward Unlocked! 🎉',
+          message: `Congratulations! You have satisfied your referral requirements (${qualifiedCount} qualified, ${premiumQualifiedCount} Premium). Your milestone bonus of ₦${reward.amount.toLocaleString()} is now available for withdrawal!`,
+          type: 'REWARD',
+          metadata: { rewardId: reward.id, amount: reward.amount },
         });
 
         anyUnlocked = true;
