@@ -1,6 +1,7 @@
 import { prisma } from '../../prisma/client.js';
 import { logger } from '../../utils/logger.js';
 import { NotFoundError } from '../../utils/errors.js';
+import { FirebasePushService } from './firebase.service.js';
 
 export interface NotificationPreferenceInput {
   pushEnabled?: boolean;
@@ -166,7 +167,13 @@ export class NotificationService {
         logger.info(
           `[PUSH_DISPATCH] Sending push notification to user ${userId} (${activeTokens.length} active devices): "${title}" - "${message}"`
         );
-        // Note: Real Firebase Admin SDK dispatch would happen here with FCM tokens: activeTokens.map(t => t.token)
+        const tokenList = activeTokens.map((t) => t.token);
+        await FirebasePushService.sendPushToTokens(tokenList, {
+          title,
+          message,
+          type,
+          metadata,
+        });
       } else {
         logger.info(`[PUSH_DISPATCH] User ${userId} has no active device tokens registered.`);
       }

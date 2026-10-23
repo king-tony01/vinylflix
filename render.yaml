@@ -50,3 +50,12 @@ services:
         sync: false # Set in Render Dashboard
       - key: YOUTUBE_REDIRECT_URI
         sync: false # Set in Render Dashboard (e.g. https://vinylflix.onrender.com/api/v1/youtube/oauth/callback)
+      # Firebase Cloud Messaging (Push Notifications)
+      - key: FIREBASE_PROJECT_ID
+        value: vinylflix-project
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false # Paste full Firebase Service Account JSON here in Render Dashboard
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false # Alternatively, set client email
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false # Alternatively, set private key
