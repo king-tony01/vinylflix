@@ -4,35 +4,37 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Vinylflix — YouTube Video Discovery & Creator Growth Network',
+  title: 'Vinylflix — Stream African Cinema, Blockbusters & Exclusive Premieres',
   description:
-    'Promote your YouTube videos to thousands of verified, highly engaged human viewers. Boost authentic watch time, channel discoverability, and audience retention with Vinylflix.',
+    'Experience the best in Nollywood, Pan-African cinema, global blockbusters, and bingeable reels. Stream in 4K Ultra HD on your phone, tablet, and Smart TV with Vinylflix.',
   keywords: [
-    'youtube promotion',
-    'creator growth network',
-    'video discovery platform',
-    'youtube views campaign',
-    'video advertising',
-    'channel marketing',
     'vinylflix',
-    'youtube audience growth',
-    'content promotion platform',
+    'african cinema',
+    'nollywood movies',
+    'stream african movies',
+    'nollywood streaming platform',
+    'watch nigerian movies online',
+    'african web series',
+    'ott streaming service',
+    'vip cinema pass',
+    'mobile movie app',
+    '4k ultra hd streaming',
   ],
-  authors: [{ name: 'Vinylflix' }],
+  authors: [{ name: 'Vinylflix Studios' }],
   creator: 'Vinylflix',
   metadataBase: new URL('https://vinylflix.com'),
   openGraph: {
-    title: 'Vinylflix — YouTube Video Discovery & Creator Growth Network',
+    title: 'Vinylflix — Stream African Cinema, Blockbusters & Exclusive Premieres',
     description:
-      'Supercharge your YouTube reach with verified viewer attention. Launch targeted campaigns and gain authentic audience engagement.',
+      'Unlimited streaming of Nollywood hits, award-winning African cinema, and global entertainment. Ultra HD, zero ads on VIP, and offline downloads.',
     url: 'https://vinylflix.com',
     siteName: 'Vinylflix',
     images: [
       {
-        url: '/og-image.png',
+        url: 'https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
         width: 1200,
         height: 630,
-        alt: 'Vinylflix - YouTube Video Discovery & Creator Growth',
+        alt: 'Vinylflix - Premium Cinema & OTT Streaming',
       },
     ],
     locale: 'en_US',
@@ -40,10 +42,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Vinylflix — YouTube Video Discovery & Creator Growth Network',
+    title: 'Vinylflix — Stream African Cinema & Global Blockbusters',
     description:
-      'Launch targeted video campaigns and grow your YouTube channel with authentic, high-retention viewer attention.',
-    images: ['/og-image.png'],
+      'Stream Nollywood hits, African cinema, and global releases in 4K HDR. Join Vinylflix on Web, Android, and TV.',
+    images: ['https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg'],
   },
   robots: {
     index: true,
@@ -84,14 +86,14 @@ export default function RootLayout({
               '@type': 'SoftwareApplication',
               name: 'Vinylflix',
               applicationCategory: 'EntertainmentApplication',
-              operatingSystem: 'Web, Android, iOS',
+              operatingSystem: 'Web, Android, iOS, Smart TV',
               offers: {
                 '@type': 'Offer',
                 price: '0.00',
                 priceCurrency: 'NGN',
               },
               description:
-                'Rewarding video streaming and content promotion ecosystem connecting viewers with creators.',
+                'The premier African cinema & next-generation OTT streaming platform connecting audiences with Nollywood blockbusters, web series, and exclusive premieres.',
               url: 'https://vinylflix.com',
             }),
           }}
@@ -99,7 +101,7 @@ export default function RootLayout({
       </head>
       <body className="bg-[#0a0017] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-[#FF0091] selection:text-white">
         <Navbar />
-        <div className="flex-1 pt-20">{children}</div>
+        <main className="flex-1 pt-20">{children}</main>
         <Footer />
       </body>
     </html>
