@@ -50,6 +50,7 @@ Thumbs.db
 # Testing & Coverage
 coverage/
 .nyc_output/
+*.tsbuildinfo
 
 # Temporary / Agent Workspace Files
 brain/
