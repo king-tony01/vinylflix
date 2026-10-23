@@ -567,7 +567,7 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 1. CINEMA HERO BILLBOARD (Clear, Crisp Full-Bleed Image)     */}
       {/* ============================================================ */}
-      <section className="relative min-h-[92vh] md:min-h-screen flex flex-col justify-center items-center pb-16 md:pb-24 overflow-hidden">
+      <section className="relative min-h-[92vh] md:min-h-screen flex flex-col justify-center items-center pt-24 md:pt-28 pb-16 md:pb-24 overflow-hidden">
         {/* Crystal-Clear Background Image - Let the visual do the magic */}
         <div className="absolute inset-0 z-0">
           <img
@@ -701,7 +701,7 @@ export default function LandingPage() {
               onClick={() => setActiveModalMovie(movie)}
               className="shrink-0 w-36 sm:w-44 group cursor-pointer relative"
             >
-              <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border border-[#2a0054] group-hover:border-[#FF0091]/70 transition-all duration-300 shadow-lg">
+              <div className="relative aspect-[2/3] rounded overflow-hidden border border-[#2a0054] group-hover:border-[#FF0091]/70 transition-all duration-300 shadow-lg">
                 <img
                   src={movie.poster}
                   alt={movie.title}
@@ -729,46 +729,47 @@ export default function LandingPage() {
       {/* ============================================================ */}
       {/* 3. INTERACTIVE CINEMA CATALOG BROWSER                         */}
       {/* ============================================================ */}
-      <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <div className="space-y-3">
-            {/* Title directly at the top - NO PILL BADGE ABOVE IT */}
-            <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
-              Explore What&apos;s Streaming
-            </h2>
-            <p className="text-sm text-slate-300 max-w-xl">
-              From historic Nollywood sagas to record-breaking Hollywood releases, discover content tailored to your screen.
-            </p>
+      <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="space-y-4 text-left">
+          {/* Title directly at the top - NO PILL BADGE ABOVE IT */}
+          <h2 className="text-3xl sm:text-5xl font-black text-white">
+            Explore What&apos;s Streaming
+          </h2>
+          <p className="text-sm text-slate-300 max-w-2xl">
+            From historic Nollywood sagas to record-breaking Hollywood releases, discover content tailored to your screen.
+          </p>
 
-            {/* Highlights row placed below description, before category tabs */}
-            <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs font-semibold text-pink-400">
-              <span>✓ 4K Ultra HD & Dolby Atmos</span>
-              <span>✓ New Titles Added Weekly</span>
-              <span>✓ Full Mobile & Smart TV Sync</span>
-            </div>
+          {/* Highlights row placed below description */}
+          <div className="flex flex-wrap items-center gap-y-1 gap-x-4 text-xs font-semibold text-pink-400">
+            <span>✓ 4K Ultra HD & Dolby Atmos</span>
+            <span>✓ New Titles Added Weekly</span>
+            <span>✓ Full Mobile & Smart TV Sync</span>
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-[#120029] border border-[#2a0054]">
-            {[
-              { id: 'all', label: 'All Titles' },
-              { id: 'trending', label: 'Trending' },
-              { id: 'nollywood', label: 'Nollywood Hits' },
-              { id: 'blockbusters', label: 'Blockbusters' },
-              { id: 'shorts', label: 'Shorts & Reels' },
-              { id: 'vip', label: 'VIP Exclusives' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSelectedCategory(tab.id as any)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${selectedCategory === tab.id
-                  ? 'bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-white shadow-md'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+          {/* Category Tabs: Exactly below the highlights row, on one row, scrollable on overflow */}
+          <div className="pt-2">
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 w-full">
+              {[
+                { id: 'all', label: 'All Titles' },
+                { id: 'trending', label: 'Trending' },
+                { id: 'nollywood', label: 'Nollywood Hits' },
+                { id: 'blockbusters', label: 'Blockbusters' },
+                { id: 'shorts', label: 'Shorts & Reels' },
+                { id: 'vip', label: 'VIP Exclusives' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSelectedCategory(tab.id as any)}
+                  className={`whitespace-nowrap shrink-0 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+                    selectedCategory === tab.id
+                      ? 'bg-gradient-to-r from-[#FF0091] to-[#7928CA] text-white shadow-md shadow-[#FF0091]/30'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10 bg-[#120029] border border-[#2a0054]'
                   }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -778,7 +779,7 @@ export default function LandingPage() {
             <div
               key={movie.id}
               onClick={() => setActiveModalMovie(movie)}
-              className="group cursor-pointer rounded-2xl bg-[#120029]/70 border border-[#2a0054] hover:border-[#FF0091]/60 transition-all duration-300 overflow-hidden flex flex-col shadow-xl hover:-translate-y-1.5"
+              className="group cursor-pointer rounded bg-[#120029]/70 border border-[#2a0054] hover:border-[#FF0091]/60 transition-all duration-300 overflow-hidden flex flex-col shadow-xl"
             >
               <div className="relative aspect-[2/3] w-full overflow-hidden bg-slate-900">
                 <img

@@ -101,7 +101,7 @@ export default function RootLayout({
       </head>
       <body className="bg-[#0a0017] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-[#FF0091] selection:text-white">
         <Navbar />
-        <main className="flex-1 pt-20">{children}</main>
+        <main className="flex-1">{children}</main>
         <Footer />
       </body>
     </html>
