@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
 import { logger } from '../../utils/logger.js';
@@ -11,38 +13,38 @@ function initializeFirebaseAdmin() {
     return;
   }
 
-  const rawEnv = process.env.FIREBASE_SERVICE_ACCOUNT?.trim();
+  // Single environment variable for file mount path (defaults to standard /app mount)
+  const configuredPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH?.trim() || '/app/firebase-service-account.json';
+  const resolvedPath = path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.resolve(process.cwd(), configuredPath);
 
-  // If environment variable does not exist or is empty, terminate the process
-  if (!rawEnv) {
+  if (!fs.existsSync(resolvedPath)) {
     if (process.env.NODE_ENV === 'test') {
       logger.warn(
-        '[FIREBASE_ADMIN] FIREBASE_SERVICE_ACCOUNT not set in test environment. Skipping termination for tests.'
+        `[FIREBASE_ADMIN] Service account file not found at "${resolvedPath}". Skipping termination in test environment.`
       );
       return;
     }
 
     logger.error(
-      '[FATAL] Required environment variable FIREBASE_SERVICE_ACCOUNT is missing. Terminating process.'
+      `[FATAL] Firebase service account file not found at "${resolvedPath}". ` +
+      `Please mount your Firebase service account JSON file or set FIREBASE_SERVICE_ACCOUNT_PATH. Terminating process.`
     );
     process.exit(1);
   }
 
   try {
-    // Parse service account: supports Base64 string (for Coolify/Docker) or raw JSON
-    const jsonString = rawEnv.startsWith('{')
-      ? rawEnv
-      : Buffer.from(rawEnv, 'base64').toString('utf8');
-
-    const serviceAccount = JSON.parse(jsonString);
+    const fileContent = fs.readFileSync(resolvedPath, 'utf8');
+    const serviceAccount = JSON.parse(fileContent);
 
     firebaseApp = initializeApp({
       credential: cert(serviceAccount),
     });
 
-    logger.info('[FIREBASE_ADMIN] Successfully initialized Firebase Admin SDK from FIREBASE_SERVICE_ACCOUNT');
+    logger.info(`[FIREBASE_ADMIN] Successfully initialized Firebase Admin SDK from file: ${resolvedPath}`);
   } catch (error) {
-    logger.error(`[FATAL] Failed to parse or initialize FIREBASE_SERVICE_ACCOUNT: ${error}`);
+    logger.error(`[FATAL] Failed to parse or initialize Firebase service account from "${resolvedPath}": ${error}`);
     if (process.env.NODE_ENV !== 'test') {
       process.exit(1);
     }
