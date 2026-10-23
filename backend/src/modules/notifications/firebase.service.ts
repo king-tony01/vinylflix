@@ -1,3 +1,4 @@
+import fs from 'fs';
 import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
 import { getMessaging } from 'firebase-admin/messaging';
 import { logger } from '../../utils/logger.js';
@@ -12,19 +13,71 @@ function initializeFirebaseAdmin() {
   }
 
   try {
-    // 1. Check for whole JSON string in FIREBASE_SERVICE_ACCOUNT
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-      firebaseApp = initializeApp({
-        credential: cert(serviceAccount),
-      });
-      logger.info('[FIREBASE_ADMIN] Initialized using FIREBASE_SERVICE_ACCOUNT environment JSON');
-      return;
+    // 1. Check for Base64 encoded Service Account JSON (Recommended for Coolify & Docker Compose)
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+      try {
+        const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64.trim(), 'base64').toString('utf8');
+        const serviceAccount = JSON.parse(decoded);
+        firebaseApp = initializeApp({
+          credential: cert(serviceAccount),
+        });
+        logger.info('[FIREBASE_ADMIN] Initialized using FIREBASE_SERVICE_ACCOUNT_BASE64');
+        return;
+      } catch (err) {
+        logger.error(`[FIREBASE_ADMIN] Failed to parse FIREBASE_SERVICE_ACCOUNT_BASE64: ${err}`);
+      }
     }
 
-    // 2. Check for individual credentials (PROJECT_ID, CLIENT_EMAIL, PRIVATE_KEY)
-    if (process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
-      const privateKey = process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n');
+    // 2. Check for whole JSON or Base64 in FIREBASE_SERVICE_ACCOUNT
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      try {
+        const raw = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+        let serviceAccount: any;
+        if (raw.startsWith('{')) {
+          serviceAccount = JSON.parse(raw);
+        } else {
+          // Attempt base64 decode if value does not start with JSON brace
+          const decoded = Buffer.from(raw, 'base64').toString('utf8');
+          serviceAccount = JSON.parse(decoded);
+        }
+        firebaseApp = initializeApp({
+          credential: cert(serviceAccount),
+        });
+        logger.info('[FIREBASE_ADMIN] Initialized using FIREBASE_SERVICE_ACCOUNT');
+        return;
+      } catch (err) {
+        logger.error(`[FIREBASE_ADMIN] Failed to parse FIREBASE_SERVICE_ACCOUNT: ${err}`);
+      }
+    }
+
+    // 3. Check for direct file path in FIREBASE_SERVICE_ACCOUNT_PATH or GOOGLE_APPLICATION_CREDENTIALS
+    const filePath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH || process.env.GOOGLE_APPLICATION_CREDENTIALS;
+    if (filePath && fs.existsSync(filePath)) {
+      try {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const serviceAccount = JSON.parse(fileContent);
+        firebaseApp = initializeApp({
+          credential: cert(serviceAccount),
+        });
+        logger.info(`[FIREBASE_ADMIN] Initialized using service account file at ${filePath}`);
+        return;
+      } catch (err) {
+        logger.error(`[FIREBASE_ADMIN] Failed to read credentials file at ${filePath}: ${err}`);
+      }
+    }
+
+    // 4. Check for individual credentials (PROJECT_ID, CLIENT_EMAIL, PRIVATE_KEY / PRIVATE_KEY_BASE64)
+    if (
+      process.env.FIREBASE_CLIENT_EMAIL &&
+      (process.env.FIREBASE_PRIVATE_KEY || process.env.FIREBASE_PRIVATE_KEY_BASE64)
+    ) {
+      let privateKey: string;
+      if (process.env.FIREBASE_PRIVATE_KEY_BASE64) {
+        privateKey = Buffer.from(process.env.FIREBASE_PRIVATE_KEY_BASE64.trim(), 'base64').toString('utf8');
+      } else {
+        privateKey = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+      }
+
       firebaseApp = initializeApp({
         credential: cert({
           projectId: process.env.FIREBASE_PROJECT_ID || 'vinylflix-project',
@@ -36,7 +89,7 @@ function initializeFirebaseAdmin() {
       return;
     }
 
-    // 3. Fallback to Google Application Default Credentials (ADC) if specified
+    // 5. Fallback to Google Application Default Credentials (ADC)
     if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
       firebaseApp = initializeApp();
       logger.info('[FIREBASE_ADMIN] Initialized using GOOGLE_APPLICATION_CREDENTIALS path');
@@ -44,7 +97,7 @@ function initializeFirebaseAdmin() {
     }
 
     logger.warn(
-      '[FIREBASE_ADMIN] No Firebase Service Account configured. Real push notifications will not be sent until FIREBASE_SERVICE_ACCOUNT or FIREBASE_CLIENT_EMAIL/FIREBASE_PRIVATE_KEY is set in environment.'
+      '[FIREBASE_ADMIN] No Firebase Service Account configured. Real push notifications will not be sent until FIREBASE_SERVICE_ACCOUNT_BASE64 or FIREBASE_SERVICE_ACCOUNT is set in environment.'
     );
   } catch (error) {
     logger.error(`[FIREBASE_ADMIN] Initialization error: ${error}`);
