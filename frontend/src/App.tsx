@@ -11,6 +11,8 @@ import { CampaignsPage } from './pages/CampaignsPage.js';
 import { LoginPage } from './pages/LoginPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
 import { VerifyEmailPage } from './pages/VerifyEmailPage.js';
+import { MoviesPage } from './pages/MoviesPage.js';
+import { WatchPage } from './pages/WatchPage.js';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -28,6 +30,8 @@ export const AppContent: React.FC = () => {
       <Routes>
         <Route path="/" element={<FeedPage />} />
         <Route path="/feed" element={<FeedPage />} />
+        <Route path="/movies" element={<MoviesPage />} />
+        <Route path="/watch/:tmdbId" element={<WatchPage />} />
         <Route path="/memberships" element={<MembershipPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

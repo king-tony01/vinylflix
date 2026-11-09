@@ -1,51 +1,63 @@
-import type { Metadata } from 'next';
-import './globals.css';
-import { Navbar } from '../components/Navbar';
-import { Footer } from '../components/Footer';
+import type { Metadata } from "next";
+import "./globals.css";
+import { Navbar } from "../components/Navbar";
+import { Footer } from "../components/Footer";
+import { Poppins } from "next/font/google";
+
+const poppins = Poppins({
+  variable: "--font-poppins",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: 'Vinylflix — Stream African Cinema, Blockbusters & Exclusive Premieres',
+  title:
+    "Vinylflix — Stream African Cinema, Blockbusters & Exclusive Premieres",
   description:
-    'Experience the best in Nollywood, Pan-African cinema, global blockbusters, and bingeable reels. Stream in 4K Ultra HD on your phone, tablet, and Smart TV with Vinylflix.',
+    "Experience the best in Nollywood, Pan-African cinema, global blockbusters, and bingeable reels. Stream in 4K Ultra HD on your phone, tablet, and Smart TV with Vinylflix.",
   keywords: [
-    'vinylflix',
-    'african cinema',
-    'nollywood movies',
-    'stream african movies',
-    'nollywood streaming platform',
-    'watch nigerian movies online',
-    'african web series',
-    'ott streaming service',
-    'vip cinema pass',
-    'mobile movie app',
-    '4k ultra hd streaming',
+    "vinylflix",
+    "african cinema",
+    "nollywood movies",
+    "stream african movies",
+    "nollywood streaming platform",
+    "watch nigerian movies online",
+    "african web series",
+    "ott streaming service",
+    "vip cinema pass",
+    "mobile movie app",
+    "4k ultra hd streaming",
   ],
-  authors: [{ name: 'Vinylflix Studios' }],
-  creator: 'Vinylflix',
-  metadataBase: new URL('https://vinylflix.com'),
+  authors: [{ name: "Vinylflix Studios" }],
+  creator: "Vinylflix",
+  metadataBase: new URL("https://vinylflix.com"),
   openGraph: {
-    title: 'Vinylflix — Stream African Cinema, Blockbusters & Exclusive Premieres',
+    title:
+      "Vinylflix — Stream African Cinema, Blockbusters & Exclusive Premieres",
     description:
-      'Unlimited streaming of Nollywood hits, award-winning African cinema, and global entertainment. Ultra HD, zero ads on VIP, and offline downloads.',
-    url: 'https://vinylflix.com',
-    siteName: 'Vinylflix',
+      "Unlimited streaming of Nollywood hits, award-winning African cinema, and global entertainment. Ultra HD, zero ads on VIP, and offline downloads.",
+    url: "https://vinylflix.com",
+    siteName: "Vinylflix",
     images: [
       {
-        url: 'https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg',
+        url: "https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg",
         width: 1200,
         height: 630,
-        alt: 'Vinylflix - Premium Cinema & OTT Streaming',
+        alt: "Vinylflix - Premium Cinema & OTT Streaming",
       },
     ],
-    locale: 'en_US',
-    type: 'website',
+    locale: "en_US",
+    type: "website",
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Vinylflix — Stream African Cinema & Global Blockbusters',
+    card: "summary_large_image",
+    title: "Vinylflix — Stream African Cinema & Global Blockbusters",
     description:
-      'Stream Nollywood hits, African cinema, and global releases in 4K HDR. Join Vinylflix on Web, Android, and TV.',
-    images: ['https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg'],
+      "Stream Nollywood hits, African cinema, and global releases in 4K HDR. Join Vinylflix on Web, Android, and TV.",
+    images: [
+      "https://image.tmdb.org/t/p/original/dvBCdCohwWbsP5qAaglOXagDMtk.jpg",
+    ],
   },
   robots: {
     index: true,
@@ -53,18 +65,18 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: "/favicon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
   },
   verification: {
-    google: 'google3667ef5849c4957a',
+    google: "google3667ef5849c4957a",
   },
 };
 
@@ -74,7 +86,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className={["scroll-smooth", poppins.variable].join(" ")}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         {/* Schema.org Structured Data */}
@@ -82,19 +94,19 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'SoftwareApplication',
-              name: 'Vinylflix',
-              applicationCategory: 'EntertainmentApplication',
-              operatingSystem: 'Web, Android, iOS, Smart TV',
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "Vinylflix",
+              applicationCategory: "EntertainmentApplication",
+              operatingSystem: "Web, Android, iOS, Smart TV",
               offers: {
-                '@type': 'Offer',
-                price: '0.00',
-                priceCurrency: 'NGN',
+                "@type": "Offer",
+                price: "0.00",
+                priceCurrency: "NGN",
               },
               description:
-                'The premier African cinema & next-generation OTT streaming platform connecting audiences with Nollywood blockbusters, web series, and exclusive premieres.',
-              url: 'https://vinylflix.com',
+                "The premier African cinema & next-generation streaming platform connecting audiences with Nollywood blockbusters, web series, and exclusive premieres.",
+              url: "https://vinylflix.com",
             }),
           }}
         />

@@ -1,5 +1,12 @@
 import { Response } from 'express';
 
+export interface SubtitleTrack {
+  id?: string;
+  language: string;
+  url: string;
+  type?: string;
+}
+
 export interface ResolvedStream {
   url: string;
   quality: string;
@@ -7,6 +14,7 @@ export interface ResolvedStream {
   playerType: 'direct' | 'embed';
   headers?: Record<string, string>;
   isDirectHls?: boolean;
+  subtitles?: SubtitleTrack[];
 }
 
 export class StreamResolverService {
@@ -53,6 +61,21 @@ export class StreamResolverService {
         if (vidRes && vidRes.stream && vidRes.stream.qualities) {
           const qualities = vidRes.stream.qualities;
           const order = ['1080', '720', '480', '360'];
+
+          const subtitles: SubtitleTrack[] = [];
+          if (Array.isArray(vidRes.stream.captions)) {
+            for (const c of vidRes.stream.captions) {
+              if (c && c.url) {
+                subtitles.push({
+                  id: String(c.id || c.url),
+                  language: c.language || 'English',
+                  url: c.url,
+                  type: c.type || (c.url.includes('.vtt') ? 'vtt' : 'srt'),
+                });
+              }
+            }
+          }
+
           for (const q of order) {
             if (qualities[q] && qualities[q].url) {
               const label = q === '1080' ? '1080p Full HD' : `${q}p`;
@@ -63,6 +86,7 @@ export class StreamResolverService {
                 playerType: 'direct',
                 isDirectHls: false,
                 headers: {}, // Do NOT send filmboom referer: prevents 429 hotlink block on hakunaymatata
+                subtitles,
               });
             }
           }

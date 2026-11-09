@@ -12,6 +12,7 @@ import {
   LogIn,
   Lock,
   AlertCircle,
+  Film,
 } from 'lucide-react';
 
 interface AppLayoutProps {
@@ -22,9 +23,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const isFeed = location.pathname === '/';
+  const isMovies = location.pathname.startsWith('/movies');
+  const isWatch = location.pathname.startsWith('/watch');
 
   const allNavItems = [
     { label: 'Watch Feed', path: '/', icon: PlaySquare, isPublic: true },
+    { label: 'Movies & TV', path: '/movies', icon: Film, isPublic: true },
     { label: 'Memberships', path: '/memberships', icon: Crown, isPublic: true },
     { label: 'Refer & Earn', path: '/referrals', icon: Users, isPublic: false },
     { label: 'Campaigns', path: '/campaigns', icon: Layers, isPublic: false },
@@ -165,10 +169,12 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </div>
       </aside>
 
-      {/* 2. MOBILE TOP COMPACT BAR (hidden on desktop/tablet) */}
+      {/* 2. MOBILE TOP COMPACT BAR (hidden on desktop/tablet, and on watch page) */}
       <header
         className={`md:hidden flex items-center justify-between px-4 h-14 z-40 transition-all ${
-          isFeed
+          isWatch
+            ? 'hidden'
+            : isFeed
             ? 'absolute top-0 left-0 right-0 bg-gradient-to-b from-black/90 via-black/40 to-transparent pointer-events-none'
             : 'sticky top-0 bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-xl pointer-events-auto'
         }`}
@@ -203,6 +209,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         className={`flex-1 min-w-0 h-full ${
           isFeed
             ? 'absolute inset-0 w-full h-full overflow-hidden p-0 z-10 md:relative md:h-screen'
+            : isMovies || isWatch
+            ? 'p-0 overflow-y-auto pb-20 md:pb-8'
             : 'p-4 sm:p-6 lg:p-8 overflow-y-auto pb-20 md:pb-8'
         }`}
       >
