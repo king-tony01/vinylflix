@@ -1,49 +1,42 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Play,
-  Info,
-  Star,
-  Search,
-  Film,
-  Tv,
-  Flame,
-  X,
-} from 'lucide-react';
-import type { MovieItem } from '../types/movie.js';
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Play, Info, Star, Search, Film, Tv, Flame, X } from "lucide-react";
+import type { MovieItem } from "../types/movie.js";
 import {
   fetchTrending,
   fetchPopular,
   searchMovies,
   getFullBackdropUrl,
   getFullPosterUrl,
-} from '../lib/movieApi.js';
-import { MovieDetailModal } from '../components/MovieDetailModal.js';
+} from "../lib/movieApi.js";
+import { MovieDetailModal } from "../components/MovieDetailModal.js";
 
 const GENRES = [
-  'All',
-  'Action',
-  'Adventure',
-  'Animation',
-  'Comedy',
-  'Crime',
-  'Drama',
-  'Fantasy',
-  'Horror',
-  'Mystery',
-  'Romance',
-  'Sci-Fi',
-  'Thriller',
+  "All",
+  "Action",
+  "Adventure",
+  "Animation",
+  "Comedy",
+  "Crime",
+  "Drama",
+  "Fantasy",
+  "Horror",
+  "Mystery",
+  "Romance",
+  "Sci-Fi",
+  "Thriller",
 ];
 
 export const MoviesPage: React.FC = () => {
   const navigate = useNavigate();
 
   // State
-  const [selectedType, setSelectedType] = useState<'all' | 'movie' | 'tv'>('all');
-  const [selectedGenre, setSelectedGenre] = useState<string>('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [selectedType, setSelectedType] = useState<"all" | "movie" | "tv">(
+    "all",
+  );
+  const [selectedGenre, setSelectedGenre] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const [trendingMovies, setTrendingMovies] = useState<MovieItem[]>([]);
   const [catalogMovies, setCatalogMovies] = useState<MovieItem[]>([]);
@@ -53,7 +46,9 @@ export const MoviesPage: React.FC = () => {
   const [searchLoading, setSearchLoading] = useState(false);
 
   // Modal State
-  const [activeModalMovie, setActiveModalMovie] = useState<MovieItem | null>(null);
+  const [activeModalMovie, setActiveModalMovie] = useState<MovieItem | null>(
+    null,
+  );
 
   // Debounce search
   useEffect(() => {
@@ -72,14 +67,18 @@ export const MoviesPage: React.FC = () => {
       try {
         const [trending, popular] = await Promise.all([
           fetchTrending(selectedType, selectedGenre),
-          fetchPopular(selectedType === 'all' ? 'movie' : selectedType, 1, selectedGenre),
+          fetchPopular(
+            selectedType === "all" ? "movie" : selectedType,
+            1,
+            selectedGenre,
+          ),
         ]);
 
         if (!isMounted) return;
         setTrendingMovies(trending);
         setCatalogMovies(popular);
       } catch (err) {
-        console.error('[MoviesPage] Failed to load movies:', err);
+        console.error("[MoviesPage] Failed to load movies:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -114,7 +113,9 @@ export const MoviesPage: React.FC = () => {
 
   // Billboard Hero item (first trending title)
   const heroItem = useMemo(() => {
-    return trendingMovies.length > 0 ? trendingMovies[0] : catalogMovies[0] || null;
+    return trendingMovies.length > 0
+      ? trendingMovies[0]
+      : catalogMovies[0] || null;
   }, [trendingMovies, catalogMovies]);
 
   // Display list (Search results if searching, otherwise catalog)
@@ -124,7 +125,9 @@ export const MoviesPage: React.FC = () => {
   }, [debouncedQuery, searchResults, catalogMovies]);
 
   const handleWatch = (item: MovieItem) => {
-    navigate(`/watch/${item.tmdbId}${item.isSeries ? '?isSeries=true&season=1&episode=1' : ''}`);
+    navigate(
+      `/watch/${item.tmdbId}${item.isSeries ? "?isSeries=true&season=1&episode=1" : ""}`,
+    );
   };
 
   return (
@@ -149,10 +152,11 @@ export const MoviesPage: React.FC = () => {
               </span>
               <span className="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-bold flex items-center gap-1">
                 <Star className="w-3.5 h-3.5 fill-amber-400" />
-                {heroItem.rating ? heroItem.rating.toFixed(1) : '8.2'}
+                {heroItem.rating ? heroItem.rating.toFixed(1) : "8.2"}
               </span>
               <span className="text-xs font-medium text-slate-400">
-                {heroItem.releaseYear} • {heroItem.isSeries ? 'TV Series' : 'Movie'}
+                {heroItem.releaseYear} •{" "}
+                {heroItem.isSeries ? "TV Series" : "Movie"}
               </span>
             </div>
 
@@ -191,34 +195,34 @@ export const MoviesPage: React.FC = () => {
       <div className="sticky top-0 z-30 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800/80 px-4 md:px-8 py-4 space-y-3.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Type Toggle Tabs: All / Movies / TV Shows */}
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800/80 self-start">
+          <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800/80 self-start max-[500px]:w-full max-[500px]:grid max-[500px]:grid-cols-3 max-[500px]:gap-1.5">
             <button
-              onClick={() => setSelectedType('all')}
+              onClick={() => setSelectedType("all")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                selectedType === 'all'
-                  ? 'bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-pink-950/30'
-                  : 'text-slate-400 hover:text-white'
+                selectedType === "all"
+                  ? "bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-pink-950/30"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               All
             </button>
             <button
-              onClick={() => setSelectedType('movie')}
+              onClick={() => setSelectedType("movie")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                selectedType === 'movie'
-                  ? 'bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-pink-950/30'
-                  : 'text-slate-400 hover:text-white'
+                selectedType === "movie"
+                  ? "bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-pink-950/30"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               <Film className="w-3.5 h-3.5" />
               <span>Movies</span>
             </button>
             <button
-              onClick={() => setSelectedType('tv')}
+              onClick={() => setSelectedType("tv")}
               className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                selectedType === 'tv'
-                  ? 'bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-pink-950/30'
-                  : 'text-slate-400 hover:text-white'
+                selectedType === "tv"
+                  ? "bg-gradient-to-r from-[#FF0091] to-[#360099] text-white shadow-md shadow-pink-950/30"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
               <Tv className="w-3.5 h-3.5" />
@@ -238,7 +242,7 @@ export const MoviesPage: React.FC = () => {
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
+                onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
@@ -257,8 +261,8 @@ export const MoviesPage: React.FC = () => {
                 onClick={() => setSelectedGenre(genre)}
                 className={`flex-shrink-0 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-pink-600/20 text-pink-300 border border-pink-500/50 shadow-sm'
-                    : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700'
+                    ? "bg-pink-600/20 text-pink-300 border border-pink-500/50 shadow-sm"
+                    : "bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700"
                 }`}
               >
                 {genre}
@@ -271,58 +275,61 @@ export const MoviesPage: React.FC = () => {
       {/* 3. CONTENT AREA */}
       <div className="px-4 md:px-8 pt-6 space-y-6">
         {/* Trending Highlights Carousel (When not searching and viewing All genres) */}
-        {!debouncedQuery && selectedGenre === 'All' && trendingMovies.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-lg md:text-xl font-black text-white flex items-center gap-2 tracking-tight">
-              <Flame className="w-5 h-5 text-[#FF0091]" />
-              Trending Releases
-            </h2>
-            <div className="flex items-center gap-4 overflow-x-auto pb-3 scrollbar-none">
-              {trendingMovies.slice(1, 12).map((item) => (
-                <div
-                  key={item.tmdbId}
-                  onClick={() => setActiveModalMovie(item)}
-                  className="flex-shrink-0 w-36 sm:w-44 group cursor-pointer space-y-2"
-                >
-                  <div className="relative aspect-[2/3] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 group-hover:border-[#FF0091]/60 shadow-lg group-hover:shadow-pink-950/30 transition-all duration-300">
-                    <img
-                      src={getFullPosterUrl(item.posterPath)}
-                      alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-950/80 border border-white/10 text-amber-400 text-[10px] font-bold flex items-center gap-1 backdrop-blur-md">
-                      <Star className="w-3 h-3 fill-amber-400" />
-                      {item.rating ? item.rating.toFixed(1) : '8.0'}
-                    </div>
-                    {/* Hover Play Button */}
-                    <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF0091] to-[#360099] flex items-center justify-center shadow-lg shadow-[#FF0091]/50 transform scale-75 group-hover:scale-100 transition-transform">
-                        <Play className="w-6 h-6 fill-white text-white ml-0.5" />
+        {!debouncedQuery &&
+          selectedGenre === "All" &&
+          trendingMovies.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg md:text-xl font-black text-white flex items-center gap-2 tracking-tight">
+                <Flame className="w-5 h-5 text-[#FF0091]" />
+                Trending Releases
+              </h2>
+              <div className="flex items-center gap-4 overflow-x-auto pb-3 scrollbar-none">
+                {trendingMovies.slice(1, 12).map((item) => (
+                  <div
+                    key={item.tmdbId}
+                    onClick={() => setActiveModalMovie(item)}
+                    className="flex-shrink-0 w-36 sm:w-44 group cursor-pointer space-y-2"
+                  >
+                    <div className="relative aspect-[2/3] w-full rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 group-hover:border-[#FF0091]/60 shadow-lg group-hover:shadow-pink-950/30 transition-all duration-300">
+                      <img
+                        src={getFullPosterUrl(item.posterPath)}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-950/80 border border-white/10 text-amber-400 text-[10px] font-bold flex items-center gap-1 backdrop-blur-md">
+                        <Star className="w-3 h-3 fill-amber-400" />
+                        {item.rating ? item.rating.toFixed(1) : "8.0"}
+                      </div>
+                      {/* Hover Play Button */}
+                      <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-r from-[#FF0091] to-[#360099] flex items-center justify-center shadow-lg shadow-[#FF0091]/50 transform scale-75 group-hover:scale-100 transition-transform">
+                          <Play className="w-6 h-6 fill-white text-white ml-0.5" />
+                        </div>
                       </div>
                     </div>
+                    <div>
+                      <p className="text-xs font-bold text-white truncate group-hover:text-pink-300 transition-colors">
+                        {item.title}
+                      </p>
+                      <p className="text-[11px] text-slate-400">
+                        {item.releaseYear} •{" "}
+                        {item.isSeries ? "Series" : "Movie"}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-white truncate group-hover:text-pink-300 transition-colors">
-                      {item.title}
-                    </p>
-                    <p className="text-[11px] text-slate-400">
-                      {item.releaseYear} • {item.isSeries ? 'Series' : 'Movie'}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Main Grid Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-lg md:text-xl font-black text-white tracking-tight">
             {debouncedQuery
               ? `Search Results for "${debouncedQuery}"`
-              : selectedGenre !== 'All'
-              ? `${selectedGenre} Titles`
-              : 'Popular on Vinylflix'}
+              : selectedGenre !== "All"
+                ? `${selectedGenre} Titles`
+                : "Popular on Vinylflix"}
           </h2>
           <span className="text-xs text-slate-500 font-semibold">
             {displayMovies.length} titles
@@ -360,7 +367,7 @@ export const MoviesPage: React.FC = () => {
                   {/* Rating Badge */}
                   <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-950/80 border border-white/10 text-amber-400 text-[10px] font-bold flex items-center gap-1 backdrop-blur-md">
                     <Star className="w-3 h-3 fill-amber-400" />
-                    {item.rating ? item.rating.toFixed(1) : '8.0'}
+                    {item.rating ? item.rating.toFixed(1) : "8.0"}
                   </div>
 
                   {/* Series / Movie Tag */}
@@ -381,7 +388,9 @@ export const MoviesPage: React.FC = () => {
                     >
                       <Play className="w-5 h-5 fill-white ml-0.5" />
                     </button>
-                    <span className="text-[11px] font-bold text-white/90">Play Now</span>
+                    <span className="text-[11px] font-bold text-white/90">
+                      Play Now
+                    </span>
                   </div>
                 </div>
 
@@ -391,7 +400,8 @@ export const MoviesPage: React.FC = () => {
                     {item.title}
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    {item.releaseYear || '2024'} • {item.isSeries ? 'Series' : 'Movie'}
+                    {item.releaseYear || "2024"} •{" "}
+                    {item.isSeries ? "Series" : "Movie"}
                   </p>
                 </div>
               </div>
@@ -401,9 +411,12 @@ export const MoviesPage: React.FC = () => {
           /* Empty Search State */
           <div className="py-20 text-center space-y-3">
             <Film className="w-12 h-12 text-slate-600 mx-auto" />
-            <h3 className="text-base font-bold text-white">No movies or TV shows found</h3>
+            <h3 className="text-base font-bold text-white">
+              No movies or TV shows found
+            </h3>
             <p className="text-xs text-slate-400 max-w-sm mx-auto">
-              We couldn't find matches for "{debouncedQuery}". Try another title, actor name, or genre.
+              We couldn't find matches for "{debouncedQuery}". Try another
+              title, actor name, or genre.
             </p>
           </div>
         )}
